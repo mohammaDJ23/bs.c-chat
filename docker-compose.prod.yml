@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  c-chat-prod:
+    image: ${DOCKER_USERNAME}/c-chat-prod
+    env_file:
+      - /root/config/c-chat-prod.env.txt
+    container_name: c-chat-prod
+    restart: always
+    ports:
+      - ${PORT}:${PORT}
+    networks:
+      - services_app-network
+
+networks:
+  services_app-network:
+    external: true
