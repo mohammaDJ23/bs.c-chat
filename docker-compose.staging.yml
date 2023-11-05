@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  c-chat-staging:
+    image: ${DOCKER_USERNAME}/c-chat-staging
+    env_file:
+      - /root/config/c-chat-staging.env.txt
+    container_name: c-chat-staging
+    restart: always
+    ports:
+      - ${PORT}:${PORT}
+    networks:
+      - services_app-network
+
+networks:
+  services_app-network:
+    external: true
