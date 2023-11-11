@@ -16,7 +16,13 @@ module.exports = merge(commonConfig, {
       'process.env': JSON.stringify(dotenv.parsed),
     }),
   ],
-  devServer: { port: process.env.PORT, historyApiFallback: true },
+  devServer: {
+    port: process.env.PORT,
+    historyApiFallback: true,
+    client: {
+      overlay: false,
+    },
+  },
   output: {
     publicPath: process.env.CHAT_APP + process.env.CHAT_PUBLIC_PATH,
   },
