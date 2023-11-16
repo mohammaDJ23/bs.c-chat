@@ -1,17 +1,20 @@
 import './assets/styles/index.css';
 import { FC } from 'react';
-import { Pathes, UserRoles, getTokenInfo, isContainerApp, isUserAuthenticated } from './lib';
+import { Pathes, UserRoles, isContainerApp } from './lib';
 import { Navigate } from 'react-router-dom';
 import OwnerChat from './components/OwnerChat';
 import UserChat from './components/UserChat';
+import { useAuth } from './hooks';
 
 const App: FC = () => {
+  const auth = useAuth();
+
   if (isContainerApp()) {
-    const isUserLoggedIn = isUserAuthenticated();
+    const isUserLoggedIn = auth.isUserAuthenticated();
     if (!isUserLoggedIn) {
       return <Navigate to={Pathes.LOGIN} />;
     }
-    const userInfo = getTokenInfo()!;
+    const userInfo = auth.getDecodedToken()!;
     if (userInfo.role === UserRoles.OWNER) {
       return <OwnerChat />;
     }

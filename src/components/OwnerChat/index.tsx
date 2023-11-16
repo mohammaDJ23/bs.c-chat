@@ -18,7 +18,7 @@ const OwnerChat: FC = () => {
           >
             <Box sx={{ width: '100%', height: '100%', wordBreak: 'break-word' }}>
               <List disablePadding>
-                <ListItemButton sx={{ borderBottom: '1px solid #e0e0e0' }}>
+                <ListItemButton sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}>
                   <ListItem disablePadding>
                     <Box sx={{ width: '100%', height: '100%' }}>
                       <Box
@@ -27,22 +27,41 @@ const OwnerChat: FC = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          gap: '10px',
                           flexWrap: 'nowrap',
                           width: '100%',
                         }}
                       >
-                        <ListItemText
-                          primaryTypographyProps={{
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                            overflow: 'hidden',
-                            whiteSpace: 'nowrap',
-                            textOverflow: 'ellipsis',
-                            width: '175px',
+                        <Box
+                          component="div"
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            flexWrap: 'nowrap',
                           }}
-                          primary="Mohammad nowresideh"
-                        />
+                        >
+                          <ListItemText
+                            sx={{
+                              flex: 'unset',
+                              width: '8px',
+                              height: '8px',
+                              backgroundColor: 'red',
+                              borderRadius: '50%',
+                            }}
+                            secondary={<Box component="span"></Box>}
+                          />
+                          <ListItemText
+                            primaryTypographyProps={{
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                              textOverflow: 'ellipsis',
+                              width: '165px',
+                            }}
+                            primary="Mohammad nowresideh"
+                          />
+                        </Box>
                         <ListItemText
                           secondaryTypographyProps={{
                             fontSize: '10px',
@@ -56,11 +75,11 @@ const OwnerChat: FC = () => {
                         <ListItemText
                           secondaryTypographyProps={{
                             fontSize: '11px',
-                            fontWeight: 'bold',
+                            fontWeight: '500',
                             overflow: 'hidden',
                             whiteSpace: 'nowrap',
                             textOverflow: 'ellipsis',
-                            width: '239px',
+                            width: '250px',
                           }}
                           secondary={'this is a new message from mohammad nowresideh who is the owner of the app'}
                         />
