@@ -1,6 +1,17 @@
 import { FC } from 'react';
-import { Box, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
+import { Box, List, ListItem, ListItemButton, ListItemText, TextField as TF, styled } from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
 import moment from 'moment';
+
+const TextField = styled(TF)(({ theme }) => ({
+  '.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input': {
+    border: 'none',
+    padding: '14px',
+  },
+  '.css-1d3z3hw-MuiOutlinedInput-notchedOutline': {
+    border: 'none',
+  },
+}));
 
 const OwnerChat: FC = () => {
   return (
@@ -90,7 +101,40 @@ const OwnerChat: FC = () => {
               </List>
             </Box>
           </Box>
-          <Box sx={{ width: '100%', height: '100%', position: 'relative' }}></Box>
+          <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+            <Box></Box>
+            <Box
+              sx={{
+                position: 'absolute',
+                zIndex: 1,
+                bottom: '0',
+                left: '0',
+                width: '100%',
+                height: '50px',
+                backgroundColor: 'white',
+                borderTop: '1px solid #e0e0e0',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <TextField
+                  value={''}
+                  onChange={() => {}}
+                  placeholder={'Type your message here'}
+                  fullWidth
+                  sx={{ height: '100%', width: '100%' }}
+                />
+                <Box sx={{ padding: '0 14px' }}>
+                  <SendIcon color="primary" />
+                </Box>
+              </Box>
+            </Box>
+          </Box>
         </Box>
       </Box>
     </Box>
