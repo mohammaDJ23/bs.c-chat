@@ -1,3 +1,4 @@
+import './assets/styles/index.css';
 import { FC } from 'react';
 import { Pathes, UserRoles, getTokenInfo, isContainerApp, isUserAuthenticated } from './lib';
 import { Navigate } from 'react-router-dom';
@@ -16,7 +17,8 @@ const App: FC = () => {
     }
     return <UserChat />;
   }
-  return <div>Runs the app in the container</div>;
+  // return <div>Runs the app in the container</div>;
+  return <OwnerChat />;
 };
 
 export default App;
