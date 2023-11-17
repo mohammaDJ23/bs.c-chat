@@ -20,8 +20,7 @@ const App: FC = () => {
     }
     return <UserChat />;
   }
-  // return <div>Runs the app in the container</div>;
-  return <OwnerChat />;
+  return <div>Runs the app in the container</div>;
 };
 
 export default App;
