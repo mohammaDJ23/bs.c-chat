@@ -3,6 +3,21 @@ import { Box, List, ListItem, ListItemButton, ListItemText, TextField as TF, sty
 import SendIcon from '@mui/icons-material/Send';
 import moment from 'moment';
 
+const MessageWrapper = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: '280px auto',
+  height: '100%',
+  width: '100%',
+  [theme.breakpoints.down('md')]: {
+    gridTemplateColumns: 'auto',
+  },
+  '.css-fsky3x': {
+    [theme.breakpoints.down('md')]: {
+      display: 'none',
+    },
+  },
+}));
+
 const TextField = styled(TF)(({ theme }) => ({
   '.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input': {
     border: 'none',
@@ -38,7 +53,7 @@ const OwnerChat: FC = () => {
   return (
     <Box sx={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
       <Box sx={{ width: '100%', height: '100%' }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '280px auto', height: '100%', width: '100%' }}>
+        <MessageWrapper>
           <Box
             sx={{
               width: '100%',
@@ -226,7 +241,7 @@ const OwnerChat: FC = () => {
               </form>
             </Box>
           </Box>
-        </Box>
+        </MessageWrapper>
       </Box>
     </Box>
   );
