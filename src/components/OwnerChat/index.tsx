@@ -1,5 +1,5 @@
-import { FC } from 'react';
-import { Box, List, ListItem, ListItemButton, ListItemText, TextField as TF, styled } from '@mui/material';
+import { FC, useCallback } from 'react';
+import { Box, List, ListItem, ListItemButton, ListItemText, TextField as TF, styled, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import moment from 'moment';
 
@@ -7,6 +7,8 @@ const TextField = styled(TF)(({ theme }) => ({
   '.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input': {
     border: 'none',
     padding: '14px',
+    fontSize: '14px',
+    letterSpacing: '0.3px',
   },
   '.css-1d3z3hw-MuiOutlinedInput-notchedOutline': {
     border: 'none',
@@ -14,6 +16,25 @@ const TextField = styled(TF)(({ theme }) => ({
 }));
 
 const OwnerChat: FC = () => {
+  const getMessageDate = useCallback((date: Date | number) => {
+    const now = new Date().getTime();
+    const messageDate = new Date(date).getTime();
+    const calculatedTime = now - messageDate;
+
+    // one day
+    if (calculatedTime < 86400000) {
+      return moment(messageDate).format('LT');
+
+      // two days
+    } else if (calculatedTime < 172800000) {
+      return moment(messageDate).subtract(1, 'days').calendar();
+
+      // one week or more
+    } else if (calculatedTime < 604800000 || calculatedTime >= 604800000) {
+      return moment(messageDate).format('llll');
+    }
+  }, []);
+
   return (
     <Box sx={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
       <Box sx={{ width: '100%', height: '100%' }}>
@@ -102,8 +123,76 @@ const OwnerChat: FC = () => {
             </Box>
           </Box>
           <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
-            <Box></Box>
             <Box
+              component="div"
+              sx={{ marginBottom: '51px', width: '100%', height: '100%', overflow: 'hidden', padding: '10px' }}
+            >
+              <Box sx={{ width: '100%', height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '15px',
+                    width: '100%',
+                    height: '100%',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'start' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'end', flexDirection: 'column', gap: '6px' }}>
+                      <Box
+                        sx={{
+                          backgroundColor: '#20A0FF',
+                          padding: '12px',
+                          borderRadius: '0 10px 10px 10px',
+                          maxWidth: '400px',
+                          border: '1px solid #f2f2f2',
+                          color: 'white',
+                          boxShadow: '0px 10px 15px -10px rgba(0,0,0,0.1)',
+                        }}
+                      >
+                        <Typography
+                          sx={{ fontSize: '15px', fontWeight: '400', letterSpacing: '0.3px', minWidth: '50px' }}
+                          component="p"
+                        >
+                          oaisdjfoiasjdiofjiasdjiof iosajdiofjiosadj sidoj fiojisodjf
+                        </Typography>
+                      </Box>
+                      <Typography fontSize={'10px'} fontWeight={'400'} sx={{ color: '#999999' }} component="p">
+                        {getMessageDate(new Date())}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'end' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'start', flexDirection: 'column', gap: '6px' }}>
+                      <Box
+                        sx={{
+                          backgroundColor: '#f8f8f8',
+                          padding: '12px',
+                          borderRadius: '10px 0 10px 10px',
+                          maxWidth: '400px',
+                          border: '1px solid #f2f2f2',
+                          color: 'black',
+                          boxShadow: '0px 10px 15px -10px rgba(0,0,0,0.1)',
+                        }}
+                      >
+                        <Typography
+                          sx={{ fontSize: '15px', fontWeight: '400', letterSpacing: '0.3px', minWidth: '50px' }}
+                          component="p"
+                        >
+                          oaisdjfoiasjdiofjiasdjiof
+                        </Typography>
+                      </Box>
+                      <Typography fontSize={'10px'} fontWeight={'400'} sx={{ color: '#999999' }} component="p">
+                        {getMessageDate(new Date())}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+            <Box
+              component="div"
               sx={{
                 position: 'absolute',
                 zIndex: 1,
@@ -117,6 +206,7 @@ const OwnerChat: FC = () => {
             >
               <form onSubmit={() => {}}>
                 <Box
+                  component="div"
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -124,7 +214,6 @@ const OwnerChat: FC = () => {
                   }}
                 >
                   <TextField
-                    value={''}
                     onChange={() => {}}
                     placeholder={'Type your message here'}
                     fullWidth
