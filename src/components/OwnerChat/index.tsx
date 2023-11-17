@@ -115,24 +115,26 @@ const OwnerChat: FC = () => {
                 borderTop: '1px solid #e0e0e0',
               }}
             >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                }}
-              >
-                <TextField
-                  value={''}
-                  onChange={() => {}}
-                  placeholder={'Type your message here'}
-                  fullWidth
-                  sx={{ height: '100%', width: '100%' }}
-                />
-                <Box sx={{ padding: '0 14px' }}>
-                  <SendIcon color="primary" />
+              <form onSubmit={() => {}}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  <TextField
+                    value={''}
+                    onChange={() => {}}
+                    placeholder={'Type your message here'}
+                    fullWidth
+                    sx={{ height: '100%', width: '100%' }}
+                  />
+                  <Box sx={{ padding: '0 14px' }}>
+                    <SendIcon color="primary" sx={{ cursor: 'pointer' }} />
+                  </Box>
                 </Box>
-              </Box>
+              </form>
             </Box>
           </Box>
         </Box>
