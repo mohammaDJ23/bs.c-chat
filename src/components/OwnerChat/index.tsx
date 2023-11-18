@@ -2,7 +2,6 @@ import { FC } from 'react';
 import { Box, styled } from '@mui/material';
 import Users from './Users';
 import MessagesContent from './MessagesContent';
-import { useSelector } from '../../hooks';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
   display: 'grid',
@@ -12,21 +11,29 @@ const MessageWrapper = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: 'auto',
   },
-  '.css-fsky3x': {
-    [theme.breakpoints.down('md')]: {
-      display: 'none',
-    },
+}));
+
+const UsersWrapper = styled(Box)(({ theme }) => ({
+  [theme.breakpoints.down('md')]: {
+    display: 'none',
   },
 }));
 
 const OwnerChat: FC = () => {
-  const selectors = useSelector();
-
   return (
-    <Box sx={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
+    <Box
+      sx={{
+        width: '100vw',
+        height: 'calc(100vh - 80px)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
       <Box sx={{ width: '100%', height: '100%' }}>
         <MessageWrapper>
-          <Users />
+          <UsersWrapper>
+            <Users />
+          </UsersWrapper>
           <MessagesContent />
         </MessageWrapper>
       </Box>

@@ -1,3 +1,3 @@
-import { RequestProcessActions, ClearStateActions, UserServiceSocketActions } from './';
+import { RequestProcessActions, ClearStateActions, UserServiceSocketActions, MessageActions } from './';
 
-export type RootActions = RequestProcessActions | ClearStateActions | UserServiceSocketActions;
+export type RootActions = RequestProcessActions | ClearStateActions | UserServiceSocketActions | MessageActions;

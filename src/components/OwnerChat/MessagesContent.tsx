@@ -1,9 +1,11 @@
 import { FC, useCallback, useState, useEffect } from 'react';
-import { Box, TextField as TF, styled, Menu, MenuItem, Drawer, Typography } from '@mui/material';
+import { Box, TextField as TF, styled, Menu, MenuItem, Drawer } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import MenuIcon from '@mui/icons-material/Menu';
 import Users from './Users';
-import MessageCard, { MessageObj } from './MessageCard';
+import MessageCard from './MessageCard';
+import { MessageObj } from '../../store';
+import EmptyMessages from './EmptyMessages';
 
 const TextField = styled(TF)(({ theme }) => ({
   '.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input': {
@@ -94,7 +96,7 @@ const MessagesContent: FC = () => {
       }
     }
 
-    setMessages(prevState => {
+    setMessages((prevState) => {
       return messages;
     });
   }, [chunkedMessageIndexesByTime]);
@@ -140,15 +142,11 @@ const MessagesContent: FC = () => {
             </Box>
           </Box>
         ) : (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-            <Typography fontSize={'14px'} fontWeight={'500'}>
-              Empy messages
-            </Typography>
-          </Box>
+          <EmptyMessages />
         )}
         <FormWrapper>
           <form
-            onSubmit={event => {
+            onSubmit={(event) => {
               event.preventDefault();
               onSendText();
             }}
@@ -170,7 +168,7 @@ const MessagesContent: FC = () => {
                 </Menu>
               </MenuIconWrapper>
               <TextField
-                onChange={event => setText(event.target.value)}
+                onChange={(event) => setText(event.target.value)}
                 placeholder={'Type your message here'}
                 fullWidth
                 value={text}
@@ -184,7 +182,7 @@ const MessagesContent: FC = () => {
         </FormWrapper>
       </Box>
       <Drawer sx={{ zIndex: 10 }} anchor="left" open={isDrawerOpened} onClose={() => setIsDrawerOpened(false)}>
-        <Box onClick={() => setIsDrawerOpened(false)}>
+        <Box sx={{ width: '280px' }} onClick={() => setIsDrawerOpened(false)}>
           <Users />
         </Box>
       </Drawer>

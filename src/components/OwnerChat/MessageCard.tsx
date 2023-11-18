@@ -2,15 +2,7 @@ import { FC, useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
 import moment from 'moment';
 import { useAuth } from '../../hooks';
-
-export interface MessageObj {
-  userId: number;
-  id: string;
-  text: string;
-  date: number;
-  isReaded: boolean;
-  isDateDisabled?: boolean;
-}
+import { MessageObj } from '../../store';
 
 interface MessageCardImportation {
   message: MessageObj;
