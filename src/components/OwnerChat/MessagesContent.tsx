@@ -4,8 +4,10 @@ import SendIcon from '@mui/icons-material/Send';
 import MenuIcon from '@mui/icons-material/Menu';
 import Users from './Users';
 import MessageCard from './MessageCard';
-import { MessageObj } from '../../store';
+import { MessageObj, ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
+import { useAction, useSelector } from '../../hooks';
+import StartConversation from './StartConversation';
 
 const TextField = styled(TF)(({ theme }) => ({
   '.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input': {
@@ -43,10 +45,10 @@ const FormWrapper = styled(Box)(({ theme }) => ({
 
 const MessagesContent: FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [isDrawerOpened, setIsDrawerOpened] = useState(false);
-  const [messages, setMessages] = useState<MessageObj[]>([]);
   const [text, setText] = useState<string>('');
   const isAnchorElOpen = !!anchorEl;
+  const selectors = useSelector();
+  const actions = useAction();
 
   const onMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -96,9 +98,7 @@ const MessagesContent: FC = () => {
       }
     }
 
-    setMessages((prevState) => {
-      return messages;
-    });
+    // setting the messages
   }, [chunkedMessageIndexesByTime]);
 
   useEffect(() => {
@@ -112,77 +112,89 @@ const MessagesContent: FC = () => {
 
   return (
     <>
-      <Box
-        sx={{
-          width: '100%',
-          height: '100%',
-          position: 'relative',
-          overflowY: 'auto',
-          overflowX: 'hidden',
-        }}
-      >
-        {messages.length > 0 ? (
-          <Box component="div" sx={{ width: '100%', height: '100%', padding: '10px' }}>
-            <Box sx={{ width: '100%', height: '100%' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '5px',
-                  width: '100%',
-                  height: '100%',
-                }}
-              >
-                {messages.map((message, i) => (
-                  <Box key={message.id} sx={{ paddingBottom: i >= messages.length - 1 ? '58px' : '0' }}>
-                    <MessageCard message={message} />
-                  </Box>
-                ))}
+      {selectors.message.selectedUser ? (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            position: 'relative',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+          }}
+        >
+          {selectors.message.messages.length > 0 ? (
+            <Box component="div" sx={{ width: '100%', height: '100%', padding: '10px' }}>
+              <Box sx={{ width: '100%', height: '100%' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '5px',
+                    width: '100%',
+                    height: '100%',
+                  }}
+                >
+                  {selectors.message.messages.map((message, i) => (
+                    <Box
+                      key={message.id}
+                      sx={{ paddingBottom: i >= selectors.message.messages.length - 1 ? '58px' : '0' }}
+                    >
+                      <MessageCard message={message} />
+                    </Box>
+                  ))}
+                </Box>
               </Box>
             </Box>
-          </Box>
-        ) : (
-          <EmptyMessages />
-        )}
-        <FormWrapper>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              onSendText();
-            }}
-          >
-            <Box
-              component="div"
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
+          ) : (
+            <EmptyMessages />
+          )}
+          <FormWrapper>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                onSendText();
               }}
             >
-              <MenuIconWrapper>
-                <Box onClick={onMenuOpen} sx={{ padding: '0 14px' }}>
-                  <MenuIcon color="primary" sx={{ cursor: 'pointer' }} />
+              <Box
+                component="div"
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <MenuIconWrapper>
+                  <Box onClick={onMenuOpen} sx={{ padding: '0 14px' }}>
+                    <MenuIcon color="primary" sx={{ cursor: 'pointer' }} />
+                  </Box>
+                  <Menu anchorEl={anchorEl} open={isAnchorElOpen} onClick={onMenuClose}>
+                    <MenuItem onClick={() => actions.showModal(ModalNames.CONVERSATION)}>Users</MenuItem>
+                  </Menu>
+                </MenuIconWrapper>
+                <TextField
+                  onChange={(event) => setText(event.target.value)}
+                  placeholder={'Type your message here'}
+                  fullWidth
+                  value={text}
+                  sx={{ height: '100%', width: '100%' }}
+                />
+                <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
+                  <SendIcon color="primary" sx={{ cursor: 'pointer' }} />
                 </Box>
-                <Menu anchorEl={anchorEl} open={isAnchorElOpen} onClick={onMenuClose}>
-                  <MenuItem onClick={() => setIsDrawerOpened(true)}>Users</MenuItem>
-                </Menu>
-              </MenuIconWrapper>
-              <TextField
-                onChange={(event) => setText(event.target.value)}
-                placeholder={'Type your message here'}
-                fullWidth
-                value={text}
-                sx={{ height: '100%', width: '100%' }}
-              />
-              <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
-                <SendIcon color="primary" sx={{ cursor: 'pointer' }} />
               </Box>
-            </Box>
-          </form>
-        </FormWrapper>
-      </Box>
-      <Drawer sx={{ zIndex: 10 }} anchor="left" open={isDrawerOpened} onClose={() => setIsDrawerOpened(false)}>
-        <Box sx={{ width: '280px' }} onClick={() => setIsDrawerOpened(false)}>
+            </form>
+          </FormWrapper>
+        </Box>
+      ) : (
+        <StartConversation />
+      )}
+      <Drawer
+        sx={{ zIndex: 10 }}
+        anchor="left"
+        open={selectors.modal[ModalNames.CONVERSATION]}
+        onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
+      >
+        <Box sx={{ width: '280px' }} onClick={() => actions.hideModal(ModalNames.CONVERSATION)}>
           <Users />
         </Box>
       </Drawer>

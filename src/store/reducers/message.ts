@@ -2,6 +2,7 @@ import { UserRoles } from '../../lib';
 import {
   CreateMessageAction,
   RootActions,
+  SelecteUserAction,
   SetMessagesAction,
   SetSearchedUsersAction,
   SetUsersAction,
@@ -12,6 +13,7 @@ export enum Message {
   SET_USERS = 'SET_USERS',
   SET_MESSAGES = 'SET_MESSAGES',
   SET_SEARCHED_USERS = 'SET_SEARCHED_USERS',
+  SELECT_USER_ACTION = 'SELECT_USER_ACTION',
 }
 
 export interface MessageObj {
@@ -41,12 +43,14 @@ interface MessageState {
   messages: MessageObj[];
   users: UserObj[];
   searchedUsers: UserObj[];
+  selectedUser: null | UserObj;
 }
 
 const initialState: MessageState = {
   messages: [],
   users: [],
   searchedUsers: [],
+  selectedUser: null,
 };
 
 function createMessage(state: MessageState, action: CreateMessageAction): MessageState {
@@ -76,6 +80,12 @@ function setSearchedUsers(state: MessageState, action: SetSearchedUsersAction): 
   return newState;
 }
 
+function selectUser(state: MessageState, action: SelecteUserAction): MessageState {
+  const newState = Object.assign({}, state);
+  newState.selectedUser = action.payload;
+  return newState;
+}
+
 export function messageReducer(state: MessageState = initialState, actions: RootActions): MessageState {
   switch (actions.type) {
     case Message.CREATE_MESSAGE:
@@ -89,6 +99,9 @@ export function messageReducer(state: MessageState = initialState, actions: Root
 
     case Message.SET_SEARCHED_USERS:
       return setSearchedUsers(state, actions);
+
+    case Message.SELECT_USER_ACTION:
+      return selectUser(state, actions);
 
     default:
       return state;

@@ -20,7 +20,17 @@ export interface SetSearchedUsersAction {
   payload: UserObj[];
 }
 
-export type MessageActions = CreateMessageAction | SetMessagesAction | SetUsersAction | SetSearchedUsersAction;
+export interface SelecteUserAction {
+  type: Message.SELECT_USER_ACTION;
+  payload: UserObj;
+}
+
+export type MessageActions =
+  | CreateMessageAction
+  | SetMessagesAction
+  | SetUsersAction
+  | SetSearchedUsersAction
+  | SelecteUserAction;
 
 export function createMessage(payload: MessageObj): CreateMessageAction {
   return {
@@ -46,6 +56,13 @@ export function setUsers(payload: UserObj[]): SetUsersAction {
 export function setSearchedUsers(payload: UserObj[]): SetSearchedUsersAction {
   return {
     type: Message.SET_SEARCHED_USERS,
+    payload,
+  };
+}
+
+export function selectUser(payload: UserObj): SelecteUserAction {
+  return {
+    type: Message.SELECT_USER_ACTION,
     payload,
   };
 }
