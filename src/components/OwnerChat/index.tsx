@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { Box, styled } from '@mui/material';
 import Users from './Users';
 import MessagesContent from './MessagesContent';
+import { useSelector } from '../../hooks';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
   display: 'grid',
@@ -19,6 +20,8 @@ const MessageWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const OwnerChat: FC = () => {
+  const selectors = useSelector();
+
   return (
     <Box sx={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
       <Box sx={{ width: '100%', height: '100%' }}>
