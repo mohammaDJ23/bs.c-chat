@@ -13,7 +13,11 @@ import moment from 'moment';
 import EmptyUsers from './EmptyUsers';
 import { useSelector } from '../../hooks';
 
-const Users: FC = () => {
+interface UsersImportation {
+  onUserClick: () => void;
+}
+
+const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const selectors = useSelector();
 
   return (
@@ -30,7 +34,14 @@ const Users: FC = () => {
       <Box sx={{ width: '100%', height: '100%', position: 'relative', paddingBottom: '48px' }}>
         {selectors.message.users.length > 0 ? (
           <List disablePadding>
-            <ListItemButton sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}>
+            <ListItemButton
+              sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}
+              onClick={() => {
+                if (onUserClick) {
+                  onUserClick.call({});
+                }
+              }}
+            >
               <ListItem disablePadding>
                 <Box sx={{ width: '100%', height: '100%' }}>
                   <Box

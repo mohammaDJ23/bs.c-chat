@@ -208,8 +208,8 @@ const MessagesContent: FC = () => {
         open={isConversationDrawerOpen}
         onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
       >
-        <Box sx={{ width: '280px', height: '100vh' }} onClick={() => actions.hideModal(ModalNames.CONVERSATION)}>
-          <Users />
+        <Box sx={{ width: '280px', height: '100vh' }}>
+          <Users onUserClick={() => actions.hideModal(ModalNames.CONVERSATION)} />
         </Box>
       </Drawer>
     </>
