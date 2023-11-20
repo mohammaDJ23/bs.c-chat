@@ -5,3 +5,5 @@ export * from './localStorage';
 export * from './date';
 export * from './routes';
 export * from './firebase';
+export * from './copyConstructor';
+export * from './lists';

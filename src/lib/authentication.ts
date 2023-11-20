@@ -1,20 +1,7 @@
 import { decodeToken } from 'react-jwt';
 import { getTime } from './date';
 import { LocalStorage } from './localStorage';
-
-export interface UserObj {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  role: UserRoles;
-  createdBy: number;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-  parent: UserObj;
-}
+import { UserObj } from './lists';
 
 export enum UserRoles {
   OWNER = 'owner',
@@ -87,7 +74,7 @@ export function hasRole(...roles: UserRoles[]): boolean {
   const userInfo = getDecodedToken();
 
   if (!userInfo) return false;
-  else return roles.some(role => userInfo.role === role);
+  else return roles.some((role) => userInfo.role === role);
 }
 
 export function isCurrentUser(): boolean {
