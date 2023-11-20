@@ -49,7 +49,7 @@ const MessagesContent: FC = () => {
   const isAnchorElOpen = !!anchorEl;
   const selectors = useSelector();
   const actions = useAction();
-  const isConversationDrawerOpen = !!selectors.modal[ModalNames.CONVERSATION];
+  const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
 
   const onMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);

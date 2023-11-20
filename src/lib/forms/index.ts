@@ -1,3 +1,6 @@
-export * from './formConstructor';
+import { UserListFilters } from './userListFilters';
 
-export const forms = {};
+export * from './formConstructor';
+export * from './userListFilters';
+
+export const forms = { UserListFilters };

@@ -9,7 +9,7 @@ export function usePaginationList<T>(listInstance: ListInstanceConstructor<ListI
   return useMemo(
     function () {
       function getInstance() {
-        const instance = selectors.paginationList[listInstance.name];
+        const instance = selectors.paginationLists[listInstance.name];
         if (instance) {
           return instance;
         }
@@ -101,6 +101,6 @@ export function usePaginationList<T>(listInstance: ListInstanceConstructor<ListI
         isListEmpty,
       };
     },
-    [selectors.paginationList[listInstance.name]]
+    [selectors.paginationLists[listInstance.name]]
   );
 }
