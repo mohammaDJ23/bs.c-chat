@@ -8,6 +8,7 @@ export enum Modal {
 
 export enum ModalNames {
   CONVERSATION = 'CONVERSATION',
+  CONFIRMATION = 'CONFIRMATION',
 }
 
 export interface ModalState {

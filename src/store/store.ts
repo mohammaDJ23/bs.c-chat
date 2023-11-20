@@ -1,6 +1,7 @@
 import { combineReducers, createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import {
+  FormReducer,
   messageReducer,
   modalReducer,
   paginationListReducer,
@@ -12,8 +13,9 @@ const reducers = combineReducers({
   requestProcess: requsetProcessReducer,
   userServiceSocket: userServiceSocketReducer,
   message: messageReducer,
-  modal: modalReducer,
-  paginationList: paginationListReducer,
+  modals: modalReducer,
+  paginationLists: paginationListReducer,
+  forms: FormReducer,
 });
 
 export const store = createStore(reducers, {}, applyMiddleware(thunk));

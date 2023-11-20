@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import './assets/styles/index.css';
 import { FC } from 'react';
 import { Pathes, UserRoles, isContainerApp } from './lib';

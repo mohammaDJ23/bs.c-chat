@@ -5,3 +5,4 @@ export * from './socket';
 export * from './message';
 export * from './modal';
 export * from './paginationList';
+export * from './form';

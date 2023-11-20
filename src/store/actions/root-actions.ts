@@ -5,6 +5,7 @@ import {
   MessageActions,
   ModalActions,
   PaginationListActions,
+  FormActions,
 } from './';
 
 export type RootActions =
@@ -13,4 +14,5 @@ export type RootActions =
   | UserServiceSocketActions
   | MessageActions
   | ModalActions
-  | PaginationListActions;
+  | PaginationListActions
+  | FormActions;

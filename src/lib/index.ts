@@ -7,3 +7,5 @@ export * from './routes';
 export * from './firebase';
 export * from './copyConstructor';
 export * from './lists';
+export * from './forms';
+export * from './decorators';
