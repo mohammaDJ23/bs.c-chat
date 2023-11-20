@@ -1,5 +1,14 @@
 import { FC } from 'react';
-import { List, Box, ListItemButton, ListItem, ListItemText } from '@mui/material';
+import {
+  List,
+  Box,
+  ListItemButton,
+  ListItem,
+  ListItemText,
+  Autocomplete,
+  TextField,
+  CircularProgress,
+} from '@mui/material';
 import moment from 'moment';
 import EmptyUsers from './EmptyUsers';
 import { useSelector } from '../../hooks';
@@ -18,7 +27,7 @@ const Users: FC = () => {
         wordBreak: 'break-word',
       }}
     >
-      <Box sx={{ width: '100%', height: '100%' }}>
+      <Box sx={{ width: '100%', height: '100%', position: 'relative', paddingBottom: '48px' }}>
         {selectors.message.users.length > 0 ? (
           <List disablePadding>
             <ListItemButton sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}>
@@ -94,6 +103,30 @@ const Users: FC = () => {
         ) : (
           <EmptyUsers />
         )}
+        <Box sx={{ position: 'absolute', zIndex: 1, bottom: '0', left: '0', width: '280px' }}>
+          <Box sx={{ width: '100%', backgroundColor: '#e0e0e0' }}>
+            <Autocomplete
+              options={[]}
+              freeSolo
+              filterOptions={(options) => options}
+              clearIcon={false}
+              clearOnBlur
+              clearOnEscape
+              blurOnSelect
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  sx={{ padding: '8px 16px' }}
+                  variant="standard"
+                  placeholder="Search the user here!"
+                />
+              )}
+            />
+            {true && (
+              <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
+            )}
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

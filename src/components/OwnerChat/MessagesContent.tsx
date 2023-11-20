@@ -49,6 +49,7 @@ const MessagesContent: FC = () => {
   const isAnchorElOpen = !!anchorEl;
   const selectors = useSelector();
   const actions = useAction();
+  const isConversationDrawerOpen = !!selectors.modal[ModalNames.CONVERSATION];
 
   const onMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -104,6 +105,19 @@ const MessagesContent: FC = () => {
   useEffect(() => {
     // write the isDateDisabled for the onSnapshot fn
   }, []);
+
+  useEffect(() => {
+    function resizeProcess() {
+      if (window.innerWidth >= 900 && isConversationDrawerOpen) {
+        actions.hideModal(ModalNames.CONVERSATION);
+      }
+    }
+
+    window.addEventListener('resize', resizeProcess);
+    return () => {
+      window.removeEventListener('resize', resizeProcess);
+    };
+  }, [isConversationDrawerOpen]);
 
   const onSendText = useCallback(() => {
     console.log(text.trim());
@@ -191,10 +205,10 @@ const MessagesContent: FC = () => {
       <Drawer
         sx={{ zIndex: 10 }}
         anchor="left"
-        open={selectors.modal[ModalNames.CONVERSATION]}
+        open={isConversationDrawerOpen}
         onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
       >
-        <Box sx={{ width: '280px' }} onClick={() => actions.hideModal(ModalNames.CONVERSATION)}>
+        <Box sx={{ width: '280px', height: '100vh' }} onClick={() => actions.hideModal(ModalNames.CONVERSATION)}>
           <Users />
         </Box>
       </Drawer>

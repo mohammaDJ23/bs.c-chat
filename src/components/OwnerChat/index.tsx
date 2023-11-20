@@ -24,7 +24,7 @@ const OwnerChat: FC = () => {
     <Box
       sx={{
         width: '100vw',
-        height: 'calc(100vh - 80px)',
+        height: 'calc(100vh - 64px)',
         position: 'relative',
         overflow: 'hidden',
       }}
