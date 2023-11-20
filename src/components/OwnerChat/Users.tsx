@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { ChangeEvent, FC, useCallback, useState } from 'react';
 import {
   List,
   Box,
@@ -11,14 +11,28 @@ import {
 } from '@mui/material';
 import moment from 'moment';
 import EmptyUsers from './EmptyUsers';
-import { useSelector } from '../../hooks';
+import { useAction, useAuth, useForm, usePaginationList, useSelector } from '../../hooks';
+import { OwnerListFilters, UserList, UserListFilters } from '../../lib';
 
 interface UsersImportation {
   onUserClick: () => void;
 }
 
 const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
+  const [isSearchUsersAutoCompleteOpen, setIsSearchUsersAutoCompleteOpen] = useState(false);
   const selectors = useSelector();
+  const actions = useAction();
+  const auth = useAuth();
+  const isCurrentOwner = auth.isCurrentOwner();
+  const userListInstance = usePaginationList(UserList);
+  const userListFiltersFormInstance = useForm(UserListFilters);
+  const ownerListFiltersFormInstance = useForm(OwnerListFilters);
+  const userListFiltersForm = userListFiltersFormInstance.getForm();
+  const ownerListFiltersForm = ownerListFiltersFormInstance.getForm();
+
+  const onSearchUsersChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    userListFiltersFormInstance.onChange('q', event.target.value);
+  }, []);
 
   return (
     <Box
@@ -116,25 +130,53 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         )}
         <Box sx={{ position: 'absolute', zIndex: 1, bottom: '0', left: '0', width: '280px' }}>
           <Box sx={{ width: '100%', backgroundColor: '#e0e0e0' }}>
-            <Autocomplete
-              options={[]}
-              freeSolo
-              filterOptions={(options) => options}
-              clearIcon={false}
-              clearOnBlur
-              clearOnEscape
-              blurOnSelect
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  sx={{ padding: '8px 16px' }}
-                  variant="standard"
-                  placeholder="Search the user here!"
+            {isCurrentOwner ? (
+              <>
+                <Autocomplete
+                  freeSolo
+                  open={isSearchUsersAutoCompleteOpen}
+                  options={userListInstance.getList()}
+                  onBlur={() => {
+                    userListInstance.updateList([]);
+                    setIsSearchUsersAutoCompleteOpen(false);
+                  }}
+                  onChange={(event, value) => {
+                    value = value || '';
+                    userListFiltersFormInstance.onChange('q', value);
+                    userListInstance.updateList([]);
+                    setIsSearchUsersAutoCompleteOpen(false);
+                  }}
+                  value={userListFiltersForm.q}
+                  disabled={false}
+                  filterOptions={(options) => options.map((option) => `${option.firstName} ${option.lastName}`)}
+                  clearIcon={false}
+                  clearOnBlur
+                  clearOnEscape
+                  blurOnSelect
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      sx={{ padding: '8px 16px' }}
+                      onBlur={(event) => {
+                        userListFiltersFormInstance.onChange('q', '');
+                      }}
+                      onFocus={() => {
+                        userListInstance.updateList([]);
+                        setIsSearchUsersAutoCompleteOpen(false);
+                      }}
+                      variant="standard"
+                      placeholder="Search the users here!"
+                      value={userListFiltersForm.q}
+                      onChange={onSearchUsersChange}
+                    />
+                  )}
                 />
-              )}
-            />
-            {true && (
-              <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
+                {true && (
+                  <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
+                )}
+              </>
+            ) : (
+              <></>
             )}
           </Box>
         </Box>
