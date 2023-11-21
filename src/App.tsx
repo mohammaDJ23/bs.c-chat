@@ -1,12 +1,11 @@
 import 'reflect-metadata';
 import './assets/styles/index.css';
 import { FC } from 'react';
-import { Pathes, UserRoles, isContainerApp } from './lib';
+import { Pathes, isContainerApp } from './lib';
 import { Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { createBrowserHistory } from 'history';
-import OwnerChat from './components/OwnerChat';
-import UserChat from './components/UserChat';
+import Chat from './components/Chat';
 import { useAuth } from './hooks';
 import UserServiceSocketProvider from './lib/providers/userServiceSocketProvider';
 import { store } from './store';
@@ -21,20 +20,10 @@ const App: FC = () => {
     if (!isUserLoggedIn) {
       return <Navigate to={Pathes.LOGIN} />;
     }
-    const userInfo = auth.getDecodedToken()!;
-    if (userInfo.role === UserRoles.OWNER) {
-      return (
-        <Provider store={store}>
-          <UserServiceSocketProvider>
-            <OwnerChat />
-          </UserServiceSocketProvider>
-        </Provider>
-      );
-    }
     return (
       <Provider store={store}>
         <UserServiceSocketProvider>
-          <OwnerChat />
+          <Chat />
         </UserServiceSocketProvider>
       </Provider>
     );

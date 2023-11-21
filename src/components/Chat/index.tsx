@@ -19,7 +19,7 @@ const UsersWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
-const OwnerChat: FC = () => {
+const Chat: FC = () => {
   return (
     <Box
       sx={{
@@ -41,4 +41,4 @@ const OwnerChat: FC = () => {
   );
 };
 
-export default OwnerChat;
+export default Chat;
