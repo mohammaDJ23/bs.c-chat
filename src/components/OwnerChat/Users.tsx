@@ -59,6 +59,29 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     });
   }, []);
 
+  const onSearchOwnersChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = event.target.value;
+    ownerListFiltersFormInstance.onChange('q', value);
+
+    halfSecDebouce.current(() => {
+      const apiData = new AllOwnersApi({
+        page: userListInstance.getPage(),
+        take: userListInstance.getTake(),
+        filters: {
+          q: value.trim(),
+          fromDate: ownerListFiltersForm.fromDate,
+          toDate: ownerListFiltersForm.toDate,
+        },
+      });
+      request.build<[UserObj[], number]>(apiData).then((response) => {
+        const [list, total] = response.data;
+        userListInstance.updateList(list);
+        userListInstance.updateTotal(total);
+        setIsSearchUsersAutoCompleteOpen(true);
+      });
+    });
+  }, []);
+
   return (
     <Box
       sx={{
@@ -167,12 +190,11 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                   }}
                   onChange={(event, value) => {
                     value = value || '';
-                    userListFiltersFormInstance.onChange('q', value);
+                    userListFiltersFormInstance.onChange('q', '');
                     userListInstance.updateList([]);
                     setIsSearchUsersAutoCompleteOpen(false);
                   }}
                   value={userListFiltersForm.q}
-                  disabled={isAllUsersApiProcessing}
                   filterOptions={(options) => options.map((option) => `${option.firstName} ${option.lastName}`)}
                   clearIcon={false}
                   clearOnBlur
@@ -201,7 +223,49 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 )}
               </>
             ) : (
-              <></>
+              <>
+                <Autocomplete
+                  freeSolo
+                  open={isSearchUsersAutoCompleteOpen}
+                  options={userListInstance.getList()}
+                  onBlur={() => {
+                    userListInstance.updateList([]);
+                    setIsSearchUsersAutoCompleteOpen(false);
+                  }}
+                  onChange={(event, value) => {
+                    value = value || '';
+                    ownerListFiltersFormInstance.onChange('q', '');
+                    userListInstance.updateList([]);
+                    setIsSearchUsersAutoCompleteOpen(false);
+                  }}
+                  value={ownerListFiltersForm.q}
+                  filterOptions={(options) => options.map((option) => `${option.firstName} ${option.lastName}`)}
+                  clearIcon={false}
+                  clearOnBlur
+                  clearOnEscape
+                  blurOnSelect
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      sx={{ padding: '8px 16px' }}
+                      onBlur={(event) => {
+                        ownerListFiltersFormInstance.onChange('q', '');
+                      }}
+                      onFocus={() => {
+                        userListInstance.updateList([]);
+                        setIsSearchUsersAutoCompleteOpen(false);
+                      }}
+                      variant="standard"
+                      placeholder="Search the owners here!"
+                      value={ownerListFiltersForm.q}
+                      onChange={onSearchOwnersChange}
+                    />
+                  )}
+                />
+                {isAllOwnersApiProcessing && (
+                  <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
+                )}
+              </>
             )}
           </Box>
         </Box>

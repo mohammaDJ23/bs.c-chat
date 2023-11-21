@@ -34,7 +34,7 @@ const App: FC = () => {
     return (
       <Provider store={store}>
         <UserServiceSocketProvider>
-          <UserChat />
+          <OwnerChat />
         </UserServiceSocketProvider>
       </Provider>
     );
