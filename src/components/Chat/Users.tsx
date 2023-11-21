@@ -67,6 +67,19 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     });
   }, []);
 
+  const onAutoCompleteChange = useCallback(
+    (value: UserObj | null) => {
+      userListFiltersFormInstance.onChange('q', '');
+      userListInstance.updateList([]);
+      setIsSearchUsersAutoCompleteOpen(false);
+
+      if (value && selectors.userServiceSocket) {
+        selectors.userServiceSocket.emit('start-conversation', { payload: value });
+      }
+    },
+    [selectors.userServiceSocket]
+  );
+
   return (
     <Box
       sx={{
@@ -171,14 +184,15 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 userListInstance.updateList([]);
                 setIsSearchUsersAutoCompleteOpen(false);
               }}
-              onChange={(event, value) => {
-                value = value || '';
-                userListFiltersFormInstance.onChange('q', '');
-                userListInstance.updateList([]);
-                setIsSearchUsersAutoCompleteOpen(false);
-              }}
+              onChange={(_, value: UserObj | null) => onAutoCompleteChange(value)}
               value={userListFiltersForm.q}
-              filterOptions={(options) => options.map((option) => `${option.firstName} ${option.lastName}`)}
+              filterOptions={(options) => options}
+              getOptionLabel={(option) => {
+                if (typeof option === 'object' && option.firstName && option.lastName) {
+                  return `${option.firstName} ${option.lastName}`;
+                }
+                return option;
+              }}
               clearIcon={false}
               clearOnBlur
               clearOnEscape
