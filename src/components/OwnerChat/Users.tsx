@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useCallback, useState } from 'react';
+import { ChangeEvent, FC, useCallback, useRef, useState } from 'react';
 import {
   List,
   Box,
@@ -11,8 +11,9 @@ import {
 } from '@mui/material';
 import moment from 'moment';
 import EmptyUsers from './EmptyUsers';
-import { useAction, useAuth, useForm, usePaginationList, useSelector } from '../../hooks';
-import { OwnerListFilters, UserList, UserListFilters } from '../../lib';
+import { useAction, useAuth, useForm, usePaginationList, useRequest, useSelector } from '../../hooks';
+import { OwnerListFilters, UserList, UserListFilters, UserObj, debounce } from '../../lib';
+import { AllOwnersApi, AllUsersApi } from '../../apis';
 
 interface UsersImportation {
   onUserClick: () => void;
@@ -23,15 +24,39 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
+  const request = useRequest();
   const isCurrentOwner = auth.isCurrentOwner();
   const userListInstance = usePaginationList(UserList);
   const userListFiltersFormInstance = useForm(UserListFilters);
   const ownerListFiltersFormInstance = useForm(OwnerListFilters);
   const userListFiltersForm = userListFiltersFormInstance.getForm();
   const ownerListFiltersForm = ownerListFiltersFormInstance.getForm();
+  const isAllUsersApiProcessing = request.isApiProcessing(AllUsersApi);
+  const isAllOwnersApiProcessing = request.isApiProcessing(AllOwnersApi);
+  const halfSecDebouce = useRef(debounce());
 
   const onSearchUsersChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    userListFiltersFormInstance.onChange('q', event.target.value);
+    const value = event.target.value;
+    userListFiltersFormInstance.onChange('q', value);
+
+    halfSecDebouce.current(() => {
+      const apiData = new AllUsersApi({
+        page: userListInstance.getPage(),
+        take: userListInstance.getTake(),
+        filters: {
+          q: value.trim(),
+          fromDate: userListFiltersForm.fromDate,
+          toDate: userListFiltersForm.toDate,
+          roles: userListFiltersForm.roles,
+        },
+      });
+      request.build<[UserObj[], number]>(apiData).then((response) => {
+        const [list, total] = response.data;
+        userListInstance.updateList(list);
+        userListInstance.updateTotal(total);
+        setIsSearchUsersAutoCompleteOpen(true);
+      });
+    });
   }, []);
 
   return (
@@ -147,7 +172,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                     setIsSearchUsersAutoCompleteOpen(false);
                   }}
                   value={userListFiltersForm.q}
-                  disabled={false}
+                  disabled={isAllUsersApiProcessing}
                   filterOptions={(options) => options.map((option) => `${option.firstName} ${option.lastName}`)}
                   clearIcon={false}
                   clearOnBlur
@@ -171,7 +196,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                     />
                   )}
                 />
-                {true && (
+                {isAllUsersApiProcessing && (
                   <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
                 )}
               </>

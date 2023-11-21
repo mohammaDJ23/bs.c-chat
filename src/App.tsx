@@ -4,11 +4,14 @@ import { FC } from 'react';
 import { Pathes, UserRoles, isContainerApp } from './lib';
 import { Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { createBrowserHistory } from 'history';
 import OwnerChat from './components/OwnerChat';
 import UserChat from './components/UserChat';
 import { useAuth } from './hooks';
 import UserServiceSocketProvider from './lib/providers/userServiceSocketProvider';
 import { store } from './store';
+
+export const history = createBrowserHistory();
 
 const App: FC = () => {
   const auth = useAuth();
