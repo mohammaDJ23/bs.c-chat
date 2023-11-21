@@ -7,7 +7,7 @@ import { Provider } from 'react-redux';
 import { createBrowserHistory } from 'history';
 import Chat from './components/Chat';
 import { useAuth } from './hooks';
-import UserServiceSocketProvider from './lib/providers/userServiceSocketProvider';
+import UserServiceChatSocketProvider from './lib/providers/userServiceChatSocketProvider';
 import { store } from './store';
 
 export const history = createBrowserHistory();
@@ -22,9 +22,9 @@ const App: FC = () => {
     }
     return (
       <Provider store={store}>
-        <UserServiceSocketProvider>
+        <UserServiceChatSocketProvider>
           <Chat />
-        </UserServiceSocketProvider>
+        </UserServiceChatSocketProvider>
       </Provider>
     );
   }
