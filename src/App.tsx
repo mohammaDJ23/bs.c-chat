@@ -5,6 +5,7 @@ import { Pathes, isContainerApp } from './lib';
 import { Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { createBrowserHistory } from 'history';
+import { SnackbarProvider } from 'notistack';
 import Chat from './components/Chat';
 import { useAuth } from './hooks';
 import UserServiceChatSocketProvider from './lib/providers/userServiceChatSocketProvider';
@@ -22,9 +23,16 @@ const App: FC = () => {
     }
     return (
       <Provider store={store}>
-        <UserServiceChatSocketProvider>
-          <Chat />
-        </UserServiceChatSocketProvider>
+        <SnackbarProvider
+          dense
+          maxSnack={Infinity}
+          anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
+          style={{ maxWidth: '300px' }}
+        >
+          <UserServiceChatSocketProvider>
+            <Chat />
+          </UserServiceChatSocketProvider>
+        </SnackbarProvider>
       </Provider>
     );
   }

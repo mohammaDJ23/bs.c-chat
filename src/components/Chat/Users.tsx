@@ -38,6 +38,14 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const halfSecDebouce = useRef(debounce());
 
   useEffect(() => {
+    if (selectors.userServiceSocket) {
+      selectors.userServiceSocket.on('fail-start-conversation', (error: Error) => {
+        enqueueSnackbar({ message: error.message, variant: 'error' });
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = onSnapshot(
       query(
         collection(db, 'conversation'),
