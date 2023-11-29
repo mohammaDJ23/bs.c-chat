@@ -46,8 +46,9 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         enqueueSnackbar({ message: error.message, variant: 'error' });
       });
 
-      selectors.userServiceSocket.on('success-start-conversation', () => {
+      selectors.userServiceSocket.on('success-start-conversation', (data: UserObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
+        enqueueSnackbar({ message: `Start a conversation with ${data.firstName} ${data.lastName}`, variant: 'info' });
       });
     }
   }, []);
