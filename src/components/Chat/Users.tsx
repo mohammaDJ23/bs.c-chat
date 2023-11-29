@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useCallback, useRef, useState } from 'react';
+import { ChangeEvent, FC, useCallback, useEffect, useRef, useState } from 'react';
 import {
   List,
   Box,
@@ -10,10 +10,12 @@ import {
   CircularProgress,
 } from '@mui/material';
 import moment from 'moment';
+import { useSnackbar } from 'notistack';
 import EmptyUsers from './EmptyUsers';
 import { useAction, useAuth, useForm, usePaginationList, useRequest, useSelector } from '../../hooks';
-import { UserList, UserListFilters, UserObj, debounce } from '../../lib';
+import { UserList, UserListFilters, UserObj, db, debounce, preventRunAt } from '../../lib';
 import { AllOwnersApi, AllUsersApi, RootApi } from '../../apis';
+import { collection, where, query, or, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
 
 interface UsersImportation {
   onUserClick: () => void;
@@ -25,13 +27,34 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const actions = useAction();
   const auth = useAuth();
   const request = useRequest();
+  const { enqueueSnackbar } = useSnackbar();
   const isCurrentOwner = auth.isCurrentOwner();
+  const decodedToken = auth.getDecodedToken()!;
   const userListInstance = usePaginationList(UserList);
   const userListFiltersFormInstance = useForm(UserListFilters);
   const userListFiltersForm = userListFiltersFormInstance.getForm();
   const isAllUsersApiProcessing = request.isApiProcessing(AllUsersApi);
   const isAllOwnersApiProcessing = request.isApiProcessing(AllOwnersApi);
   const halfSecDebouce = useRef(debounce());
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      query(
+        collection(db, 'conversation'),
+        or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
+      ),
+      preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
+        snapshot.docChanges().forEach((result) => {
+          console.log(result.doc.data());
+        });
+      }, 1),
+      (error) => enqueueSnackbar({ message: error.message, variant: 'error' })
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   const onSearchUsersChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = event.target.value;
