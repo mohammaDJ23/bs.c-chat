@@ -47,3 +47,5 @@ export class AllOwnersApi extends RootApi {
     );
   }
 }
+
+export class StartConversationApi extends RootApi {}

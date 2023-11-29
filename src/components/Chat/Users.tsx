@@ -14,7 +14,7 @@ import { useSnackbar } from 'notistack';
 import EmptyUsers from './EmptyUsers';
 import { useAction, useAuth, useForm, usePaginationList, useRequest, useSelector } from '../../hooks';
 import { UserList, UserListFilters, UserObj, db, debounce, preventRunAt } from '../../lib';
-import { AllOwnersApi, AllUsersApi, RootApi } from '../../apis';
+import { AllOwnersApi, AllUsersApi, RootApi, StartConversationApi } from '../../apis';
 import { collection, where, query, or, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
 
 interface UsersImportation {
@@ -35,12 +35,19 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const userListFiltersForm = userListFiltersFormInstance.getForm();
   const isAllUsersApiProcessing = request.isApiProcessing(AllUsersApi);
   const isAllOwnersApiProcessing = request.isApiProcessing(AllOwnersApi);
+  const isStartConversationApiSuccessed = request.isProcessingApiSuccessed(StartConversationApi);
+  const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
   const halfSecDebouce = useRef(debounce());
 
   useEffect(() => {
     if (selectors.userServiceSocket) {
       selectors.userServiceSocket.on('fail-start-conversation', (error: Error) => {
+        actions.processingApiError(StartConversationApi.name);
         enqueueSnackbar({ message: error.message, variant: 'error' });
+      });
+
+      selectors.userServiceSocket.on('success-start-conversation', () => {
+        actions.processingApiSuccess(StartConversationApi.name);
       });
     }
   }, []);
@@ -52,11 +59,15 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
       ),
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
+        actions.processingApiSuccess(StartConversationApi.name);
         snapshot.docChanges().forEach((result) => {
           console.log(result.doc.data());
         });
       }, 1),
-      (error) => enqueueSnackbar({ message: error.message, variant: 'error' })
+      (error) => {
+        actions.processingApiError(StartConversationApi.name);
+        enqueueSnackbar({ message: error.message, variant: 'error' });
+      }
     );
 
     return () => {
@@ -98,13 +109,19 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     });
   }, []);
 
+  useEffect(() => {
+    if (isStartConversationApiSuccessed) {
+      userListFiltersFormInstance.onChange('q', '');
+    }
+  }, [isStartConversationApiSuccessed]);
+
   const onAutoCompleteChange = useCallback(
     (value: UserObj | null) => {
-      userListFiltersFormInstance.onChange('q', '');
       userListInstance.updateList([]);
       setIsSearchUsersAutoCompleteOpen(false);
 
       if (value && selectors.userServiceSocket) {
+        actions.processingApiLoading(StartConversationApi.name);
         selectors.userServiceSocket.emit('start-conversation', { payload: value });
       }
     },
@@ -209,12 +226,9 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           <Box sx={{ width: '100%', backgroundColor: '#e0e0e0' }}>
             <Autocomplete
               freeSolo
+              disabled={isStartConversationApiProcessing}
               open={isSearchUsersAutoCompleteOpen}
               options={userListInstance.getList()}
-              onBlur={() => {
-                userListInstance.updateList([]);
-                setIsSearchUsersAutoCompleteOpen(false);
-              }}
               onChange={(_, value: UserObj | null) => onAutoCompleteChange(value)}
               value={userListFiltersForm.q}
               filterOptions={(options) => options}
@@ -232,9 +246,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 <TextField
                   {...params}
                   sx={{ padding: '8px 16px' }}
-                  onBlur={(event) => {
-                    userListFiltersFormInstance.onChange('q', '');
-                  }}
+                  disabled={isStartConversationApiProcessing}
                   onFocus={() => {
                     userListInstance.updateList([]);
                     setIsSearchUsersAutoCompleteOpen(false);
@@ -246,7 +258,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 />
               )}
             />
-            {(isAllUsersApiProcessing || isAllOwnersApiProcessing) && (
+            {(isAllUsersApiProcessing || isAllOwnersApiProcessing || isStartConversationApiProcessing) && (
               <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
             )}
           </Box>

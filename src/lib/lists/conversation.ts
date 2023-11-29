@@ -10,7 +10,7 @@ interface MessageObj {
   isReaded: boolean;
 }
 
-interface ConversationDocObj {
+export interface ConversationDocObj {
   id: string;
   creatorId: number;
   targetId: number;
