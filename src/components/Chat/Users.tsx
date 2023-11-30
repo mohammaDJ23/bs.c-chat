@@ -41,10 +41,10 @@ import {
 } from 'firebase/firestore';
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
-  [theme.breakpoints.down('sm')]: {
+  [theme.breakpoints.down('md')]: {
     height: 'calc(100vh - 48px)',
   },
-  [theme.breakpoints.up('sm')]: {
+  [theme.breakpoints.up('md')]: {
     height: 'calc(100vh - 64px)',
   },
 }));
