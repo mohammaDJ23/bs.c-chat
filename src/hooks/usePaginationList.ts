@@ -59,6 +59,11 @@ export function usePaginationList<T>(listInstance: ListInstanceConstructor<ListI
         return instance.list[instance.page] || [];
       }
 
+      function getInfinityList(): T[] {
+        const instance = getInstance();
+        return Object.values(instance.list).flat();
+      }
+
       function getListAsObject(): ListAsObjectType {
         const instance = getInstance();
         return instance.listAsObject;
@@ -99,6 +104,7 @@ export function usePaginationList<T>(listInstance: ListInstanceConstructor<ListI
         getTake,
         getTotal,
         isListEmpty,
+        getInfinityList,
       };
     },
     [selectors.paginationLists[listInstance.name]]

@@ -1,6 +1,6 @@
 import { UserRoles } from '..';
 import { DefineRules, DefineVal, CacheInput, DefineValidation } from '../decorators';
-import { isDate, isUserRoles } from '../validations';
+import { isArrayOfNumber, isDate, isUserRoles } from '../validations';
 import { Form, IgnoreFormConstructor } from './formConstructor';
 
 export interface UserListFiltersObj extends IgnoreFormConstructor<UserListFilters> {}
@@ -14,6 +14,11 @@ export class UserListFilters extends Form implements UserListFiltersObj {
   @DefineVal(Object.values(UserRoles))
   @DefineValidation()
   roles: UserRoles[] = Object.values(UserRoles);
+
+  @DefineRules([isArrayOfNumber])
+  @DefineVal()
+  @DefineValidation()
+  ids: number[] = [];
 
   @DefineRules([isDate])
   @DefineVal()
@@ -32,5 +37,6 @@ export class UserListFilters extends Form implements UserListFiltersObj {
     this.roles = this.roles;
     this.fromDate = this.fromDate;
     this.toDate = this.toDate;
+    this.ids = this.ids;
   }
 }

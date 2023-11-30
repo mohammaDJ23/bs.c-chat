@@ -27,7 +27,7 @@ const App: FC = () => {
           dense
           maxSnack={Infinity}
           anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
-          style={{ maxWidth: '300px' }}
+          style={{ maxWidth: '300px', wordBreak: 'break-word', overflow: 'hidden' }}
         >
           <UserServiceChatSocketProvider>
             <Chat />

@@ -8,14 +8,55 @@ import {
   Autocomplete,
   TextField,
   CircularProgress,
+  styled,
 } from '@mui/material';
 import moment from 'moment';
 import { useSnackbar } from 'notistack';
 import EmptyUsers from './EmptyUsers';
 import { useAction, useAuth, useForm, usePaginationList, useRequest, useSelector } from '../../hooks';
-import { UserList, UserListFilters, UserObj, db, debounce, preventRunAt } from '../../lib';
-import { AllOwnersApi, AllUsersApi, RootApi, StartConversationApi } from '../../apis';
-import { collection, where, query, or, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
+import {
+  ConversationDocObj,
+  ConversationList,
+  ConversationObj,
+  UserList,
+  UserListFilters,
+  UserObj,
+  db,
+  debounce,
+  preventRunAt,
+} from '../../lib';
+import { AllConversationsApi, AllOwnersApi, AllUsersApi, RootApi, StartConversationApi } from '../../apis';
+import {
+  collection,
+  where,
+  query,
+  or,
+  onSnapshot,
+  QuerySnapshot,
+  DocumentData,
+  orderBy,
+  limit,
+  getDocs,
+  startAfter,
+} from 'firebase/firestore';
+
+const UsersWrapper = styled(Box)(({ theme }) => ({
+  [theme.breakpoints.down('sm')]: {
+    height: 'calc(100vh - 48px)',
+  },
+  [theme.breakpoints.up('sm')]: {
+    height: 'calc(100vh - 64px)',
+  },
+}));
+
+const ListWrapper = styled(List)(({ theme }) => ({
+  [theme.breakpoints.down('sm')]: {
+    paddingBottom: '0',
+  },
+  [theme.breakpoints.up('md')]: {
+    paddingBottom: '48px',
+  },
+}));
 
 interface UsersImportation {
   onUserClick: () => void;
@@ -31,13 +72,16 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const isCurrentOwner = auth.isCurrentOwner();
   const decodedToken = auth.getDecodedToken()!;
   const userListInstance = usePaginationList(UserList);
+  const conversationListInstance = usePaginationList(ConversationList);
   const userListFiltersFormInstance = useForm(UserListFilters);
   const userListFiltersForm = userListFiltersFormInstance.getForm();
-  const isAllUsersApiProcessing = request.isApiProcessing(AllUsersApi);
-  const isAllOwnersApiProcessing = request.isApiProcessing(AllOwnersApi);
+  const conversationInfinityList = conversationListInstance.getInfinityList();
   const isStartConversationApiSuccessed = request.isProcessingApiSuccessed(StartConversationApi);
+  const isStartConversationApiFailed = request.isProcessingApiFailed(StartConversationApi);
   const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
-  const halfSecDebouce = useRef(debounce());
+  const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
+  const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
+  const halfSecDebounce = useRef(debounce());
 
   useEffect(() => {
     if (selectors.userServiceSocket) {
@@ -48,9 +92,71 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
 
       selectors.userServiceSocket.on('success-start-conversation', (data: UserObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
-        enqueueSnackbar({ message: `Start a conversation with ${data.firstName} ${data.lastName}`, variant: 'info' });
       });
     }
+  }, [selectors.userServiceSocket]);
+
+  const getConversationList = useCallback(
+    async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
+      if (data.isInitialApi) actions.initialProcessingApiLoading(AllConversationsApi.name);
+      else actions.processingApiLoading(AllConversationsApi.name);
+
+      data.page = data.page || conversationListInstance.getPage();
+      const page = data.page!;
+
+      const lastVisible = conversationInfinityList.length
+        ? conversationInfinityList[conversationInfinityList.length - 1].conversation
+        : {};
+
+      getDocs(
+        query(
+          collection(db, 'conversation'),
+          or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id)),
+          orderBy('updatedAt', 'desc'),
+          limit(conversationListInstance.getTake()),
+          startAfter(lastVisible)
+        )
+      )
+        .then((snapshot) => {
+          if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
+          else actions.processingApiSuccess(AllConversationsApi.name);
+
+          const conversationDocs = snapshot.docs.map((doc) => doc.data()) as ConversationDocObj[];
+          const ids = conversationDocs.map((doc) => (doc.creatorId === decodedToken.id ? doc.targetId : doc.creatorId));
+
+          if (conversationDocs.length && ids.length) {
+            const apiData = {
+              page,
+              take: conversationListInstance.getTake(),
+              filters: { ids },
+            };
+
+            const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
+
+            request.build<[UserObj[], number]>(api).then((response) => {
+              const [list, total] = response.data;
+              const conversationList: ConversationObj[] = ids
+                .map((id, i) => ({ conversation: conversationDocs[i], user: list.find((user) => user.id === id)! }))
+                .filter((conversation) => !!conversation.user);
+
+              conversationListInstance.updateAndConcatList(conversationList, page);
+              conversationListInstance.updatePage(page);
+              conversationListInstance.updateTotal(total);
+            });
+          }
+        })
+        .catch((error: Error) => {
+          if (data.isInitialApi) actions.initialProcessingApiError(AllConversationsApi.name);
+          else actions.processingApiError(AllConversationsApi.name);
+
+          enqueueSnackbar({ message: error.message, variant: 'error' });
+        });
+    },
+    [conversationInfinityList]
+  );
+
+  useEffect(() => {
+    getConversationList({ isInitialApi: true });
   }, []);
 
   useEffect(() => {
@@ -60,7 +166,6 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
       ),
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
-        actions.processingApiSuccess(StartConversationApi.name);
         snapshot.docChanges().forEach((result) => {
           console.log(result.doc.data());
         });
@@ -80,28 +185,16 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     const value = event.target.value;
     userListFiltersFormInstance.onChange('q', value);
 
-    halfSecDebouce.current(() => {
-      let apiData: RootApi | null = null;
+    halfSecDebounce.current(() => {
+      const apiData = {
+        page: userListInstance.getPage(),
+        take: userListInstance.getTake(),
+        filters: { q: value.trim() },
+      };
 
-      if (isCurrentOwner) {
-        apiData = new AllUsersApi({
-          page: userListInstance.getPage(),
-          take: userListInstance.getTake(),
-          filters: {
-            q: value.trim(),
-          },
-        });
-      } else {
-        apiData = new AllOwnersApi({
-          page: userListInstance.getPage(),
-          take: userListInstance.getTake(),
-          filters: {
-            q: value.trim(),
-          },
-        });
-      }
+      const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
 
-      request.build<[UserObj[], number]>(apiData).then((response) => {
+      request.build<[UserObj[], number]>(api).then((response) => {
         const [list, total] = response.data;
         userListInstance.updateList(list);
         userListInstance.updateTotal(total);
@@ -111,10 +204,10 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   }, []);
 
   useEffect(() => {
-    if (isStartConversationApiSuccessed) {
+    if (isStartConversationApiSuccessed || isStartConversationApiFailed) {
       userListFiltersFormInstance.onChange('q', '');
     }
-  }, [isStartConversationApiSuccessed]);
+  }, [isStartConversationApiSuccessed, isStartConversationApiFailed]);
 
   const onAutoCompleteChange = useCallback(
     (value: UserObj | null) => {
@@ -130,142 +223,158 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   );
 
   return (
-    <Box
+    <UsersWrapper
       sx={{
         width: '100%',
-        height: '100%',
         borderRight: '1px solid #e0e0e0',
         overflowY: 'auto',
         overflowX: 'hidden',
         wordBreak: 'break-word',
       }}
     >
-      <Box sx={{ width: '100%', height: '100%', position: 'relative', paddingBottom: '48px' }}>
-        {selectors.message.users.length > 0 ? (
-          <List disablePadding>
-            <ListItemButton
-              sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}
-              onClick={() => {
-                if (onUserClick) {
-                  onUserClick.call({});
-                }
-              }}
-            >
-              <ListItem disablePadding>
-                <Box sx={{ width: '100%', height: '100%' }}>
-                  <Box
-                    component="div"
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      flexWrap: 'nowrap',
-                      width: '100%',
-                    }}
-                  >
-                    <Box
-                      component="div"
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        flexWrap: 'nowrap',
-                      }}
-                    >
-                      <ListItemText
-                        sx={{
-                          flex: 'unset',
-                          width: '8px',
-                          height: '8px',
-                          backgroundColor: 'red',
-                          borderRadius: '50%',
-                        }}
-                        secondary={<Box component="span"></Box>}
-                      />
-                      <ListItemText
-                        primaryTypographyProps={{
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap',
-                          textOverflow: 'ellipsis',
-                          width: '165px',
-                        }}
-                        primary="Mohammad nowresideh"
-                      />
-                    </Box>
-                    <ListItemText
-                      secondaryTypographyProps={{
-                        fontSize: '10px',
-                        fontWeight: '500',
-                      }}
-                      sx={{ flexGrow: '0', flexShrink: '0' }}
-                      secondary={moment().format('L')}
-                    />
-                  </Box>
-                  <Box component="div">
-                    <ListItemText
-                      secondaryTypographyProps={{
-                        fontSize: '11px',
-                        fontWeight: '500',
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap',
-                        textOverflow: 'ellipsis',
-                        width: '250px',
-                      }}
-                      secondary={'this is a new message from mohammad nowresideh who is the owner of the app'}
-                    />
-                  </Box>
-                </Box>
-              </ListItem>
-            </ListItemButton>
-          </List>
-        ) : (
-          <EmptyUsers />
-        )}
-        <Box sx={{ position: 'absolute', zIndex: 1, bottom: '0', left: '0', width: '280px' }}>
-          <Box sx={{ width: '100%', backgroundColor: '#e0e0e0' }}>
-            <Autocomplete
-              freeSolo
-              disabled={isStartConversationApiProcessing}
-              open={isSearchUsersAutoCompleteOpen}
-              options={userListInstance.getList()}
-              onChange={(_, value: UserObj | null) => onAutoCompleteChange(value)}
-              value={userListFiltersForm.q}
-              filterOptions={(options) => options}
-              getOptionLabel={(option) => {
-                if (typeof option === 'object' && option.firstName && option.lastName) {
-                  return `${option.firstName} ${option.lastName}`;
-                }
-                return option;
-              }}
-              clearIcon={false}
-              clearOnBlur
-              clearOnEscape
-              blurOnSelect
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  sx={{ padding: '8px 16px' }}
-                  disabled={isStartConversationApiProcessing}
-                  onFocus={() => {
-                    userListInstance.updateList([]);
-                    setIsSearchUsersAutoCompleteOpen(false);
+      {isInitialAllConversationApiProcessing ? (
+        <Box
+          component={'div'}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          <CircularProgress size={30} />
+        </Box>
+      ) : (
+        <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+          {conversationInfinityList.length > 0 ? (
+            <ListWrapper disablePadding>
+              {conversationInfinityList.map((item) => (
+                <ListItemButton
+                  key={item.conversation.id}
+                  sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}
+                  onClick={() => {
+                    if (onUserClick) {
+                      onUserClick.call({});
+                    }
                   }}
-                  variant="standard"
-                  placeholder={isCurrentOwner ? 'Search the users here!' : 'Search the owners here!'}
-                  value={userListFiltersForm.q}
-                  onChange={onSearchUsersChange}
-                />
+                >
+                  <ListItem disablePadding>
+                    <Box sx={{ width: '100%', height: '100%' }}>
+                      <Box
+                        component="div"
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'nowrap',
+                          width: '100%',
+                        }}
+                      >
+                        <Box
+                          component="div"
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            flexWrap: 'nowrap',
+                          }}
+                        >
+                          <ListItemText
+                            sx={{
+                              flex: 'unset',
+                              width: '8px',
+                              height: '8px',
+                              backgroundColor: 'red',
+                              borderRadius: '50%',
+                            }}
+                            secondary={<Box component="span"></Box>}
+                          />
+                          <ListItemText
+                            primaryTypographyProps={{
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                              textOverflow: 'ellipsis',
+                              width: '165px',
+                            }}
+                            primary={`${item.user.firstName} ${item.user.lastName}`}
+                          />
+                        </Box>
+                        <ListItemText
+                          secondaryTypographyProps={{
+                            fontSize: '10px',
+                            fontWeight: '500',
+                          }}
+                          sx={{ flexGrow: '0', flexShrink: '0' }}
+                          secondary={moment(item.conversation.updatedAt.seconds * 1000).format('L')}
+                        />
+                      </Box>
+                      {item.conversation.lastMessage && (
+                        <Box component="div">
+                          <ListItemText
+                            secondaryTypographyProps={{
+                              fontSize: '11px',
+                              fontWeight: '500',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                              textOverflow: 'ellipsis',
+                              width: '250px',
+                            }}
+                            secondary={item.conversation.lastMessage}
+                          />
+                        </Box>
+                      )}
+                    </Box>
+                  </ListItem>
+                </ListItemButton>
+              ))}
+            </ListWrapper>
+          ) : (
+            <EmptyUsers />
+          )}
+          <Box sx={{ position: 'fixed', zIndex: 1, bottom: '0', left: '0', width: '280px' }}>
+            <Box sx={{ width: '100%', backgroundColor: '#e0e0e0' }}>
+              <Autocomplete
+                freeSolo
+                disabled={isStartConversationApiProcessing}
+                open={isSearchUsersAutoCompleteOpen}
+                options={userListInstance.getList()}
+                onChange={(_, value: UserObj | null) => onAutoCompleteChange(value)}
+                filterOptions={(options) => options}
+                getOptionLabel={(option) => {
+                  if (typeof option === 'object' && option.firstName && option.lastName) {
+                    return `${option.firstName} ${option.lastName}`;
+                  }
+                  return option;
+                }}
+                clearIcon={false}
+                value={userListFiltersForm.q}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    sx={{ padding: '8px 16px' }}
+                    disabled={isStartConversationApiProcessing}
+                    onFocus={() => {
+                      userListInstance.updateList([]);
+                      setIsSearchUsersAutoCompleteOpen(false);
+                    }}
+                    variant="standard"
+                    value={userListFiltersForm.q}
+                    placeholder={isCurrentOwner ? 'Search the users here!' : 'Search the owners here!'}
+                    onChange={onSearchUsersChange}
+                  />
+                )}
+              />
+              {isStartConversationApiProcessing && (
+                <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
               )}
-            />
-            {(isAllUsersApiProcessing || isAllOwnersApiProcessing || isStartConversationApiProcessing) && (
-              <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
-            )}
+            </Box>
           </Box>
         </Box>
-      </Box>
-    </Box>
+      )}
+    </UsersWrapper>
   );
 };
 
