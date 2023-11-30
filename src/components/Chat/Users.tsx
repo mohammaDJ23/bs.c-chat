@@ -215,6 +215,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       setIsSearchUsersAutoCompleteOpen(false);
 
       if (value && selectors.userServiceSocket) {
+        userListFiltersFormInstance.onChange('q', `${value.firstName} ${value.lastName}`);
         actions.processingApiLoading(StartConversationApi.name);
         selectors.userServiceSocket.emit('start-conversation', { payload: value });
       }
@@ -351,6 +352,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 }}
                 clearIcon={false}
                 value={userListFiltersForm.q}
+                inputValue={userListFiltersForm.q}
                 renderInput={(params) => (
                   <TextField
                     {...params}
