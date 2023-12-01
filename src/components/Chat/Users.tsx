@@ -76,8 +76,6 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const userListFiltersFormInstance = useForm(UserListFilters);
   const userListFiltersForm = userListFiltersFormInstance.getForm();
   const conversationInfinityList = conversationListInstance.getInfinityList();
-  const isStartConversationApiSuccessed = request.isProcessingApiSuccessed(StartConversationApi);
-  const isStartConversationApiFailed = request.isProcessingApiFailed(StartConversationApi);
   const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
   const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
@@ -87,11 +85,13 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     if (selectors.userServiceSocket) {
       selectors.userServiceSocket.on('fail-start-conversation', (error: Error) => {
         actions.processingApiError(StartConversationApi.name);
+        userListFiltersFormInstance.onChange('q', '');
         enqueueSnackbar({ message: error.message, variant: 'error' });
       });
 
       selectors.userServiceSocket.on('success-start-conversation', (data: UserObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
+        userListFiltersFormInstance.onChange('q', '');
       });
     }
   }, [selectors.userServiceSocket]);
@@ -202,12 +202,6 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       });
     });
   }, []);
-
-  useEffect(() => {
-    if (isStartConversationApiSuccessed || isStartConversationApiFailed) {
-      userListFiltersFormInstance.onChange('q', '');
-    }
-  }, [isStartConversationApiSuccessed, isStartConversationApiFailed]);
 
   const onAutoCompleteChange = useCallback(
     (value: UserObj | null) => {
