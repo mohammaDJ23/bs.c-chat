@@ -39,8 +39,8 @@ function onChange(state: FormState, action: OnChangeAction): FormState {
   copiedForm[key] = value;
   newState[copiedForm.getConstructorName()] = copiedForm;
 
-  let errorMessage: string | undefined;
-  let inputValidation: InputValidation | undefined;
+  let errorMessage: string;
+  let inputValidation: InputValidation;
 
   for (const applyValidation of copiedForm.getRule(key)) {
     errorMessage = applyValidation(value) ?? '';

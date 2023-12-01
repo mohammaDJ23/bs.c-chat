@@ -1,5 +1,4 @@
 import {
-  Constructor,
   getInitialInputsValue,
   LocalStorage,
   getInputRules,
@@ -9,6 +8,9 @@ import {
   getInitialInputValidation,
   InputsValidation,
   setInputsValidation,
+  InputsRules,
+  InputRules,
+  InputValidation,
 } from '../';
 
 export type IgnoreFormConstructor<T extends Form> = Omit<T, keyof Form>;
@@ -22,11 +24,11 @@ export abstract class Form {
     return this.constructor.name;
   }
 
-  getRule(key: string) {
+  getRule(key: string): InputRules {
     return getInputRules(key, this.getPrototype());
   }
 
-  getRules() {
+  getRules(): InputsRules {
     return getInputsRules(this.getPrototype());
   }
 
@@ -44,15 +46,15 @@ export abstract class Form {
     return LocalStorage.getItem(this.getConstructorName()) || {};
   }
 
-  setCacheableFrom(value: this) {
+  setCacheableFrom(value: this): void {
     LocalStorage.setItem(this.getConstructorName(), value);
   }
 
-  clearCachedForm() {
+  clearCachedForm(): void {
     LocalStorage.removeItem(this.getConstructorName());
   }
 
-  clearCachedInput(key: keyof this) {
+  clearCachedInput(key: keyof this): void {
     const cachedForm = this.getCachedForm();
     if (cachedForm[key]) delete cachedForm[key];
     this.setCacheableFrom(cachedForm);
@@ -70,19 +72,19 @@ export abstract class Form {
     return new (this.constructor as Constructor)() as T;
   }
 
-  getInputValidation(key: keyof this) {
+  getInputValidation(key: keyof this): InputValidation {
     return this.getInputsValidation()[key as string];
   }
 
-  getInputsValidation() {
+  getInputsValidation(): InputsValidation {
     return getInputsValidation(this.getPrototype());
   }
 
-  setInputsValidation(value: InputsValidation) {
+  setInputsValidation(value: InputsValidation): void {
     setInputsValidation(value, this.getPrototype());
   }
 
-  isFormValid() {
+  isFormValid(): boolean {
     let isFormValid: boolean = true;
     for (const key in this) {
       for (const ruleFn of this.getRule(key)) {
@@ -92,7 +94,7 @@ export abstract class Form {
     return isFormValid;
   }
 
-  resetInputsValidation() {
+  resetInputsValidation(): void {
     const inputsValidation = this.getInputsValidation();
     for (const key in inputsValidation) inputsValidation[key] = getInitialInputValidation();
     this.setInputsValidation(inputsValidation);

@@ -1,4 +1,4 @@
-import { copyConstructor, ListInstance, lists } from '../../lib';
+import { BaseList, copyConstructor, ListInstance, lists } from '../../lib';
 import {
   UpdatePagePaginationListAction,
   UpdateTakePaginationListAction,
@@ -18,7 +18,7 @@ export enum PaginationList {
 }
 
 interface PaginationListState {
-  [key: string]: ListInstance;
+  [key: string]: BaseList;
 }
 
 function makeListState() {

@@ -1,44 +1,40 @@
 import { useMemo } from 'react';
-import { ListAsObjectType, ListInstance, ListInstanceConstructor } from '../lib';
+import { BaseList, ElementInArrayType, ListAsObjectType, ListType } from '../lib';
 import { useAction, useSelector } from './';
 
-export function usePaginationList<T>(listInstance: ListInstanceConstructor<ListInstance<T>>) {
+export function usePaginationList<
+  Instance extends BaseList,
+  Lists = ListType<Instance>,
+  Item = ElementInArrayType<Lists>
+>(listInstance: Constructor<Instance>) {
   const actions = useAction();
   const selectors = useSelector();
 
   return useMemo(
     function () {
-      function getInstance() {
+      function getInstance(): Instance {
         const instance = selectors.paginationLists[listInstance.name];
         if (instance) {
-          return instance;
+          return instance as Instance;
         }
         throw new Error('The list instance is not exist.');
       }
 
-      function updateList(list: any[]): void {
+      function updateList(list: Item[]): void {
         const instance = getInstance();
         const newList = { [instance.page]: list };
         actions.updateListPaginationList(listInstance, newList);
       }
 
-      function updateAndConcatList(list: any[], page: number): void {
+      function updateAndConcatList(list: Item[], page: number): void {
         const instance = getInstance();
         const newList = Object.assign(instance.list, { [page]: list });
         actions.updateListPaginationList(listInstance, newList);
       }
 
-      function updateListAsObject(list: any[]) {
+      function updateListAsObject(list: ListAsObjectType<Item>): void {
         const instance = getInstance();
-        const convertedList = list.reduce((acc, val) => {
-          if (val.id) {
-            acc[val.id] = val;
-          } else {
-            throw new Error('The item of the list has to have an id to making the list as object.');
-          }
-          return acc;
-        }, {} as ListAsObjectType);
-        const newListAsObject = Object.assign(instance.listAsObject, convertedList);
+        const newListAsObject = Object.assign(instance.listAsObject, list);
         actions.updateListAsObjectPaginationList(listInstance, newListAsObject);
       }
 
@@ -54,17 +50,17 @@ export function usePaginationList<T>(listInstance: ListInstanceConstructor<ListI
         actions.updateTotalPaginationList(listInstance, total);
       }
 
-      function getList(): any[] {
+      function getList(): Lists {
         const instance = getInstance();
-        return instance.list[instance.page] || [];
+        return (instance.list[instance.page] || []) as Lists;
       }
 
-      function getInfinityList(): T[] {
+      function getInfinityList(): Lists {
         const instance = getInstance();
-        return Object.values(instance.list).flat();
+        return Object.values(instance.list).flat() as Lists;
       }
 
-      function getListAsObject(): ListAsObjectType {
+      function getListAsObject(): ListAsObjectType<Item> {
         const instance = getInstance();
         return instance.listAsObject;
       }

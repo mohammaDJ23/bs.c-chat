@@ -303,6 +303,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                             fontWeight: '500',
                           }}
                           sx={{ flexGrow: '0', flexShrink: '0' }}
+                          // @ts-ignore
                           secondary={moment(item.conversation.updatedAt.seconds * 1000).format('L')}
                         />
                       </Box>
@@ -317,7 +318,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                               textOverflow: 'ellipsis',
                               width: '250px',
                             }}
-                            secondary={item.conversation.lastMessage}
+                            secondary={item.conversation.lastMessage.text}
                           />
                         </Box>
                       )}
@@ -336,8 +337,10 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 disabled={isStartConversationApiProcessing}
                 open={isSearchUsersAutoCompleteOpen}
                 options={userListInstance.getList()}
+                // @ts-ignore
                 onChange={(_, value: UserObj | null) => onAutoCompleteChange(value)}
                 filterOptions={(options) => options}
+                // @ts-ignore
                 getOptionLabel={(option) => {
                   if (typeof option === 'object' && option.firstName && option.lastName) {
                     return `${option.firstName} ${option.lastName}`;

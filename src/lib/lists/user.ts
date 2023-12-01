@@ -15,8 +15,8 @@ export interface UserObj {
   parent: UserObj;
 }
 
-export class UserList extends BaseList {
-  constructor(arg: Partial<BaseList> = {}) {
+export class UserList<T = UserObj> extends BaseList<T> {
+  constructor(arg: Partial<BaseList<T>> = {}) {
     super(arg);
   }
 }

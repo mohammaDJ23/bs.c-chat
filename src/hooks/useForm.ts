@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Constructor, Form as FormConstructor } from '../lib';
+import { Form as FormConstructor, InputsRules } from '../lib';
 import { ModalNames } from '../store';
 import { useAction } from './useActions';
 import { useSelector } from '../hooks';
@@ -14,7 +14,7 @@ export function useForm<T extends FormInstance>(initialForm: Constructor<T>) {
 
   return useMemo(
     function () {
-      function getFormName() {
+      function getFormName(): string {
         return initialForm.name;
       }
 
@@ -22,48 +22,48 @@ export function useForm<T extends FormInstance>(initialForm: Constructor<T>) {
         return forms[getFormName()] as T;
       }
 
-      function initializeForm(form: T) {
+      function initializeForm(form: T): void {
         setForm<T>(form);
       }
 
-      function onChange(key: keyof T, value: any) {
+      function onChange(key: keyof T, value: any): void {
         changeInput({ form: initialForm, key, value });
       }
 
-      function resetForm() {
+      function resetForm(): void {
         resettingForm(initialForm);
         getForm().resetInputsValidation();
       }
 
-      function getRules() {
+      function getRules(): InputsRules {
         return getForm().getRules();
       }
 
-      function resetCach() {
+      function resetCach(): FormConstructor {
         return getForm().resetCach();
       }
 
-      function isFormValid() {
+      function isFormValid(): boolean {
         return getForm().isFormValid();
       }
 
-      function confirmation() {
+      function confirmation(): void {
         if (isFormValid()) showModal(ModalNames.CONFIRMATION);
       }
 
-      function onSubmit(cb: () => Promise<void> | void) {
+      function onSubmit(cb: () => Promise<void> | void): void {
         if (isFormValid()) cb.call({});
       }
 
-      function isConfirmationActive() {
+      function isConfirmationActive(): boolean {
         return !!modals[ModalNames.CONFIRMATION];
       }
 
-      function getInputErrorMessage(key: keyof T) {
+      function getInputErrorMessage(key: keyof T): string | undefined {
         return getForm().getInputValidation(key).errorMessage;
       }
 
-      function isInputInValid(key: keyof T) {
+      function isInputInValid(key: keyof T): boolean {
         return !!getForm().getInputValidation(key).errorMessage;
       }
 

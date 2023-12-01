@@ -1,4 +1,3 @@
-import { Constructor } from '../../lib';
 import { Form, FormType } from '../reducers';
 
 export interface SetFormAction<T = {}> {

@@ -28,8 +28,8 @@ export interface ConversationObj {
   conversation: ConversationDocObj;
 }
 
-export class ConversationList extends BaseList {
-  constructor(arg: Partial<BaseList> = {}) {
+export class ConversationList<T = ConversationObj> extends BaseList<T> {
+  constructor(arg: Partial<BaseList<T>> = {}) {
     super(arg);
     this.take = arg.take || 30;
   }

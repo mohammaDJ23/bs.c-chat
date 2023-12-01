@@ -1,7 +1,6 @@
 import { AxiosError, AxiosResponse } from 'axios';
 import { useCallback } from 'react';
 import { ErrorObj, Request, RootApi, RootApiObj } from '../apis';
-import { Constructor } from '../lib';
 import { useAction } from './useActions';
 import { useSelector } from './useSelector';
 import { useSnackbar } from 'notistack';
