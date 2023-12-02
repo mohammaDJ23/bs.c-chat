@@ -3,14 +3,12 @@ import './assets/styles/index.css';
 import { FC } from 'react';
 import { Pathes, isContainerApp } from './lib';
 import { Navigate } from 'react-router-dom';
-import { Provider } from 'react-redux';
 import { createBrowserHistory } from 'history';
 import { SnackbarProvider } from 'notistack';
 import Chat from './components/Chat';
 import { useAuth } from './hooks';
 import UserServiceChatSocketProvider from './lib/providers/userServiceChatSocketProvider';
 import UserServiceConnectionSocketProvider from './lib/providers/userServiceConnectionSocketProvider';
-import { store } from './store';
 
 export const history = createBrowserHistory();
 
@@ -23,20 +21,18 @@ const App: FC = () => {
       return <Navigate to={Pathes.LOGIN} />;
     }
     return (
-      <Provider store={store}>
-        <SnackbarProvider
-          dense
-          maxSnack={Infinity}
-          anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
-          style={{ maxWidth: '300px', wordBreak: 'break-word', overflow: 'hidden' }}
-        >
-          <UserServiceConnectionSocketProvider>
-            <UserServiceChatSocketProvider>
-              <Chat />
-            </UserServiceChatSocketProvider>
-          </UserServiceConnectionSocketProvider>
-        </SnackbarProvider>
-      </Provider>
+      <SnackbarProvider
+        dense
+        maxSnack={Infinity}
+        anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
+        style={{ maxWidth: '300px', wordBreak: 'break-word', overflow: 'hidden' }}
+      >
+        <UserServiceConnectionSocketProvider>
+          <UserServiceChatSocketProvider>
+            <Chat />
+          </UserServiceChatSocketProvider>
+        </UserServiceConnectionSocketProvider>
+      </SnackbarProvider>
     );
   }
   return <div>Runs the app in the container</div>;

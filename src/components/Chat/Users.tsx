@@ -285,7 +285,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                               flex: 'unset',
                               width: '8px',
                               height: '8px',
-                              backgroundColor: 'red',
+                              backgroundColor: auth.getUserStatusColor(item.user.id),
                               borderRadius: '50%',
                             }}
                             secondary={<Box component="span"></Box>}
