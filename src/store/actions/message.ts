@@ -1,68 +1,40 @@
-import { Message, MessageObj, UserObj } from '../reducers';
+import { UserObj } from '../../lib';
+import { Message, MessageObj } from '../reducers';
 
-export interface CreateMessageAction {
-  type: Message.CREATE_MESSAGE;
+export interface PushMessageAction {
+  type: Message.PUSH_MESSAGE;
   payload: MessageObj;
 }
 
-export interface SetMessagesAction {
-  type: Message.SET_MESSAGES;
+export interface UnshiftMessagesAction {
+  type: Message.UNSHIFT_MESSAGES;
   payload: MessageObj[];
 }
 
-export interface SetUsersAction {
-  type: Message.SET_USERS;
-  payload: UserObj[];
-}
-
-export interface SetSearchedUsersAction {
-  type: Message.SET_SEARCHED_USERS;
-  payload: UserObj[];
-}
-
 export interface SelecteUserAction {
-  type: Message.SELECT_USER_ACTION;
+  type: Message.UPDATE_SELECTD_USER;
   payload: UserObj;
 }
 
-export type MessageActions =
-  | CreateMessageAction
-  | SetMessagesAction
-  | SetUsersAction
-  | SetSearchedUsersAction
-  | SelecteUserAction;
+export type MessageActions = PushMessageAction | UnshiftMessagesAction | SelecteUserAction;
 
-export function createMessage(payload: MessageObj): CreateMessageAction {
+export function pushMessage(payload: MessageObj): PushMessageAction {
   return {
-    type: Message.CREATE_MESSAGE,
+    type: Message.PUSH_MESSAGE,
     payload,
   };
 }
 
-export function setMessages(payload: MessageObj[]): SetMessagesAction {
+export function unshiftMessages(payload: MessageObj[]): UnshiftMessagesAction {
   return {
-    type: Message.SET_MESSAGES,
-    payload,
-  };
-}
-
-export function setUsers(payload: UserObj[]): SetUsersAction {
-  return {
-    type: Message.SET_USERS,
-    payload,
-  };
-}
-
-export function setSearchedUsers(payload: UserObj[]): SetSearchedUsersAction {
-  return {
-    type: Message.SET_SEARCHED_USERS,
+    type: Message.UNSHIFT_MESSAGES,
     payload,
   };
 }
 
 export function selectUser(payload: UserObj): SelecteUserAction {
   return {
-    type: Message.SELECT_USER_ACTION,
+    type: Message.UPDATE_SELECTD_USER,
     payload,
   };
 }
