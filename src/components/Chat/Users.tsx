@@ -18,6 +18,7 @@ import {
   ConversationDocObj,
   ConversationList,
   ConversationObj,
+  ListAsObjectType,
   UserList,
   UserListFilters,
   UserObj,
@@ -39,6 +40,7 @@ import {
   getDocs,
   startAfter,
 } from 'firebase/firestore';
+import { UsersStatusType } from '../../store';
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
@@ -80,6 +82,29 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
   const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
   const halfSecDebounce = useRef(debounce());
+
+  useEffect(() => {
+    if (selectors.userServiceSocket.connection && isCurrentOwner) {
+      selectors.userServiceSocket.connection.on('users-status', (data: UsersStatusType) => {
+        const usersStatus = Object.assign({}, selectors.specificDetails.usersStatus, data);
+        actions.setSpecificDetails('usersStatus', usersStatus);
+      });
+
+      selectors.userServiceSocket.connection.on('user-status', (data: UsersStatusType) => {
+        const conversationListAsObject = conversationListInstance.getListAsObject();
+        const [id] = Object.keys(data);
+        if (conversationListAsObject[id]) {
+          const usersStatus = Object.assign({}, selectors.specificDetails.usersStatus, data);
+          actions.setSpecificDetails('usersStatus', usersStatus);
+        }
+      });
+
+      return () => {
+        selectors.userServiceSocket.connection!.removeListener('users-status');
+        selectors.userServiceSocket.connection!.removeListener('user-status');
+      };
+    }
+  }, [selectors.userServiceSocket.connection, selectors.specificDetails.usersStatus, userListInstance, isCurrentOwner]);
 
   useEffect(() => {
     if (selectors.userServiceSocket.chat) {
@@ -144,9 +169,19 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 .map((id, i) => ({ conversation: conversationDocs[i], user: list.find((user) => user.id === id)! }))
                 .filter((conversation) => !!conversation.user);
 
+              const listAsObject = conversationList.reduce((acc, val) => {
+                acc[val.user.id] = val;
+                return acc;
+              }, {} as ListAsObjectType<ConversationObj>);
+
               conversationListInstance.updateAndConcatList(conversationList, page);
+              conversationListInstance.updateListAsObject(listAsObject);
               conversationListInstance.updatePage(page);
               conversationListInstance.updateTotal(total);
+
+              if (selectors.userServiceSocket.connection && isCurrentOwner) {
+                selectors.userServiceSocket.connection.emit('users-status', { payload: ids });
+              }
             });
           }
         })
@@ -157,12 +192,12 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           enqueueSnackbar({ message: error.message, variant: 'error' });
         });
     },
-    [conversationInfinityList]
+    [selectors.userServiceSocket.connection, isCurrentOwner]
   );
 
   useEffect(() => {
     getConversationList({ isInitialApi: true });
-  }, []);
+  }, [getConversationList]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(

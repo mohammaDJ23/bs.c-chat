@@ -2,7 +2,7 @@ export interface ListObj<T = any> {
   [key: number | string]: T[];
 }
 
-export type ListAsObjectType<T = any> = Record<number | string, ListObj<T>>;
+export type ListAsObjectType<T = any> = Record<number | string, T>;
 
 export type ElementInArrayType<T> = T extends (infer U)[] ? U : never;
 
