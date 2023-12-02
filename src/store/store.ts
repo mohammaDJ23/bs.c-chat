@@ -6,6 +6,7 @@ import {
   modalReducer,
   paginationListReducer,
   requsetProcessReducer,
+  specificDetailsReducer,
   userServiceSocketReducer,
 } from './reducers';
 
@@ -16,6 +17,7 @@ const reducers = combineReducers({
   modals: modalReducer,
   paginationLists: paginationListReducer,
   forms: FormReducer,
+  specificDetails: specificDetailsReducer,
 });
 
 export const store = createStore(reducers, {}, applyMiddleware(thunk));
