@@ -80,10 +80,24 @@ export function usePaginationList<
         return instance.total;
       }
 
+      function getCount(): number {
+        const listInstance = getInstance();
+        return Math.ceil(listInstance.total / listInstance.take);
+      }
+
       function isListEmpty(): boolean {
-        const instance = getInstance();
         const total = getTotal();
-        return Object.keys(instance.list).length <= 0 && total <= 0;
+        return total <= 0;
+      }
+
+      function isNewPageEqualToCurrentPage(newPage: number): boolean {
+        const listInfo = getInstance();
+        return newPage === listInfo.page;
+      }
+
+      function isNewPageExist(newPage: number): boolean {
+        const listInfo = getInstance();
+        return !!listInfo.list[newPage];
       }
 
       return {
@@ -99,8 +113,11 @@ export function usePaginationList<
         getPage,
         getTake,
         getTotal,
+        getCount,
         isListEmpty,
         getInfinityList,
+        isNewPageEqualToCurrentPage,
+        isNewPageExist,
       };
     },
     [selectors.paginationLists[listInstance.name]]
