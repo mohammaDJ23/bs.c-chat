@@ -1,6 +1,6 @@
 export * from './requestProcess';
 export * from './clearState';
-export * from './socket';
+export * from './userSocket';
 export * from './message';
 export * from './modal';
 export * from './paginationList';
