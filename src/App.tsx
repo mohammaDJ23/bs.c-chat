@@ -9,6 +9,7 @@ import { SnackbarProvider } from 'notistack';
 import Chat from './components/Chat';
 import { useAuth } from './hooks';
 import UserServiceChatSocketProvider from './lib/providers/userServiceChatSocketProvider';
+import UserServiceConnectionSocketProvider from './lib/providers/userServiceConnectionSocketProvider';
 import { store } from './store';
 
 export const history = createBrowserHistory();
@@ -29,9 +30,11 @@ const App: FC = () => {
           anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
           style={{ maxWidth: '300px', wordBreak: 'break-word', overflow: 'hidden' }}
         >
-          <UserServiceChatSocketProvider>
-            <Chat />
-          </UserServiceChatSocketProvider>
+          <UserServiceConnectionSocketProvider>
+            <UserServiceChatSocketProvider>
+              <Chat />
+            </UserServiceChatSocketProvider>
+          </UserServiceConnectionSocketProvider>
         </SnackbarProvider>
       </Provider>
     );
