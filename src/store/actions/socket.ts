@@ -1,16 +1,16 @@
 import { UserServiceSocket } from '../reducers';
 import { Socket } from 'socket.io-client';
 
-export interface SetUserServiceSocketAction {
-  type: UserServiceSocket.SET_SOCKET;
+export interface SetUserServiceChatSocketAction {
+  type: UserServiceSocket.SET_CHAT_SOCKET;
   payload: { socket: Socket };
 }
 
-export type UserServiceSocketActions = SetUserServiceSocketAction;
+export type UserServiceSocketActions = SetUserServiceChatSocketAction;
 
-export function setUserServiceSocket(socket: Socket) {
+export function setUserServiceChatSocket(socket: Socket) {
   return {
-    type: UserServiceSocket.SET_SOCKET,
+    type: UserServiceSocket.SET_CHAT_SOCKET,
     payload: { socket },
   };
 }

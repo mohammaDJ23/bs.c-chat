@@ -7,7 +7,7 @@ const UserServiceChatSocketProvider: FC<PropsWithChildren> = ({ children }) => {
 
   useEffect(() => {
     const socket = getUserServiceChatSocket();
-    actions.setUserServiceSocket(socket);
+    actions.setUserServiceChatSocket(socket);
   }, []);
 
   return <Fragment>{children}</Fragment>;

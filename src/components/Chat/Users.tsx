@@ -82,19 +82,24 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const halfSecDebounce = useRef(debounce());
 
   useEffect(() => {
-    if (selectors.userServiceSocket) {
-      selectors.userServiceSocket.on('fail-start-conversation', (error: Error) => {
+    if (selectors.userServiceSocket.chat) {
+      selectors.userServiceSocket.chat.on('fail-start-conversation', (error: Error) => {
         actions.processingApiError(StartConversationApi.name);
         userListFiltersFormInstance.onChange('q', '');
         enqueueSnackbar({ message: error.message, variant: 'error' });
       });
 
-      selectors.userServiceSocket.on('success-start-conversation', (data: UserObj) => {
+      selectors.userServiceSocket.chat.on('success-start-conversation', (data: UserObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
         userListFiltersFormInstance.onChange('q', '');
       });
+
+      return () => {
+        selectors.userServiceSocket.chat!.removeListener('fail-start-conversation');
+        selectors.userServiceSocket.chat!.removeListener('success-start-conversation');
+      };
     }
-  }, [selectors.userServiceSocket]);
+  }, [selectors.userServiceSocket.chat]);
 
   const getConversationList = useCallback(
     async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
@@ -208,13 +213,13 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       userListInstance.updateList([]);
       setIsSearchUsersAutoCompleteOpen(false);
 
-      if (value && selectors.userServiceSocket) {
+      if (value && selectors.userServiceSocket.chat) {
         userListFiltersFormInstance.onChange('q', `${value.firstName} ${value.lastName}`);
         actions.processingApiLoading(StartConversationApi.name);
-        selectors.userServiceSocket.emit('start-conversation', { payload: value });
+        selectors.userServiceSocket.chat.emit('start-conversation', { payload: value });
       }
     },
-    [selectors.userServiceSocket]
+    [selectors.userServiceSocket.chat]
   );
 
   return (
