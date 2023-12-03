@@ -32,9 +32,13 @@ export function usePaginationList<
         actions.updateListPaginationList(listInstance, newList);
       }
 
-      function updateListAsObject(list: ListAsObjectType<Item>): void {
+      function updateListAsObject(list: Item[], fn: (val: Item) => string | number): void {
         const instance = getInstance();
-        const newListAsObject = Object.assign(instance.listAsObject, list);
+        const listAsObject = list.reduce((acc, val) => {
+          acc[fn.call(window, val)] = val;
+          return acc;
+        }, {} as ListAsObjectType<Item>);
+        const newListAsObject = Object.assign(instance.listAsObject, listAsObject);
         actions.updateListAsObjectPaginationList(listInstance, newListAsObject);
       }
 

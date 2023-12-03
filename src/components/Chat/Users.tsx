@@ -173,18 +173,15 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
 
             request.build<[UserObj[], number]>(api).then((response) => {
               const [list, total] = response.data;
-
               const conversationList: ConversationObj[] = ids
-                .map((id, i) => ({ conversation: conversationDocs[i], user: list.find((user) => user.id === id)! }))
+                .map((id, i) => ({
+                  conversation: conversationDocs[i],
+                  user: list.find((user) => user.id === id)!,
+                }))
                 .filter((conversation) => !!conversation.user);
 
-              const listAsObject = conversationList.reduce((acc, val) => {
-                acc[val.user.id] = val;
-                return acc;
-              }, {} as ListAsObjectType<ConversationObj>);
-
               conversationListInstance.updateAndConcatList(conversationList, page);
-              conversationListInstance.updateListAsObject(listAsObject);
+              conversationListInstance.updateListAsObject(conversationList, (val) => val.user.id);
               conversationListInstance.updatePage(page);
               conversationListInstance.updateTotal(total + conversationListInstance.getTotal());
 
