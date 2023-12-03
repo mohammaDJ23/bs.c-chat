@@ -40,6 +40,7 @@ import {
   getDocs,
   startAfter,
   QueryDocumentSnapshot,
+  and,
 } from 'firebase/firestore';
 import { UsersStatusType } from '../../store';
 
@@ -143,7 +144,10 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       getDocs(
         query(
           collection(db, 'conversation'),
-          or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id)),
+          and(
+            where('contributors', 'array-contains', decodedToken.id),
+            or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
+          ),
           orderBy('updatedAt', 'desc'),
           limit(conversationListInstance.getTake()),
           startAfter(lastVisible)
@@ -229,7 +233,10 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     const unsubscribe = onSnapshot(
       query(
         collection(db, 'conversation'),
-        or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
+        and(
+          where('contributors', 'array-contains', decodedToken.id),
+          or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
+        )
       ),
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
