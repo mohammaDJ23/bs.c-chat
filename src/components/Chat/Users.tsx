@@ -18,7 +18,6 @@ import {
   ConversationDocObj,
   ConversationList,
   ConversationObj,
-  ListAsObjectType,
   UserList,
   UserListFilters,
   UserObj,
@@ -109,13 +108,12 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         selectors.userServiceSocket.connection!.removeListener('user-status');
       };
     }
-  }, [selectors.userServiceSocket.connection, selectors.specificDetails.usersStatus, userListInstance, isCurrentOwner]);
+  }, [selectors.userServiceSocket.connection, selectors.specificDetails.usersStatus, isCurrentOwner]);
 
   useEffect(() => {
     if (selectors.userServiceSocket.chat) {
       selectors.userServiceSocket.chat.on('fail-start-conversation', (error: Error) => {
         actions.processingApiError(StartConversationApi.name);
-        userListFiltersFormInstance.onChange('q', '');
         enqueueSnackbar({ message: error.message, variant: 'error' });
       });
 
