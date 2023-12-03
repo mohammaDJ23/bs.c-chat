@@ -55,9 +55,9 @@ export function usePaginationList<
         return (instance.list[instance.page] || []) as Lists;
       }
 
-      function getInfinityList(): Lists {
+      function getInfinityList(): Item[] {
         const instance = getInstance();
-        return Object.values(instance.list).flat() as Lists;
+        return Object.values(instance.list).flat() as Item[];
       }
 
       function getListAsObject(): ListAsObjectType<Item> {
@@ -91,13 +91,19 @@ export function usePaginationList<
       }
 
       function isNewPageEqualToCurrentPage(newPage: number): boolean {
-        const listInfo = getInstance();
-        return newPage === listInfo.page;
+        const instance = getInstance();
+        return newPage === instance.page;
       }
 
       function isNewPageExist(newPage: number): boolean {
-        const listInfo = getInstance();
-        return !!listInfo.list[newPage];
+        const instance = getInstance();
+        return !!instance.list[newPage];
+      }
+
+      function isListEnd(): boolean {
+        const infinityList = getInfinityList();
+        const total = getTotal();
+        return infinityList.length >= total;
       }
 
       return {
@@ -118,6 +124,7 @@ export function usePaginationList<
         getInfinityList,
         isNewPageEqualToCurrentPage,
         isNewPageExist,
+        isListEnd,
       };
     },
     [selectors.paginationLists[listInstance.name]]
