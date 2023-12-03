@@ -2,7 +2,7 @@ import { combineReducers, createStore, applyMiddleware } from 'redux';
 import thunk from 'redux-thunk';
 import {
   FormReducer,
-  messageReducer,
+  conversationsReducer,
   modalReducer,
   paginationListReducer,
   requsetProcessReducer,
@@ -13,7 +13,7 @@ import {
 const reducers = combineReducers({
   requestProcess: requsetProcessReducer,
   userServiceSocket: userServiceSocketReducer,
-  message: messageReducer,
+  conversations: conversationsReducer,
   modals: modalReducer,
   paginationLists: paginationListReducer,
   forms: FormReducer,

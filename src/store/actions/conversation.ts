@@ -1,4 +1,4 @@
-import { UserObj } from '../../lib';
+import { ConversationObj } from '../../lib';
 import { Message, MessageObj } from '../reducers';
 
 export interface PushMessageAction {
@@ -11,12 +11,12 @@ export interface UnshiftMessagesAction {
   payload: MessageObj[];
 }
 
-export interface SelecteUserAction {
-  type: Message.UPDATE_SELECTD_USER;
-  payload: UserObj;
+export interface SelecteUserForStartConversationAction {
+  type: Message.SEELCT_USER_FOR_START_CONVERSATION;
+  payload: ConversationObj;
 }
 
-export type MessageActions = PushMessageAction | UnshiftMessagesAction | SelecteUserAction;
+export type MessageActions = PushMessageAction | UnshiftMessagesAction | SelecteUserForStartConversationAction;
 
 export function pushMessage(payload: MessageObj): PushMessageAction {
   return {
@@ -32,9 +32,9 @@ export function unshiftMessages(payload: MessageObj[]): UnshiftMessagesAction {
   };
 }
 
-export function selectUser(payload: UserObj): SelecteUserAction {
+export function selectUserForStartConversation(payload: ConversationObj): SelecteUserForStartConversationAction {
   return {
-    type: Message.UPDATE_SELECTD_USER,
+    type: Message.SEELCT_USER_FOR_START_CONVERSATION,
     payload,
   };
 }

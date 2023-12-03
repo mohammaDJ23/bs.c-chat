@@ -126,7 +126,7 @@ const MessagesContent: FC = () => {
 
   return (
     <>
-      {selectors.message.selectedUser ? (
+      {selectors.conversations.selectedUser ? (
         <Box
           sx={{
             width: '100%',
@@ -136,7 +136,7 @@ const MessagesContent: FC = () => {
             overflowX: 'hidden',
           }}
         >
-          {selectors.message.messages.length > 0 ? (
+          {selectors.conversations.messages.length > 0 ? (
             <Box component="div" sx={{ width: '100%', height: '100%', padding: '10px' }}>
               <Box sx={{ width: '100%', height: '100%' }}>
                 <Box
@@ -148,10 +148,10 @@ const MessagesContent: FC = () => {
                     height: '100%',
                   }}
                 >
-                  {selectors.message.messages.map((message, i) => (
+                  {selectors.conversations.messages.map((message, i) => (
                     <Box
                       key={message.id}
-                      sx={{ paddingBottom: i >= selectors.message.messages.length - 1 ? '58px' : '0' }}
+                      sx={{ paddingBottom: i >= selectors.conversations.messages.length - 1 ? '58px' : '0' }}
                     >
                       <MessageCard message={message} />
                     </Box>

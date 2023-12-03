@@ -317,9 +317,11 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
             <ListWrapper disablePadding>
               {conversationInfinityList.map((item) => (
                 <ListItemButton
+                  selected={selectors.conversations.selectedUser?.user?.id === item.user.id}
                   key={item.conversation.id}
                   sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}
                   onClick={() => {
+                    actions.selectUserForStartConversation(item);
                     if (onUserClick) {
                       onUserClick.call({});
                     }
