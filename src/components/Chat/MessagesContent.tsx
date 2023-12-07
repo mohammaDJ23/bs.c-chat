@@ -46,14 +46,14 @@ const FormWrapper = styled(Box)(({ theme }) => ({
 
 const MessagesWrapper = styled(Box)(({ theme }) => ({
   height: 'calc(100% - 103px)',
-  [theme.breakpoints.down('md')]: {
+  [theme.breakpoints.down('sm')]: {
     height: 'calc(100% - 83px)',
   },
 }));
 
 const EmptyMessagesWrapper = styled(Box)(({ theme }) => ({
   height: 'calc(100% - 103px)',
-  [theme.breakpoints.down('md')]: {
+  [theme.breakpoints.down('sm')]: {
     height: 'calc(100% - 83px)',
   },
 }));

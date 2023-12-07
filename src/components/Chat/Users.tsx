@@ -58,7 +58,7 @@ const ListWrapper = styled(List)(({ theme }) => ({
     paddingBottom: '0',
   },
   [theme.breakpoints.up('md')]: {
-    paddingBottom: '48px',
+    paddingBottom: '50px',
   },
 }));
 
@@ -427,8 +427,8 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           ) : (
             <EmptyUsers />
           )}
-          <Box sx={{ position: 'fixed', zIndex: 1, bottom: '0', left: '0', width: '280px' }}>
-            <Box sx={{ width: '100%', backgroundColor: '#e0e0e0' }}>
+          <Box sx={{ position: 'fixed', zIndex: 1, bottom: '0', left: '0', width: '280px', height: '50px' }}>
+            <Box sx={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0' }}>
               <Autocomplete
                 freeSolo
                 disabled={isStartConversationApiProcessing}
