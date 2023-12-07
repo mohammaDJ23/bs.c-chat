@@ -31,6 +31,6 @@ export interface ConversationObj {
 export class ConversationList<T = ConversationObj> extends BaseList<T> {
   constructor(arg: Partial<BaseList<T>> = {}) {
     super(arg);
-    this.take = arg.take || 5;
+    this.take = arg.take || 30;
   }
 }
