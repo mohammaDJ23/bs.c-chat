@@ -44,6 +44,20 @@ const FormWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
+const MessagesWrapper = styled(Box)(({ theme }) => ({
+  height: 'calc(100% - 103px)',
+  [theme.breakpoints.down('md')]: {
+    height: 'calc(100% - 83px)',
+  },
+}));
+
+const EmptyMessagesWrapper = styled(Box)(({ theme }) => ({
+  height: 'calc(100% - 103px)',
+  [theme.breakpoints.down('md')]: {
+    height: 'calc(100% - 83px)',
+  },
+}));
+
 const MessagesContent: FC = () => {
   const [text, setText] = useState<string>('');
   const selectors = useSelector();
@@ -135,60 +149,60 @@ const MessagesContent: FC = () => {
             overflowX: 'hidden',
           }}
         >
-          {selectors.conversations.selectedUser && (
+          <Box
+            onClick={() => onUserConversationNameClick()}
+            sx={{
+              position: 'sticky',
+              top: 0,
+              left: 0,
+              padding: '8px 10px',
+              borderBottom: '1px solid #e0e0e0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              height: '53px',
+            }}
+          >
+            <ArrowLeftIconWrapper>
+              <ArrowLeftIcon fontSize="medium" />
+            </ArrowLeftIconWrapper>
             <Box
-              onClick={() => onUserConversationNameClick()}
               sx={{
-                position: 'sticky',
-                top: 0,
-                left: 0,
-                padding: '8px 10px',
-                borderBottom: '1px solid #e0e0e0',
                 display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
+                flexDirection: 'column',
+                overflow: 'hidden',
               }}
             >
-              <ArrowLeftIconWrapper>
-                <ArrowLeftIcon fontSize="medium" />
-              </ArrowLeftIconWrapper>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden',
-                }}
+              <Typography
+                fontSize="14px"
+                fontWeight={'bold'}
+                sx={{ maxWidth: '560px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
               >
-                <Typography
-                  fontSize="14px"
-                  fontWeight={'bold'}
-                  sx={{ maxWidth: '560px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
-                >
-                  {selectors.conversations.selectedUser.user.firstName}{' '}
-                  {selectors.conversations.selectedUser.user.lastName}
-                </Typography>
-                {isCurrentOwner &&
-                  (() => {
-                    const userLastConnection = auth.getUserLastConnection(selectors.conversations.selectedUser.user.id);
-                    if (userLastConnection) {
-                      return (
-                        <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
-                          {getConversationDate(userLastConnection)}
-                        </Typography>
-                      );
-                    } else if (userLastConnection === null) {
-                      return (
-                        <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
-                          online
-                        </Typography>
-                      );
-                    }
-                  })()}
-              </Box>
+                {selectors.conversations.selectedUser.user.firstName}{' '}
+                {selectors.conversations.selectedUser.user.lastName}
+              </Typography>
+              {isCurrentOwner &&
+                (() => {
+                  const userLastConnection = auth.getUserLastConnection(selectors.conversations.selectedUser.user.id);
+                  if (userLastConnection) {
+                    return (
+                      <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                        {getConversationDate(userLastConnection)}
+                      </Typography>
+                    );
+                  } else if (userLastConnection === null) {
+                    return (
+                      <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                        online
+                      </Typography>
+                    );
+                  }
+                })()}
             </Box>
-          )}
+          </Box>
+
           {selectors.conversations.messages.length > 0 ? (
-            <Box component="div" sx={{ width: '100%', height: 'calc(100% - 86.13px)', padding: '10px' }}>
+            <MessagesWrapper component="div" sx={{ width: '100%', padding: '10px' }}>
               <Box sx={{ width: '100%', height: '100%' }}>
                 <Box
                   sx={{
@@ -209,11 +223,11 @@ const MessagesContent: FC = () => {
                   ))}
                 </Box>
               </Box>
-            </Box>
+            </MessagesWrapper>
           ) : (
-            <Box component="div" sx={{ width: '100%', height: 'calc(100% - 86.13px)' }}>
+            <EmptyMessagesWrapper component="div" sx={{ width: '100%' }}>
               <EmptyMessages />
-            </Box>
+            </EmptyMessagesWrapper>
           )}
           <FormWrapper>
             <form
