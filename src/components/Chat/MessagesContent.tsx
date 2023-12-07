@@ -1,12 +1,12 @@
 import { FC, useCallback, useState, useEffect } from 'react';
-import { Box, TextField as TF, styled, Menu, MenuItem, Drawer } from '@mui/material';
+import { Box, TextField as TF, styled, Menu, MenuItem, Drawer, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import MenuIcon from '@mui/icons-material/Menu';
 import Users from './Users';
 import MessageCard from './MessageCard';
 import { MessageObj, ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
-import { useAction, useSelector } from '../../hooks';
+import { useAction, useAuth, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
 
 const TextField = styled(TF)(({ theme }) => ({
@@ -49,6 +49,8 @@ const MessagesContent: FC = () => {
   const isAnchorElOpen = !!anchorEl;
   const selectors = useSelector();
   const actions = useAction();
+  const auth = useAuth();
+  const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
 
   const onMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
@@ -136,8 +138,44 @@ const MessagesContent: FC = () => {
             overflowX: 'hidden',
           }}
         >
+          {selectors.conversations.selectedUser && (
+            <Box
+              sx={{
+                position: 'sticky',
+                top: 0,
+                left: 0,
+                padding: '8px 14px',
+                borderBottom: '1px solid #e0e0e0',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                {isCurrentOwner && (
+                  <Box
+                    sx={{
+                      flex: 'unset',
+                      width: '10px',
+                      height: '10px',
+                      backgroundColor: auth.getUserStatusColor(selectors.conversations.selectedUser.user.id),
+                      borderRadius: '50%',
+                    }}
+                    component={'span'}
+                  ></Box>
+                )}
+                <Typography component={'p'} fontSize="14px" fontWeight={'bold'}>
+                  {selectors.conversations.selectedUser.user.firstName}{' '}
+                  {selectors.conversations.selectedUser.user.lastName}
+                </Typography>
+              </Box>
+            </Box>
+          )}
           {selectors.conversations.messages.length > 0 ? (
-            <Box component="div" sx={{ width: '100%', height: '100%', padding: '10px' }}>
+            <Box component="div" sx={{ width: '100%', height: 'calc(100% - 86.13px)', padding: '10px' }}>
               <Box sx={{ width: '100%', height: '100%' }}>
                 <Box
                   sx={{
@@ -160,7 +198,9 @@ const MessagesContent: FC = () => {
               </Box>
             </Box>
           ) : (
-            <EmptyMessages />
+            <Box component="div" sx={{ width: '100%', height: 'calc(100% - 86.13px)' }}>
+              <EmptyMessages />
+            </Box>
           )}
           <FormWrapper>
             <form
