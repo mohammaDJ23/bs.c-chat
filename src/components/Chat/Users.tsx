@@ -40,6 +40,7 @@ import {
   startAfter,
   QueryDocumentSnapshot,
   and,
+  getCountFromServer,
 } from 'firebase/firestore';
 import { UsersStatusType } from '../../store';
 
@@ -69,7 +70,6 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const [isSearchUsersAutoCompleteOpen, setIsSearchUsersAutoCompleteOpen] = useState(false);
   const conversationListSpinnerRef = useRef<HTMLDivElement | null>(null);
   const lastVisibleConversationDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | null>(null);
-  const isConversationListEndRef = useRef<boolean>(false);
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
@@ -129,6 +129,30 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     }
   }, [selectors.userServiceSocket.chat]);
 
+  const getPaginatedConversationListQuery = useCallback(() => {
+    const lastVisible = lastVisibleConversationDocRef.current ? lastVisibleConversationDocRef.current : {};
+    return query(
+      collection(db, 'conversation'),
+      and(
+        where('contributors', 'array-contains', decodedToken.id),
+        or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
+      ),
+      orderBy('updatedAt', 'desc'),
+      limit(conversationListInstance.getTake()),
+      startAfter(lastVisible)
+    );
+  }, [lastVisibleConversationDocRef.current, conversationListInstance]);
+
+  const getConversationListQuery = useCallback(() => {
+    return query(
+      collection(db, 'conversation'),
+      and(
+        where('contributors', 'array-contains', decodedToken.id),
+        or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
+      )
+    );
+  }, []);
+
   const getConversationList = useCallback(
     async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
       if (data.isInitialApi) actions.initialProcessingApiLoading(AllConversationsApi.name);
@@ -137,32 +161,17 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       data.page = data.page || conversationListInstance.getPage();
       const page = data.page!;
 
-      const lastVisible = lastVisibleConversationDocRef.current ? lastVisibleConversationDocRef.current : {};
-
-      getDocs(
-        query(
-          collection(db, 'conversation'),
-          and(
-            where('contributors', 'array-contains', decodedToken.id),
-            or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
-          ),
-          orderBy('updatedAt', 'desc'),
-          limit(conversationListInstance.getTake()),
-          startAfter(lastVisible)
-        )
-      )
-        .then((snapshot) => {
+      Promise.all([getDocs(getPaginatedConversationListQuery()), getCountFromServer(getConversationListQuery())])
+        .then(([paginatedConversationListSnapshot, conversationListSnapshot]) => {
           if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
           else actions.processingApiSuccess(AllConversationsApi.name);
 
-          lastVisibleConversationDocRef.current = snapshot.docs[snapshot.docs.length - 1];
+          const docs = paginatedConversationListSnapshot.docs;
+          const count = conversationListSnapshot.data().count;
 
-          const conversationDocs = snapshot.docs.map((doc) => doc.data()) as ConversationDocObj[];
+          lastVisibleConversationDocRef.current = docs[docs.length - 1];
+          const conversationDocs = docs.map((doc) => doc.data()) as ConversationDocObj[];
           const ids = conversationDocs.map((doc) => (doc.creatorId === decodedToken.id ? doc.targetId : doc.creatorId));
-
-          if (ids.length < conversationListInstance.getTake()) {
-            isConversationListEndRef.current = true;
-          }
 
           if (conversationDocs.length && ids.length) {
             const apiData = {
@@ -174,7 +183,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
             const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
 
             request.build<[UserObj[], number]>(api).then((response) => {
-              const [list, total] = response.data;
+              const [list] = response.data;
               const conversationList: ConversationObj[] = ids
                 .map((id, i) => ({
                   conversation: conversationDocs[i],
@@ -185,7 +194,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
               conversationListInstance.updateAndConcatList(conversationList, page);
               conversationListInstance.updateListAsObject(conversationList, (val) => val.user.id);
               conversationListInstance.updatePage(page);
-              conversationListInstance.updateTotal(total + conversationListInstance.getTotal());
+              conversationListInstance.updateTotal(count);
 
               if (selectors.userServiceSocket.connection && isCurrentOwner) {
                 selectors.userServiceSocket.connection.emit('users-status', { payload: ids });
@@ -200,7 +209,12 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           enqueueSnackbar({ message: error.message, variant: 'error' });
         });
     },
-    [selectors.userServiceSocket.connection, conversationListInstance, isCurrentOwner]
+    [
+      getPaginatedConversationListQuery,
+      selectors.userServiceSocket.connection,
+      conversationListInstance,
+      isCurrentOwner,
+    ]
   );
 
   useEffect(() => {
@@ -212,7 +226,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     if (el) {
       let observer = new IntersectionObserver(
         preventRunAt(function (entries: IntersectionObserverEntry[]) {
-          if (!isAllConversationApiProcessing && !isConversationListEndRef.current) {
+          if (!isAllConversationApiProcessing && !conversationListInstance.isListEnd()) {
             let page = conversationListInstance.getPage();
             page++;
             getConversationList({ page });
@@ -225,17 +239,11 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         observer.disconnect();
       };
     }
-  }, [conversationListSpinnerRef.current, isAllConversationApiProcessing, getConversationList]);
+  }, [isAllConversationApiProcessing, conversationListInstance, getConversationList]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      query(
-        collection(db, 'conversation'),
-        and(
-          where('contributors', 'array-contains', decodedToken.id),
-          or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
-        )
-      ),
+      getConversationListQuery(),
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
           console.log(result.doc.data());
@@ -399,7 +407,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                   </ListItem>
                 </ListItemButton>
               ))}
-              {!isConversationListEndRef.current && (
+              {!conversationListInstance.isListEnd() && (
                 <Box
                   ref={conversationListSpinnerRef}
                   component={'div'}

@@ -105,9 +105,10 @@ export function usePaginationList<
       }
 
       function isListEnd(): boolean {
-        const infinityList = getInfinityList();
+        const page = getPage();
+        const take = getTake();
         const total = getTotal();
-        return infinityList.length >= total;
+        return page * take >= total;
       }
 
       return {
