@@ -204,6 +204,7 @@ const MessagesContent: FC = () => {
       )}
       <Drawer
         sx={{ zIndex: 10 }}
+        ModalProps={{ keepMounted: true }}
         anchor="left"
         open={isConversationDrawerOpen}
         onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
