@@ -1,13 +1,14 @@
 import { FC, useCallback, useState, useEffect } from 'react';
-import { Box, TextField as TF, styled, Menu, MenuItem, Drawer, Typography } from '@mui/material';
+import { Box, TextField as TF, styled, Drawer, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import MenuIcon from '@mui/icons-material/Menu';
+import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 import Users from './Users';
 import MessageCard from './MessageCard';
 import { MessageObj, ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
+import { getConversationDate } from '../../lib';
 
 const TextField = styled(TF)(({ theme }) => ({
   '.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input': {
@@ -21,7 +22,7 @@ const TextField = styled(TF)(({ theme }) => ({
   },
 }));
 
-const MenuIconWrapper = styled(Box)(({ theme }) => ({
+const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
   display: 'none',
   [theme.breakpoints.down('md')]: {
     display: 'block',
@@ -44,22 +45,12 @@ const FormWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const MessagesContent: FC = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [text, setText] = useState<string>('');
-  const isAnchorElOpen = !!anchorEl;
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
   const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
-
-  const onMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  }, []);
-
-  const onMenuClose = useCallback(() => {
-    setAnchorEl(null);
-  }, []);
 
   const chunkedMessageIndexesByTime = useCallback((messages: MessageObj[], time: number = 60000) => {
     const indexes: number[][] = [];
@@ -108,6 +99,12 @@ const MessagesContent: FC = () => {
     // write the isDateDisabled for the onSnapshot fn
   }, []);
 
+  const onUserConversationNameClick = useCallback(() => {
+    if (window.innerWidth < 900) {
+      actions.showModal(ModalNames.CONVERSATION);
+    }
+  }, []);
+
   useEffect(() => {
     function resizeProcess() {
       if (window.innerWidth >= 900 && isConversationDrawerOpen) {
@@ -140,37 +137,53 @@ const MessagesContent: FC = () => {
         >
           {selectors.conversations.selectedUser && (
             <Box
+              onClick={() => onUserConversationNameClick()}
               sx={{
                 position: 'sticky',
                 top: 0,
                 left: 0,
-                padding: '8px 14px',
+                padding: '8px 10px',
                 borderBottom: '1px solid #e0e0e0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
               }}
             >
+              <ArrowLeftIconWrapper>
+                <ArrowLeftIcon fontSize="medium" />
+              </ArrowLeftIconWrapper>
               <Box
                 sx={{
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
                 }}
               >
-                {isCurrentOwner && (
-                  <Box
-                    sx={{
-                      flex: 'unset',
-                      width: '10px',
-                      height: '10px',
-                      backgroundColor: auth.getUserStatusColor(selectors.conversations.selectedUser.user.id),
-                      borderRadius: '50%',
-                    }}
-                    component={'span'}
-                  ></Box>
-                )}
-                <Typography component={'p'} fontSize="14px" fontWeight={'bold'}>
+                <Typography
+                  fontSize="14px"
+                  fontWeight={'bold'}
+                  sx={{ maxWidth: '560px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+                >
                   {selectors.conversations.selectedUser.user.firstName}{' '}
                   {selectors.conversations.selectedUser.user.lastName}
                 </Typography>
+                {isCurrentOwner &&
+                  (() => {
+                    const userLastConnection = auth.getUserLastConnection(selectors.conversations.selectedUser.user.id);
+                    if (userLastConnection) {
+                      return (
+                        <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                          {getConversationDate(userLastConnection)}
+                        </Typography>
+                      );
+                    } else if (userLastConnection === null) {
+                      return (
+                        <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                          online
+                        </Typography>
+                      );
+                    }
+                  })()}
               </Box>
             </Box>
           )}
@@ -217,14 +230,6 @@ const MessagesContent: FC = () => {
                   gap: '6px',
                 }}
               >
-                <MenuIconWrapper>
-                  <Box onClick={onMenuOpen} sx={{ padding: '0 14px' }}>
-                    <MenuIcon color="primary" sx={{ cursor: 'pointer' }} />
-                  </Box>
-                  <Menu anchorEl={anchorEl} open={isAnchorElOpen} onClick={onMenuClose}>
-                    <MenuItem onClick={() => actions.showModal(ModalNames.CONVERSATION)}>Users</MenuItem>
-                  </Menu>
-                </MenuIconWrapper>
                 <TextField
                   onChange={(event) => setText(event.target.value)}
                   placeholder={'Type your message here'}
