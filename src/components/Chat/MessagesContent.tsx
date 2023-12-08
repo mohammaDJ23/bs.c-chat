@@ -65,6 +65,8 @@ const MessagesContent: FC = () => {
   const auth = useAuth();
   const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
+  const chatSocket = selectors.userServiceSocket.chat;
+  const selectedUser = selectors.conversations.selectedUser;
 
   const chunkedMessageIndexesByTime = useCallback((messages: MessageObj[], time: number = 60000) => {
     const indexes: number[][] = [];
@@ -132,10 +134,27 @@ const MessagesContent: FC = () => {
     };
   }, [isConversationDrawerOpen]);
 
+  useEffect(() => {
+    if (chatSocket) {
+      chatSocket.on('success-send-message', () => {
+        setText('');
+      });
+
+      chatSocket.on('fail-send-message', () => {});
+
+      return () => {
+        chatSocket.removeListener('success-send-message');
+        chatSocket.removeListener('fail-send-message');
+      };
+    }
+  }, [chatSocket]);
+
   const onSendText = useCallback(() => {
-    console.log(text.trim());
-    setText('');
-  }, [text]);
+    if (chatSocket && selectedUser) {
+      const payload = Object.assign(selectedUser, { text: text.trim() });
+      chatSocket.emit('send-message', { payload });
+    }
+  }, [text, chatSocket, selectedUser]);
 
   return (
     <>
