@@ -6,3 +6,4 @@ export * from './modal';
 export * from './paginationList';
 export * from './form';
 export * from './specificDetails';
+export * from './infinityList';

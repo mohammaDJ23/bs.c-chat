@@ -8,6 +8,7 @@ import {
   requsetProcessReducer,
   specificDetailsReducer,
   userServiceSocketReducer,
+  infinityListReducer,
 } from './reducers';
 
 const reducers = combineReducers({
@@ -18,6 +19,7 @@ const reducers = combineReducers({
   paginationLists: paginationListReducer,
   forms: FormReducer,
   specificDetails: specificDetailsReducer,
+  infinityLists: infinityListReducer,
 });
 
 export const store = createStore(reducers, {}, applyMiddleware(thunk));

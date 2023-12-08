@@ -7,6 +7,7 @@ import {
   PaginationListActions,
   FormActions,
   SpecificDetailsActions,
+  InfinityListActions,
 } from './';
 
 export type RootActions =
@@ -17,4 +18,5 @@ export type RootActions =
   | ModalActions
   | PaginationListActions
   | FormActions
-  | SpecificDetailsActions;
+  | SpecificDetailsActions
+  | InfinityListActions;

@@ -1,4 +1,4 @@
-import { BaseList } from './list';
+import { PaginationList } from './paginationList';
 import { UserRoles } from '../authentication';
 
 export interface UserObj {
@@ -15,8 +15,8 @@ export interface UserObj {
   parent: UserObj;
 }
 
-export class UserList<T = UserObj> extends BaseList<T> {
-  constructor(arg: Partial<BaseList<T>> = {}) {
+export class UserList<T = UserObj> extends PaginationList.BaseList<T> {
+  constructor(arg: Partial<PaginationList.BaseList<T>> = {}) {
     super(arg);
   }
 }

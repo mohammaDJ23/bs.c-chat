@@ -1,5 +1,5 @@
 import { AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
-import { ListParams, UserListFiltersObj, UserObj } from '../lib';
+import { PaginationList, UserListFiltersObj, UserObj } from '../lib';
 import { RootApiObj } from './resetApi';
 
 export type FilterParams<T = any> = Record<'filters', T>;
@@ -23,7 +23,7 @@ export abstract class RootApi<D = any> implements RootApiObj<D> {
 }
 
 export class AllUsersApi extends RootApi {
-  constructor(params: ListParams<UserObj> & FilterParams<Partial<UserListFiltersObj>>) {
+  constructor(params: PaginationList.ListParams<UserObj> & FilterParams<Partial<UserListFiltersObj>>) {
     super(
       {
         url: '/api/v1/user/all',
@@ -36,7 +36,7 @@ export class AllUsersApi extends RootApi {
 }
 
 export class AllOwnersApi extends RootApi {
-  constructor(params: ListParams<UserObj> & FilterParams<Partial<UserListFiltersObj>>) {
+  constructor(params: PaginationList.ListParams<UserObj> & FilterParams<Partial<UserListFiltersObj>>) {
     super(
       {
         url: '/api/v1/user/all/owners',

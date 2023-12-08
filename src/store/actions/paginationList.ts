@@ -1,32 +1,32 @@
-import { ListAsObjectType, ListInstance, ListObj } from '../../lib';
-import { PaginationList } from '../reducers';
+import { PaginationList } from '../../lib';
+import { PaginationListEnums } from '../reducers';
 
 export interface PaginationListObj {
-  new (...args: any[]): ListInstance;
+  new (...args: any[]): PaginationList.ListInstance;
 }
 
 export interface UpdateListPaginationListAction {
-  type: PaginationList.UPDATE_LIST;
-  payload: { listInstance: PaginationListObj; list: ListObj };
+  type: PaginationListEnums.UPDATE_LIST;
+  payload: { listInstance: PaginationListObj; list: PaginationList.ListObj };
 }
 
 export interface UpdatePagePaginationListAction {
-  type: PaginationList.UPDATE_PAGE;
+  type: PaginationListEnums.UPDATE_PAGE;
   payload: { listInstance: PaginationListObj; page: number };
 }
 
 export interface UpdateListAsObjectPaginationListAction {
-  type: PaginationList.UPDATE_LIST_AS_OBJECT;
-  payload: { listInstance: PaginationListObj; list: ListAsObjectType };
+  type: PaginationListEnums.UPDATE_LIST_AS_OBJECT;
+  payload: { listInstance: PaginationListObj; list: PaginationList.ListAsObjectType };
 }
 
 export interface UpdateTakePaginationListAction {
-  type: PaginationList.UPDATE_TAKE;
+  type: PaginationListEnums.UPDATE_TAKE;
   payload: { listInstance: PaginationListObj; take: number };
 }
 
 export interface UpdateTotalPaginationListAction {
-  type: PaginationList.UPDATE_TOTAL;
+  type: PaginationListEnums.UPDATE_TOTAL;
   payload: { listInstance: PaginationListObj; total: number };
 }
 
@@ -39,20 +39,20 @@ export type PaginationListActions =
 
 export function updateListPaginationList(
   listInstance: PaginationListObj,
-  list: ListObj
+  list: PaginationList.ListObj
 ): UpdateListPaginationListAction {
   return {
-    type: PaginationList.UPDATE_LIST,
+    type: PaginationListEnums.UPDATE_LIST,
     payload: { listInstance, list },
   };
 }
 
 export function updateListAsObjectPaginationList(
   listInstance: PaginationListObj,
-  list: ListAsObjectType
+  list: PaginationList.ListAsObjectType
 ): UpdateListAsObjectPaginationListAction {
   return {
-    type: PaginationList.UPDATE_LIST_AS_OBJECT,
+    type: PaginationListEnums.UPDATE_LIST_AS_OBJECT,
     payload: { listInstance, list },
   };
 }
@@ -62,7 +62,7 @@ export function updatePagePaginationList(
   page: number
 ): UpdatePagePaginationListAction {
   return {
-    type: PaginationList.UPDATE_PAGE,
+    type: PaginationListEnums.UPDATE_PAGE,
     payload: { listInstance, page },
   };
 }
@@ -72,7 +72,7 @@ export function updateTakePaginationList(
   take: number
 ): UpdateTakePaginationListAction {
   return {
-    type: PaginationList.UPDATE_TAKE,
+    type: PaginationListEnums.UPDATE_TAKE,
     payload: { listInstance, take },
   };
 }
@@ -82,7 +82,7 @@ export function updateTotalPaginationList(
   total: number
 ): UpdateTotalPaginationListAction {
   return {
-    type: PaginationList.UPDATE_TOTAL,
+    type: PaginationListEnums.UPDATE_TOTAL,
     payload: { listInstance, total },
   };
 }

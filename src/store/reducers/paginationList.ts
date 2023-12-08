@@ -1,4 +1,4 @@
-import { BaseList, copyConstructor, ListInstance, lists } from '../../lib';
+import { PaginationList, copyConstructor, paginationLists } from '../../lib';
 import {
   UpdatePagePaginationListAction,
   UpdateTakePaginationListAction,
@@ -9,25 +9,25 @@ import {
 } from '../actions';
 import { ClearState } from './clearState';
 
-export enum PaginationList {
-  UPDATE_LIST = 'UPDATE_LIST',
-  UPDATE_LIST_AS_OBJECT = 'UPDATE_LIST_AS_OBJECT',
-  UPDATE_TAKE = 'UPDATE_TAKE',
-  UPDATE_PAGE = 'UPDATE_PAGE',
-  UPDATE_TOTAL = 'UPDATE_TOTAL',
+export enum PaginationListEnums {
+  UPDATE_LIST = 'UPDATE_LIST_PAGINATION_LIST',
+  UPDATE_LIST_AS_OBJECT = 'UPDATE_LIST_AS_OBJECT_PAGINATION_LIST',
+  UPDATE_TAKE = 'UPDATE_TAKE_PAGINATION_LIST',
+  UPDATE_PAGE = 'UPDATE_PAGE_PAGINATION_LIST',
+  UPDATE_TOTAL = 'UPDATE_TOTAL_PAGINATION_LIST',
 }
 
 interface PaginationListState {
-  [key: string]: BaseList;
+  [key: string]: PaginationList.BaseList;
 }
 
 function makeListState() {
   let state: PaginationListState = {};
-  for (let list in lists) state[list] = new lists[list as keyof typeof lists]();
+  for (let list in paginationLists) state[list] = new paginationLists[list as keyof typeof paginationLists]();
   return state;
 }
 
-export const initialState: PaginationListState = makeListState();
+const initialState: PaginationListState = makeListState();
 
 function updateListPaginationList(
   state: PaginationListState,
@@ -120,19 +120,19 @@ function clearState(): PaginationListState {
 
 export function paginationListReducer(state: PaginationListState = initialState, actions: RootActions) {
   switch (actions.type) {
-    case PaginationList.UPDATE_LIST:
+    case PaginationListEnums.UPDATE_LIST:
       return updateListPaginationList(state, actions);
 
-    case PaginationList.UPDATE_LIST_AS_OBJECT:
+    case PaginationListEnums.UPDATE_LIST_AS_OBJECT:
       return updateListAsObjectPaginationList(state, actions);
 
-    case PaginationList.UPDATE_PAGE:
+    case PaginationListEnums.UPDATE_PAGE:
       return updatePagePaginationList(state, actions);
 
-    case PaginationList.UPDATE_TAKE:
+    case PaginationListEnums.UPDATE_TAKE:
       return updateTakePaginationList(state, actions);
 
-    case PaginationList.UPDATE_TOTAL:
+    case PaginationListEnums.UPDATE_TOTAL:
       return updateTotalPaginationList(state, actions);
 
     case ClearState.CLEAR_STATE:

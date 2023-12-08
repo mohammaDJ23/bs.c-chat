@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
-import { PaginationList } from '../lib';
-import { useAction, useSelector } from './';
+import { InfinityList } from '../lib';
+import { useAction, useSelector } from '.';
 
-export function usePaginationList<
-  Instance extends PaginationList.BaseList,
-  Lists = PaginationList.ListType<Instance>,
-  Item = PaginationList.ElementInArrayType<Lists>
+export function useInfinityList<
+  Instance extends InfinityList.BaseList,
+  Lists = InfinityList.ListType<Instance>,
+  Item = InfinityList.ElementInArrayType<Lists>
 >(listInstance: Constructor<Instance>) {
   const actions = useAction();
   const selectors = useSelector();
@@ -13,7 +13,7 @@ export function usePaginationList<
   return useMemo(
     function () {
       function getInstance(): Instance {
-        const instance = selectors.paginationLists[listInstance.name];
+        const instance = selectors.infinityLists[listInstance.name];
         if (instance) {
           return instance as Instance;
         }
@@ -21,15 +21,13 @@ export function usePaginationList<
       }
 
       function updateList(list: Item[]): void {
-        const instance = getInstance();
-        const newList = { [instance.page]: list };
-        actions.updateListPaginationList(listInstance, newList);
+        actions.updateListInfinityList(listInstance, list);
       }
 
-      function updateAndConcatList(list: Item[], page: number): void {
+      function updateAndConcatList(list: Item[]): void {
         const instance = getInstance();
-        const newList = Object.assign(instance.list, { [page]: list });
-        actions.updateListPaginationList(listInstance, newList);
+        const newList = instance.list.concat(list);
+        actions.updateListInfinityList(listInstance, newList);
       }
 
       function updateListAsObject(list: Item[], fn: (val: Item) => string | number): void {
@@ -37,34 +35,29 @@ export function usePaginationList<
         const listAsObject = list.reduce((acc, val) => {
           acc[fn.call(window, val)] = val;
           return acc;
-        }, {} as PaginationList.ListAsObjectType<Item>);
+        }, {} as InfinityList.ListAsObjectType<Item>);
         const newListAsObject = Object.assign(instance.listAsObject, listAsObject);
-        actions.updateListAsObjectPaginationList(listInstance, newListAsObject);
+        actions.updateListAsObjectInfinityList(listInstance, newListAsObject);
       }
 
       function updateTake(take: number): void {
-        actions.updateTakePaginationList(listInstance, take);
+        actions.updateTakeInfinityList(listInstance, take);
       }
 
       function updatePage(page: number): void {
-        actions.updatePagePaginationList(listInstance, page);
+        actions.updatePageInfinityList(listInstance, page);
       }
 
       function updateTotal(total: number): void {
-        actions.updateTotalPaginationList(listInstance, total);
+        actions.updateTotalInfinityList(listInstance, total);
       }
 
-      function getList(): Lists {
+      function getList(): Item[] {
         const instance = getInstance();
-        return (instance.list[instance.page] || []) as Lists;
+        return instance.list as Item[];
       }
 
-      function getInfinityList(): Item[] {
-        const instance = getInstance();
-        return Object.values(instance.list).flat() as Item[];
-      }
-
-      function getListAsObject(): PaginationList.ListAsObjectType<Item> {
+      function getListAsObject(): InfinityList.ListAsObjectType<Item> {
         const instance = getInstance();
         return instance.listAsObject;
       }
@@ -99,11 +92,6 @@ export function usePaginationList<
         return newPage === instance.page;
       }
 
-      function isNewPageExist(newPage: number): boolean {
-        const instance = getInstance();
-        return !!instance.list[newPage];
-      }
-
       function isListEnd(): boolean {
         const page = getPage();
         const take = getTake();
@@ -126,12 +114,10 @@ export function usePaginationList<
         getTotal,
         getCount,
         isListEmpty,
-        getInfinityList,
         isNewPageEqualToCurrentPage,
-        isNewPageExist,
         isListEnd,
       };
     },
-    [selectors.paginationLists[listInstance.name]]
+    [selectors.infinityLists[listInstance.name]]
   );
 }

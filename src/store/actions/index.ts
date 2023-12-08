@@ -7,3 +7,4 @@ export * from './modal';
 export * from './paginationList';
 export * from './form';
 export * from './speceficDetails';
+export * from './infinityList';

@@ -1,4 +1,4 @@
-import { BaseList } from './list';
+import { InfinityList } from './infinityList';
 import { UserObj } from './user';
 import { FieldValue } from 'firebase/app/dist/firestore';
 
@@ -28,8 +28,8 @@ export interface ConversationObj {
   conversation: ConversationDocObj;
 }
 
-export class ConversationList<T = ConversationObj> extends BaseList<T> {
-  constructor(arg: Partial<BaseList<T>> = {}) {
+export class ConversationList<T = ConversationObj> extends InfinityList.BaseList<T> {
+  constructor(arg: Partial<InfinityList.BaseList<T>> = {}) {
     super(arg);
     this.take = arg.take || 30;
   }

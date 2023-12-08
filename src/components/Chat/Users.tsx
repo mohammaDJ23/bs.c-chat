@@ -13,7 +13,7 @@ import {
 import moment from 'moment';
 import { useSnackbar } from 'notistack';
 import EmptyUsers from './EmptyUsers';
-import { useAction, useAuth, useForm, usePaginationList, useRequest, useSelector } from '../../hooks';
+import { useAction, useAuth, useForm, useInfinityList, usePaginationList, useRequest, useSelector } from '../../hooks';
 import {
   ConversationDocObj,
   ConversationList,
@@ -78,10 +78,10 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const isCurrentOwner = auth.isCurrentOwner();
   const decodedToken = auth.getDecodedToken()!;
   const userListInstance = usePaginationList(UserList);
-  const conversationListInstance = usePaginationList(ConversationList);
+  const conversationListInstance = useInfinityList(ConversationList);
+  const conversationList = conversationListInstance.getList();
   const userListFiltersFormInstance = useForm(UserListFilters);
   const userListFiltersForm = userListFiltersFormInstance.getForm();
-  const conversationInfinityList = conversationListInstance.getInfinityList();
   const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
   const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
@@ -191,7 +191,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 }))
                 .filter((conversation) => !!conversation.user);
 
-              conversationListInstance.updateAndConcatList(conversationList, page);
+              conversationListInstance.updateAndConcatList(conversationList);
               conversationListInstance.updateListAsObject(conversationList, (val) => val.user.id);
               conversationListInstance.updatePage(page);
               conversationListInstance.updateTotal(count);
@@ -321,9 +321,9 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         </Box>
       ) : (
         <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
-          {conversationInfinityList.length > 0 ? (
+          {conversationList.length > 0 ? (
             <ListWrapper disablePadding>
-              {conversationInfinityList.map((item) => (
+              {conversationList.map((item) => (
                 <ListItemButton
                   selected={selectors.conversations.selectedUser?.user?.id === item.user.id}
                   key={item.conversation.id}
