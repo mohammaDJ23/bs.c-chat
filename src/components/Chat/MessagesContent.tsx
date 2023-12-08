@@ -8,7 +8,12 @@ import { MessageObj, ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { getConversationDate } from '../../lib';
+import { ConversationObj, getConversationDate } from '../../lib';
+import { useSnackbar } from 'notistack';
+
+interface SendMessageObj extends ConversationObj {
+  text: string;
+}
 
 const TextField = styled(TF)(({ theme }) => ({
   '.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input': {
@@ -63,6 +68,7 @@ const MessagesContent: FC = () => {
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
   const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
   const chatSocket = selectors.userServiceSocket.chat;
@@ -136,11 +142,11 @@ const MessagesContent: FC = () => {
 
   useEffect(() => {
     if (chatSocket) {
-      chatSocket.on('success-send-message', () => {
-        setText('');
-      });
+      chatSocket.on('success-send-message', (data: SendMessageObj) => {});
 
-      chatSocket.on('fail-send-message', () => {});
+      chatSocket.on('fail-send-message', (error: Error) => {
+        enqueueSnackbar({ message: error.message, variant: 'error' });
+      });
 
       return () => {
         chatSocket.removeListener('success-send-message');
@@ -153,6 +159,7 @@ const MessagesContent: FC = () => {
     if (chatSocket && selectedUser) {
       const payload = Object.assign(selectedUser, { text: text.trim() });
       chatSocket.emit('send-message', { payload });
+      setText('');
     }
   }, [text, chatSocket, selectedUser]);
 
