@@ -156,7 +156,7 @@ const MessagesContent: FC = () => {
   }, [chatSocket]);
 
   const onSendText = useCallback(() => {
-    if (chatSocket && selectedUser) {
+    if (chatSocket && selectedUser && text.length) {
       const payload = Object.assign(selectedUser, { text: text.trim() });
       chatSocket.emit('send-message', { payload });
       setText('');
