@@ -1,8 +1,8 @@
-import { FC, useCallback, useState, useEffect, useRef } from 'react';
+import { FC, useCallback, useState, useEffect } from 'react';
 import { Box, TextField as TF, styled, Drawer, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
-import Users, { UsersImportation } from './Users';
+import Users from './Users';
 import MessageCard from './MessageCard';
 import { MessageObj, ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
