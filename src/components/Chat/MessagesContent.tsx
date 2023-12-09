@@ -73,7 +73,6 @@ const MessagesContent: FC = () => {
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
   const chatSocket = selectors.userServiceSocket.chat;
   const selectedUser = selectors.conversations.selectedUser;
-  const usersComponentRef = useRef<FC<Partial<UsersImportation>> | null>(null);
 
   const chunkedMessageIndexesByTime = useCallback((messages: MessageObj[], time: number = 60000) => {
     const indexes: number[][] = [];
