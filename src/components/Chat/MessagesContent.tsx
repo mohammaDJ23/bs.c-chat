@@ -129,18 +129,9 @@ const MessagesContent: FC = () => {
   }, []);
 
   useEffect(() => {
-    if (window.innerWidth < 900) {
-      usersComponentRef.current = Users;
-    }
-  }, []);
-
-  useEffect(() => {
     function resizeProcess() {
       if (window.innerWidth >= 900 && isConversationDrawerOpen) {
         actions.hideModal(ModalNames.CONVERSATION);
-        usersComponentRef.current = null;
-      } else {
-        usersComponentRef.current = Users;
       }
     }
 
@@ -297,19 +288,17 @@ const MessagesContent: FC = () => {
       ) : (
         <StartConversation />
       )}
-      {usersComponentRef.current && (
-        <Drawer
-          sx={{ zIndex: 10 }}
-          ModalProps={{ keepMounted: true }}
-          anchor="left"
-          open={isConversationDrawerOpen}
-          onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
-        >
-          <Box sx={{ width: '280px', height: '100vh' }}>
-            {<usersComponentRef.current onUserClick={() => actions.hideModal(ModalNames.CONVERSATION)} />}
-          </Box>
-        </Drawer>
-      )}
+      <Drawer
+        sx={{ zIndex: 10 }}
+        ModalProps={{ keepMounted: true }}
+        anchor="left"
+        open={isConversationDrawerOpen}
+        onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
+      >
+        <Box sx={{ width: '280px', height: '100vh' }}>
+          <Users onUserClick={() => actions.hideModal(ModalNames.CONVERSATION)} />
+        </Box>
+      </Drawer>
     </>
   );
 };

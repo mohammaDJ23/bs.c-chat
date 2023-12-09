@@ -12,7 +12,7 @@ function app(el: Element) {
   return {
     mount() {
       root.render(
-        <Provider store={store}>
+        <Provider store={store()}>
           <App />
         </Provider>
       );

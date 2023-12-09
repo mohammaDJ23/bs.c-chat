@@ -22,6 +22,8 @@ const reducers = combineReducers({
   infinityLists: infinityListReducer,
 });
 
-export const store = createStore(reducers, {}, applyMiddleware(thunk));
+export function store() {
+  return createStore(reducers, {}, applyMiddleware(thunk));
+}
 
 export type RootState = ReturnType<typeof reducers>;
