@@ -1,7 +1,13 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { Box, styled } from '@mui/material';
 import Users from './Users';
 import MessagesContent from './MessagesContent';
+import { FirestoreQueries } from '../../apis';
+import { useAction, useAuth, useInfinityList, useSelector } from '../../hooks';
+import { DocumentData, QuerySnapshot, onSnapshot } from 'firebase/firestore';
+import { ConversationList, preventRunAt } from '../../lib';
+import { useSnackbar } from 'notistack';
+import { UsersStatusType } from '../../store';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
   display: 'grid',
@@ -20,6 +26,58 @@ const UsersWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const Chat: FC = () => {
+  const selectors = useSelector();
+  const conversationListInstance = useInfinityList(ConversationList);
+  const actions = useAction();
+  const auth = useAuth();
+  const isCurrentOwner = auth.isCurrentOwner();
+  const decodedToken = auth.getDecodedToken()!;
+  const { enqueueSnackbar } = useSnackbar();
+  const connectionSocket = selectors.userServiceSocket.connection;
+  const usersStatus = selectors.specificDetails.usersStatus;
+
+  useEffect(() => {
+    if (connectionSocket && isCurrentOwner) {
+      connectionSocket.on('users-status', (data: UsersStatusType) => {
+        const newUsersStatus = Object.assign({}, usersStatus, data);
+        actions.setSpecificDetails('usersStatus', newUsersStatus);
+      });
+
+      connectionSocket.on('user-status', (data: UsersStatusType) => {
+        const conversationListAsObject = conversationListInstance.getListAsObject();
+        const [id] = Object.keys(data);
+        if (conversationListAsObject[id]) {
+          const newUsersStatus = Object.assign({}, usersStatus, data);
+          actions.setSpecificDetails('usersStatus', newUsersStatus);
+        }
+      });
+
+      return () => {
+        connectionSocket.removeListener('users-status');
+        connectionSocket.removeListener('user-status');
+      };
+    }
+  }, [connectionSocket, usersStatus, isCurrentOwner]);
+
+  useEffect(() => {
+    const conversationListQuery = new FirestoreQueries.ConversationListQuery(decodedToken.id).getQuery();
+    const unsubscribe = onSnapshot(
+      conversationListQuery,
+      preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
+        snapshot.docChanges().forEach((result) => {
+          console.log(result.doc.data());
+        });
+      }, 1),
+      (error) => {
+        enqueueSnackbar({ message: error.message, variant: 'error' });
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   return (
     <Box
       sx={{

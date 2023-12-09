@@ -33,22 +33,7 @@ import {
   RootApi,
   StartConversationApi,
 } from '../../apis';
-import {
-  collection,
-  where,
-  query,
-  or,
-  onSnapshot,
-  QuerySnapshot,
-  DocumentData,
-  orderBy,
-  limit,
-  getDocs,
-  startAfter,
-  QueryDocumentSnapshot,
-  and,
-  getCountFromServer,
-} from 'firebase/firestore';
+import { DocumentData, getDocs, QueryDocumentSnapshot, getCountFromServer } from 'firebase/firestore';
 import { UsersStatusType } from '../../store';
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
@@ -93,48 +78,27 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
   const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
   const halfSecDebounce = useRef(debounce());
+  const chatSocket = selectors.userServiceSocket.chat;
+  const connectionSocket = selectors.userServiceSocket.connection;
 
   useEffect(() => {
-    if (selectors.userServiceSocket.connection && isCurrentOwner) {
-      selectors.userServiceSocket.connection.on('users-status', (data: UsersStatusType) => {
-        const usersStatus = Object.assign({}, selectors.specificDetails.usersStatus, data);
-        actions.setSpecificDetails('usersStatus', usersStatus);
-      });
-
-      selectors.userServiceSocket.connection.on('user-status', (data: UsersStatusType) => {
-        const conversationListAsObject = conversationListInstance.getListAsObject();
-        const [id] = Object.keys(data);
-        if (conversationListAsObject[id]) {
-          const usersStatus = Object.assign({}, selectors.specificDetails.usersStatus, data);
-          actions.setSpecificDetails('usersStatus', usersStatus);
-        }
-      });
-
-      return () => {
-        selectors.userServiceSocket.connection!.removeListener('users-status');
-        selectors.userServiceSocket.connection!.removeListener('user-status');
-      };
-    }
-  }, [selectors.userServiceSocket.connection, selectors.specificDetails.usersStatus, isCurrentOwner]);
-
-  useEffect(() => {
-    if (selectors.userServiceSocket.chat) {
-      selectors.userServiceSocket.chat.on('fail-start-conversation', (error: Error) => {
+    if (chatSocket) {
+      chatSocket.on('fail-start-conversation', (error: Error) => {
         actions.processingApiError(StartConversationApi.name);
         enqueueSnackbar({ message: error.message, variant: 'error' });
       });
 
-      selectors.userServiceSocket.chat.on('success-start-conversation', (data: UserObj) => {
+      chatSocket.on('success-start-conversation', (data: UserObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
         userListFiltersFormInstance.onChange('q', '');
       });
 
       return () => {
-        selectors.userServiceSocket.chat!.removeListener('fail-start-conversation');
-        selectors.userServiceSocket.chat!.removeListener('success-start-conversation');
+        chatSocket.removeListener('fail-start-conversation');
+        chatSocket.removeListener('success-start-conversation');
       };
     }
-  }, [selectors.userServiceSocket.chat]);
+  }, [chatSocket]);
 
   const getConversationList = useCallback(
     async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
@@ -145,7 +109,6 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       const page = data.page!;
 
       const lastVisible = lastVisibleConversationDocRef.current ? lastVisibleConversationDocRef.current : {};
-
       const paginatedConversationListQuery = new FirestoreQueries.PaginatedConversationListQuery(
         decodedToken.id,
         conversationListInstance.getTake(),
@@ -161,11 +124,12 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           const docs = paginatedConversationListSnapshot.docs;
           const count = conversationListSnapshot.data().count;
 
-          lastVisibleConversationDocRef.current = docs[docs.length - 1];
           const conversationDocs = docs.map((doc) => doc.data()) as ConversationDocObj[];
           const ids = conversationDocs.map((doc) => (doc.creatorId === decodedToken.id ? doc.targetId : doc.creatorId));
 
           if (conversationDocs.length && ids.length) {
+            lastVisibleConversationDocRef.current = docs[docs.length - 1];
+
             const apiData = {
               page: 1,
               take: conversationListInstance.getTake(),
@@ -188,8 +152,8 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
               conversationListInstance.updatePage(page);
               conversationListInstance.updateTotal(count);
 
-              if (selectors.userServiceSocket.connection && isCurrentOwner) {
-                selectors.userServiceSocket.connection.emit('users-status', { payload: ids });
+              if (connectionSocket && isCurrentOwner) {
+                connectionSocket.emit('users-status', { payload: ids });
               }
             });
           }
@@ -201,12 +165,12 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           enqueueSnackbar({ message: error.message, variant: 'error' });
         });
     },
-    [selectors.userServiceSocket.connection, conversationListInstance, isCurrentOwner]
+    [connectionSocket, conversationListInstance, isCurrentOwner]
   );
 
   useEffect(() => {
     getConversationList({ isInitialApi: true });
-  }, [selectors.userServiceSocket.connection]);
+  }, [connectionSocket]);
 
   useEffect(() => {
     const el = conversationListSpinnerRef.current;
@@ -227,26 +191,6 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       };
     }
   }, [isAllConversationApiProcessing, conversationListInstance, getConversationList]);
-
-  useEffect(() => {
-    const conversationListQuery = new FirestoreQueries.ConversationListQuery(decodedToken.id).getQuery();
-    const unsubscribe = onSnapshot(
-      conversationListQuery,
-      preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
-        snapshot.docChanges().forEach((result) => {
-          console.log(result.doc.data());
-        });
-      }, 1),
-      (error) => {
-        actions.processingApiError(StartConversationApi.name);
-        enqueueSnackbar({ message: error.message, variant: 'error' });
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
 
   const onSearchUsersChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = event.target.value;
@@ -275,13 +219,13 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       userListInstance.updateList([]);
       setIsSearchUsersAutoCompleteOpen(false);
 
-      if (value && selectors.userServiceSocket.chat) {
+      if (value && chatSocket) {
         userListFiltersFormInstance.onChange('q', `${value.firstName} ${value.lastName}`);
         actions.processingApiLoading(StartConversationApi.name);
-        selectors.userServiceSocket.chat.emit('start-conversation', { payload: value });
+        chatSocket.emit('start-conversation', { payload: value });
       }
     },
-    [selectors.userServiceSocket.chat]
+    [chatSocket]
   );
 
   return (
