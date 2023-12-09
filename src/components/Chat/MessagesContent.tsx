@@ -1,8 +1,8 @@
-import { FC, useCallback, useState, useEffect } from 'react';
+import { FC, useCallback, useState, useEffect, useRef } from 'react';
 import { Box, TextField as TF, styled, Drawer, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
-import Users from './Users';
+import Users, { UsersImportation } from './Users';
 import MessageCard from './MessageCard';
 import { MessageObj, ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
@@ -73,6 +73,7 @@ const MessagesContent: FC = () => {
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
   const chatSocket = selectors.userServiceSocket.chat;
   const selectedUser = selectors.conversations.selectedUser;
+  const usersComponentRef = useRef<FC<Partial<UsersImportation>> | null>(null);
 
   const chunkedMessageIndexesByTime = useCallback((messages: MessageObj[], time: number = 60000) => {
     const indexes: number[][] = [];
@@ -128,9 +129,18 @@ const MessagesContent: FC = () => {
   }, []);
 
   useEffect(() => {
+    if (window.innerWidth < 900) {
+      usersComponentRef.current = Users;
+    }
+  }, []);
+
+  useEffect(() => {
     function resizeProcess() {
       if (window.innerWidth >= 900 && isConversationDrawerOpen) {
         actions.hideModal(ModalNames.CONVERSATION);
+        usersComponentRef.current = null;
+      } else {
+        usersComponentRef.current = Users;
       }
     }
 
@@ -287,17 +297,19 @@ const MessagesContent: FC = () => {
       ) : (
         <StartConversation />
       )}
-      <Drawer
-        sx={{ zIndex: 10 }}
-        ModalProps={{ keepMounted: true }}
-        anchor="left"
-        open={isConversationDrawerOpen}
-        onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
-      >
-        <Box sx={{ width: '280px', height: '100vh' }}>
-          <Users onUserClick={() => actions.hideModal(ModalNames.CONVERSATION)} />
-        </Box>
-      </Drawer>
+      {usersComponentRef.current && (
+        <Drawer
+          sx={{ zIndex: 10 }}
+          ModalProps={{ keepMounted: true }}
+          anchor="left"
+          open={isConversationDrawerOpen}
+          onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
+        >
+          <Box sx={{ width: '280px', height: '100vh' }}>
+            {<usersComponentRef.current onUserClick={() => actions.hideModal(ModalNames.CONVERSATION)} />}
+          </Box>
+        </Drawer>
+      )}
     </>
   );
 };

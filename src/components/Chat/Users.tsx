@@ -62,7 +62,7 @@ const ListWrapper = styled(List)(({ theme }) => ({
   },
 }));
 
-interface UsersImportation {
+export interface UsersImportation {
   onUserClick: () => void;
 }
 
