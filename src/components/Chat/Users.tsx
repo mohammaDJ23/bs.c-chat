@@ -25,7 +25,14 @@ import {
   debounce,
   preventRunAt,
 } from '../../lib';
-import { AllConversationsApi, AllOwnersApi, AllUsersApi, RootApi, StartConversationApi } from '../../apis';
+import {
+  AllConversationsApi,
+  AllOwnersApi,
+  AllUsersApi,
+  FirestoreQueries,
+  RootApi,
+  StartConversationApi,
+} from '../../apis';
 import {
   collection,
   where,
@@ -129,30 +136,6 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     }
   }, [selectors.userServiceSocket.chat]);
 
-  const getPaginatedConversationListQuery = useCallback(() => {
-    const lastVisible = lastVisibleConversationDocRef.current ? lastVisibleConversationDocRef.current : {};
-    return query(
-      collection(db, 'conversation'),
-      and(
-        where('contributors', 'array-contains', decodedToken.id),
-        or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
-      ),
-      orderBy('updatedAt', 'desc'),
-      limit(conversationListInstance.getTake()),
-      startAfter(lastVisible)
-    );
-  }, [lastVisibleConversationDocRef.current, conversationListInstance]);
-
-  const getConversationListQuery = useCallback(() => {
-    return query(
-      collection(db, 'conversation'),
-      and(
-        where('contributors', 'array-contains', decodedToken.id),
-        or(where('creatorId', '==', decodedToken.id), where('targetId', '==', decodedToken.id))
-      )
-    );
-  }, []);
-
   const getConversationList = useCallback(
     async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
       if (data.isInitialApi) actions.initialProcessingApiLoading(AllConversationsApi.name);
@@ -161,7 +144,16 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       data.page = data.page || conversationListInstance.getPage();
       const page = data.page!;
 
-      Promise.all([getDocs(getPaginatedConversationListQuery()), getCountFromServer(getConversationListQuery())])
+      const lastVisible = lastVisibleConversationDocRef.current ? lastVisibleConversationDocRef.current : {};
+
+      const paginatedConversationListQuery = new FirestoreQueries.PaginatedConversationListQuery(
+        decodedToken.id,
+        conversationListInstance.getTake(),
+        lastVisible
+      ).getQuery();
+      const conversationListQuery = new FirestoreQueries.ConversationListQuery(decodedToken.id).getQuery();
+
+      Promise.all([getDocs(paginatedConversationListQuery), getCountFromServer(conversationListQuery)])
         .then(([paginatedConversationListSnapshot, conversationListSnapshot]) => {
           if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
           else actions.processingApiSuccess(AllConversationsApi.name);
@@ -209,12 +201,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           enqueueSnackbar({ message: error.message, variant: 'error' });
         });
     },
-    [
-      getPaginatedConversationListQuery,
-      selectors.userServiceSocket.connection,
-      conversationListInstance,
-      isCurrentOwner,
-    ]
+    [selectors.userServiceSocket.connection, conversationListInstance, isCurrentOwner]
   );
 
   useEffect(() => {
@@ -242,8 +229,9 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   }, [isAllConversationApiProcessing, conversationListInstance, getConversationList]);
 
   useEffect(() => {
+    const conversationListQuery = new FirestoreQueries.ConversationListQuery(decodedToken.id).getQuery();
     const unsubscribe = onSnapshot(
-      getConversationListQuery(),
+      conversationListQuery,
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
           console.log(result.doc.data());
