@@ -11,7 +11,9 @@ import { ClearState } from './clearState';
 export enum Message {
   PUSH_MESSAGE = 'PUSH_MESSAGE',
   UNSHIFT_MESSAGES = 'UNSHIFT_MESSAGES',
+  CLEAN_MESSAGES = 'CLEAN_MESSAGES',
   SEELCT_USER_FOR_START_CONVERSATION = 'SEELCT_USER_FOR_START_CONVERSATION',
+  CLEAN_USER_FOR_START_CONVERSATION = 'CLEAN_USER_FOR_START_CONVERSATION',
   SEELCT_FINDED_USER_FOR_START_CONVERSATION = 'SEELCT_FINDED_USER_FOR_START_CONVERSATION',
   CLEAN_FINDED_USER_FOR_START_CONVERSATION = 'CLEAN_FINDED_USER_FOR_START_CONVERSATION',
 }
@@ -75,6 +77,18 @@ function cleanFindedUserForStartConversation(state: ConversationsState): Convers
   return newState;
 }
 
+function cleanUserForStartConversation(state: ConversationsState): ConversationsState {
+  const newState = Object.assign({}, state);
+  newState.selectedUser = null;
+  return newState;
+}
+
+function cleanMessages(state: ConversationsState): ConversationsState {
+  const newState = Object.assign({}, state);
+  newState.messages = [];
+  return newState;
+}
+
 function clearState(): ConversationsState {
   return {
     messages: [],
@@ -102,6 +116,12 @@ export function conversationsReducer(
 
     case Message.CLEAN_FINDED_USER_FOR_START_CONVERSATION:
       return cleanFindedUserForStartConversation(state);
+
+    case Message.CLEAN_USER_FOR_START_CONVERSATION:
+      return cleanUserForStartConversation(state);
+
+    case Message.CLEAN_MESSAGES:
+      return cleanMessages(state);
 
     case ClearState.CLEAR_STATE:
       return clearState();

@@ -230,6 +230,14 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     [chatSocket]
   );
 
+  const onConversationClick = useCallback((item: ConversationObj) => {
+    actions.selectUserForStartConversation(item);
+    actions.cleanMessages();
+    if (onUserClick) {
+      onUserClick.call({});
+    }
+  }, []);
+
   return (
     <UsersWrapper
       sx={{
@@ -262,12 +270,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                   selected={selectors.conversations.selectedUser?.user?.id === item.user.id}
                   key={item.conversation.id}
                   sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}
-                  onClick={() => {
-                    actions.selectUserForStartConversation(item);
-                    if (onUserClick) {
-                      onUserClick.call({});
-                    }
-                  }}
+                  onClick={() => onConversationClick(item)}
                 >
                   <ListItem disablePadding>
                     <Box sx={{ width: '100%', height: '100%' }}>
