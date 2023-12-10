@@ -37,13 +37,20 @@ export function useInfinityList<
         actions.updateListInfinityList(listInstance, newList);
       }
 
-      function updateListAsObject(list: Item[], fn: (val: Item) => string | number): void {
+      function updateListAsObject(data: Item[] | Item, fn: (val: Item) => string | number): void {
         const instance = getInstance();
-        const listAsObject = list.reduce((acc, val) => {
-          acc[fn.call(window, val)] = val;
-          return acc;
-        }, {} as InfinityList.ListAsObjectType<Item>);
-        const newListAsObject = Object.assign(instance.listAsObject, listAsObject);
+        let newListAsObject: InfinityList.ListAsObjectType<Item>;
+
+        if (Array.isArray(data)) {
+          const listAsObject = data.reduce((acc, val) => {
+            acc[fn.call(window, val)] = val;
+            return acc;
+          }, {} as InfinityList.ListAsObjectType<Item>);
+          newListAsObject = Object.assign(instance.listAsObject, listAsObject);
+        } else {
+          newListAsObject = Object.assign(instance.listAsObject, { [fn.call(window, data)]: data });
+        }
+
         actions.updateListAsObjectInfinityList(listInstance, newListAsObject);
       }
 

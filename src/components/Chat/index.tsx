@@ -84,6 +84,7 @@ const Chat: FC = () => {
           if (selectedFindedUserRef.current) {
             const conversationObj: ConversationObj = { conversation: data, user: selectedFindedUserRef.current };
             conversationListInstance.unshiftList(conversationObj);
+            conversationListInstance.updateListAsObject(conversationObj, (val) => val.user.id);
             actions.cleanMessages();
             actions.cleanFindedUserForStartConversation();
             actions.selectUserForStartConversation(conversationObj);
