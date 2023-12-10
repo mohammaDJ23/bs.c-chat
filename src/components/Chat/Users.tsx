@@ -221,10 +221,11 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       userListInstance.updateList([]);
       setIsSearchUsersAutoCompleteOpen(false);
 
-      if (value && chatSocket) {
+      if (value && chatSocket && connectionSocket) {
         userListFiltersFormInstance.onChange('q', `${value.firstName} ${value.lastName}`);
         actions.processingApiLoading(StartConversationApi.name);
         chatSocket.emit('start-conversation', { payload: value });
+        connectionSocket.emit('users-status', { payload: [value.id] });
       }
     },
     [chatSocket]
