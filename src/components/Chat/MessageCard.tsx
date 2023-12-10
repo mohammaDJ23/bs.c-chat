@@ -1,8 +1,7 @@
 import { FC } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useAuth } from '../../hooks';
-import { MessageObj } from '../../store';
-import { getConversationDate } from '../../lib';
+import { MessageObj, getConversationDate } from '../../lib';
 
 interface MessageCardImportation {
   message: MessageObj;
@@ -46,11 +45,11 @@ const MessageCard: FC<MessageCardImportation> = ({ message }) => {
             {message.text}
           </Typography>
         </Box>
-        {!message.isDateDisabled && (
-          <Typography fontSize={'10px'} fontWeight={'400'} sx={{ color: '#999999' }} component="p">
-            {getConversationDate(message.date)}
-          </Typography>
-        )}
+
+        <Typography fontSize={'10px'} fontWeight={'400'} sx={{ color: '#999999' }} component="p">
+          {/* @ts-ignore */}
+          {getConversationDate(message.createdAt.seconds * 1000)}
+        </Typography>
       </Box>
     </Box>
   );

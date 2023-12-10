@@ -79,20 +79,21 @@ const Chat: FC = () => {
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
           const data = result.doc.data() as ConversationDocObj;
-          const conversationListAsObject = conversationListInstance.getListAsObject();
 
           // when a user was selected to start a new conversation
           if (selectedFindedUserRef.current) {
             const conversationObj: ConversationObj = { conversation: data, user: selectedFindedUserRef.current };
             conversationListInstance.unshiftList(conversationObj);
+            actions.cleanMessages();
             actions.cleanFindedUserForStartConversation();
+            actions.selectUserForStartConversation(conversationObj);
             selectedFindedUserRef.current = null;
             return;
           }
 
           // when a user is exist in the conversation list and both of them are trying to send a message
           const id = getConversationTargetId(data);
-          if (id in conversationListAsObject && data.lastMessage) {
+          if (id in conversationListInstance.getListAsObject() && data.lastMessage) {
             const list = Array.from(conversationListInstance.getList());
             const finedIndex = list.findIndex((item) => item.user.id === id);
             if (finedIndex > -1) {
@@ -100,6 +101,7 @@ const Chat: FC = () => {
               const newConversation = { conversation: data, user: removedConversation.user };
               list.unshift(newConversation);
               conversationListInstance.updateList(list);
+              actions.pushMessage(data.lastMessage);
             }
           }
         });

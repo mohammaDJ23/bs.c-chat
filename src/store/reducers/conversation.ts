@@ -1,4 +1,4 @@
-import { ConversationObj, UserObj } from '../../lib';
+import { ConversationObj, MessageObj, UserObj } from '../../lib';
 import {
   PushMessageAction,
   RootActions,
@@ -16,15 +16,6 @@ export enum Message {
   CLEAN_USER_FOR_START_CONVERSATION = 'CLEAN_USER_FOR_START_CONVERSATION',
   SEELCT_FINDED_USER_FOR_START_CONVERSATION = 'SEELCT_FINDED_USER_FOR_START_CONVERSATION',
   CLEAN_FINDED_USER_FOR_START_CONVERSATION = 'CLEAN_FINDED_USER_FOR_START_CONVERSATION',
-}
-
-export interface MessageObj {
-  userId: number;
-  id: string;
-  text: string;
-  date: number;
-  isReaded: boolean;
-  isDateDisabled?: boolean;
 }
 
 interface ConversationsState {

@@ -2,11 +2,13 @@ import { InfinityList } from './infinityList';
 import { UserObj } from './user';
 import { FieldValue } from 'firebase/app/dist/firestore';
 
-interface MessageObj {
+export interface MessageObj {
   userId: number;
   id: string;
   text: string;
   createdAt: FieldValue;
+  updatedAt: FieldValue;
+  deletedAt: FieldValue | null;
   isReaded: boolean;
 }
 

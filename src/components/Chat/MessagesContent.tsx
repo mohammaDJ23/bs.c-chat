@@ -4,11 +4,11 @@ import SendIcon from '@mui/icons-material/Send';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 import Users from './Users';
 import MessageCard from './MessageCard';
-import { MessageObj, ModalNames } from '../../store';
+import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { ConversationObj, getConversationDate } from '../../lib';
+import { ConversationObj, getConversationDate, MessageObj } from '../../lib';
 import { useSnackbar } from 'notistack';
 
 interface SendMessageObj extends ConversationObj {
@@ -83,8 +83,10 @@ const MessagesContent: FC = () => {
       secondLoop: for (let j = i + 1; j < messages.length && messages[j]; j++) {
         if (
           messages[i].userId === messages[j].userId &&
-          now.getTime() - new Date(messages[i].date).getTime() < time &&
-          now.getTime() - new Date(messages[j].date).getTime() < time
+          // @ts-ignore
+          now.getTime() - new Date(messages[i].createdAt.seconds * 1000).getTime() < time &&
+          // @ts-ignore
+          now.getTime() - new Date(messages[j].createdAt.seconds * 1000).getTime() < time
         ) {
           tempIndexes.push(i, j);
           i = j;
@@ -110,7 +112,7 @@ const MessagesContent: FC = () => {
     for (let indexes of chunkedIndexes) {
       indexes = indexes.slice(0, -1);
       for (const index of indexes) {
-        messages[index].isDateDisabled = true;
+        // messages[index].isDateDisabled = true;
       }
     }
 
