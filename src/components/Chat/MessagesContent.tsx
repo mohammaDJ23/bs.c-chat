@@ -189,6 +189,7 @@ const MessagesContent: FC = () => {
               alignItems: 'center',
               gap: '10px',
               height: '53px',
+              backgroundColor: 'white',
             }}
           >
             <ArrowLeftIconWrapper>
@@ -204,7 +205,12 @@ const MessagesContent: FC = () => {
               <Typography
                 fontSize="14px"
                 fontWeight={'bold'}
-                sx={{ maxWidth: '560px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}
+                sx={{
+                  maxWidth: '560px',
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 {selectors.conversations.selectedUser.user.firstName}{' '}
                 {selectors.conversations.selectedUser.user.lastName}

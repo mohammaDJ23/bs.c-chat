@@ -26,16 +26,18 @@ const MessageCard: FC<MessageCardImportation> = ({ message }) => {
           alignItems: isUserEqualToCurrentUser ? 'end' : 'start',
           flexDirection: 'column',
           gap: '4px',
+          overflow: 'hidden',
         }}
       >
         <Box
           sx={{
             backgroundColor: isUserEqualToCurrentUser ? '#20A0FF' : '#f8f8f8',
-            padding: '12px',
+            padding: '10px 12px',
             borderRadius: isUserEqualToCurrentUser ? '0 10px 10px 10px' : '10px 0 10px 10px',
             maxWidth: '400px',
             border: '1px solid #f2f2f2',
             color: isUserEqualToCurrentUser ? 'white' : 'black',
+            wordBreak: 'break-word',
           }}
         >
           <Typography
