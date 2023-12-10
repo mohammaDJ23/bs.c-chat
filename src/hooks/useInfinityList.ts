@@ -30,6 +30,13 @@ export function useInfinityList<
         actions.updateListInfinityList(listInstance, newList);
       }
 
+      function unshiftList(item: Item): void {
+        const instance = getInstance();
+        const newList = instance.list;
+        newList.unshift(item);
+        actions.updateListInfinityList(listInstance, newList);
+      }
+
       function updateListAsObject(list: Item[], fn: (val: Item) => string | number): void {
         const instance = getInstance();
         const listAsObject = list.reduce((acc, val) => {
@@ -116,6 +123,7 @@ export function useInfinityList<
         isListEmpty,
         isNewPageEqualToCurrentPage,
         isListEnd,
+        unshiftList,
       };
     },
     [selectors.infinityLists[listInstance.name]]

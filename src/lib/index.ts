@@ -13,3 +13,4 @@ export * from './validations';
 export * from './debounce';
 export * from './preventRunAt';
 export * from './conversationDate';
+export * from './conversationTargetId';

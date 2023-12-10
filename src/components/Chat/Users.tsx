@@ -23,6 +23,7 @@ import {
   UserObj,
   db,
   debounce,
+  getConversationTargetId,
   preventRunAt,
 } from '../../lib';
 import {
@@ -90,6 +91,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
 
       chatSocket.on('success-start-conversation', (data: UserObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
+        actions.selectFindedUserForStartConversation(data);
         userListFiltersFormInstance.onChange('q', '');
       });
 
@@ -125,7 +127,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           const count = conversationListSnapshot.data().count;
 
           const conversationDocs = docs.map((doc) => doc.data()) as ConversationDocObj[];
-          const ids = conversationDocs.map((doc) => (doc.creatorId === decodedToken.id ? doc.targetId : doc.creatorId));
+          const ids = conversationDocs.map((doc) => getConversationTargetId(doc));
 
           if (conversationDocs.length && ids.length) {
             lastVisibleConversationDocRef.current = docs[docs.length - 1];

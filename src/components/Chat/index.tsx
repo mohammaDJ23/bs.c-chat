@@ -1,11 +1,18 @@
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import { Box, styled } from '@mui/material';
 import Users from './Users';
 import MessagesContent from './MessagesContent';
 import { FirestoreQueries } from '../../apis';
 import { useAction, useAuth, useInfinityList, useSelector } from '../../hooks';
 import { DocumentData, QuerySnapshot, onSnapshot } from 'firebase/firestore';
-import { ConversationList, preventRunAt } from '../../lib';
+import {
+  ConversationDocObj,
+  ConversationList,
+  ConversationObj,
+  UserObj,
+  getConversationTargetId,
+  preventRunAt,
+} from '../../lib';
 import { useSnackbar } from 'notistack';
 import { UsersStatusType } from '../../store';
 
@@ -30,11 +37,17 @@ const Chat: FC = () => {
   const conversationListInstance = useInfinityList(ConversationList);
   const actions = useAction();
   const auth = useAuth();
+  const selectedFindedUserRef = useRef<UserObj | null>(null);
   const isCurrentOwner = auth.isCurrentOwner();
   const decodedToken = auth.getDecodedToken()!;
   const { enqueueSnackbar } = useSnackbar();
   const connectionSocket = selectors.userServiceSocket.connection;
   const usersStatus = selectors.specificDetails.usersStatus;
+  const selectedFindedUser = selectors.conversations.selectedFindedUser;
+
+  useEffect(() => {
+    selectedFindedUserRef.current = selectedFindedUser;
+  }, [selectedFindedUser]);
 
   useEffect(() => {
     if (connectionSocket && isCurrentOwner) {
@@ -65,7 +78,30 @@ const Chat: FC = () => {
       conversationListQuery,
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
-          console.log(result.doc.data());
+          const data = result.doc.data() as ConversationDocObj;
+          const conversationListAsObject = conversationListInstance.getListAsObject();
+
+          // when a user was selected to start a new conversation
+          if (selectedFindedUserRef.current) {
+            const conversationObj: ConversationObj = { conversation: data, user: selectedFindedUserRef.current };
+            conversationListInstance.unshiftList(conversationObj);
+            actions.cleanFindedUserForStartConversation();
+            selectedFindedUserRef.current = null;
+            return;
+          }
+
+          // when a user is exist in the conversation list and both of them are trying to send a message
+          const id = getConversationTargetId(data);
+          if (id in conversationListAsObject && data.lastMessage) {
+            const list = Array.from(conversationListInstance.getList());
+            const finedIndex = list.findIndex((item) => item.user.id === id);
+            if (finedIndex > -1) {
+              const [removedConversation] = list.splice(finedIndex, 1);
+              const newConversation = { conversation: data, user: removedConversation.user };
+              list.unshift(newConversation);
+              conversationListInstance.updateList(list);
+            }
+          }
         });
       }, 1),
       (error) => {
@@ -76,7 +112,7 @@ const Chat: FC = () => {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [conversationListInstance]);
 
   return (
     <Box

@@ -1,7 +1,8 @@
-import { ConversationObj } from '../../lib';
+import { ConversationObj, UserObj } from '../../lib';
 import {
   PushMessageAction,
   RootActions,
+  SelecteFindedUserForStartConversationAction,
   SelecteUserForStartConversationAction,
   UnshiftMessagesAction,
 } from '../actions';
@@ -11,6 +12,8 @@ export enum Message {
   PUSH_MESSAGE = 'PUSH_MESSAGE',
   UNSHIFT_MESSAGES = 'UNSHIFT_MESSAGES',
   SEELCT_USER_FOR_START_CONVERSATION = 'SEELCT_USER_FOR_START_CONVERSATION',
+  SEELCT_FINDED_USER_FOR_START_CONVERSATION = 'SEELCT_FINDED_USER_FOR_START_CONVERSATION',
+  CLEAN_FINDED_USER_FOR_START_CONVERSATION = 'CLEAN_FINDED_USER_FOR_START_CONVERSATION',
 }
 
 export interface MessageObj {
@@ -25,11 +28,13 @@ export interface MessageObj {
 interface ConversationsState {
   messages: MessageObj[];
   selectedUser: null | ConversationObj;
+  selectedFindedUser: null | UserObj;
 }
 
 const initialState: ConversationsState = {
   messages: [],
   selectedUser: null,
+  selectedFindedUser: null,
 };
 
 function pushMessage(state: ConversationsState, action: PushMessageAction): ConversationsState {
@@ -55,10 +60,26 @@ function selectUserForStartConversation(
   return newState;
 }
 
+function selectFindedUserForStartConversation(
+  state: ConversationsState,
+  action: SelecteFindedUserForStartConversationAction
+): ConversationsState {
+  const newState = Object.assign({}, state);
+  newState.selectedFindedUser = action.payload;
+  return newState;
+}
+
+function cleanFindedUserForStartConversation(state: ConversationsState): ConversationsState {
+  const newState = Object.assign({}, state);
+  newState.selectedFindedUser = null;
+  return newState;
+}
+
 function clearState(): ConversationsState {
   return {
     messages: [],
     selectedUser: null,
+    selectedFindedUser: null,
   };
 }
 
@@ -75,6 +96,12 @@ export function conversationsReducer(
 
     case Message.SEELCT_USER_FOR_START_CONVERSATION:
       return selectUserForStartConversation(state, actions);
+
+    case Message.SEELCT_FINDED_USER_FOR_START_CONVERSATION:
+      return selectFindedUserForStartConversation(state, actions);
+
+    case Message.CLEAN_FINDED_USER_FOR_START_CONVERSATION:
+      return cleanFindedUserForStartConversation(state);
 
     case ClearState.CLEAR_STATE:
       return clearState();

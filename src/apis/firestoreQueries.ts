@@ -13,12 +13,12 @@ export namespace FirestoreQueries {
       this.q = query(
         collection(db, 'conversation'),
         and(
-          where('contributors', 'array-contains', userId),
-          or(where('creatorId', '==', userId), where('targetId', '==', userId))
+          where('contributors', 'array-contains', this.userId),
+          or(where('creatorId', '==', this.userId), where('targetId', '==', this.userId))
         ),
         orderBy('updatedAt', 'desc'),
-        limit(take),
-        startAfter(lastDoc)
+        limit(this.take),
+        startAfter(this.lastDoc)
       );
     }
 
@@ -34,8 +34,8 @@ export namespace FirestoreQueries {
       this.q = query(
         collection(db, 'conversation'),
         and(
-          where('contributors', 'array-contains', userId),
-          or(where('creatorId', '==', userId), where('targetId', '==', userId))
+          where('contributors', 'array-contains', this.userId),
+          or(where('creatorId', '==', this.userId), where('targetId', '==', this.userId))
         )
       );
     }
