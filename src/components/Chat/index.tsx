@@ -6,6 +6,7 @@ import { FirestoreQueries } from '../../apis';
 import { useAction, useAuth, useInfinityList, useSelector } from '../../hooks';
 import { DocumentData, QuerySnapshot, onSnapshot } from 'firebase/firestore';
 import {
+  Conversation,
   ConversationDocObj,
   ConversationList,
   ConversationObj,
@@ -82,7 +83,7 @@ const Chat: FC = () => {
 
           // when a user was selected to start a new conversation
           if (selectedFindedUserRef.current) {
-            const conversationObj: ConversationObj = { conversation: data, user: selectedFindedUserRef.current };
+            const conversationObj: ConversationObj = new Conversation(selectedFindedUserRef.current, data);
             conversationListInstance.unshiftList(conversationObj);
             conversationListInstance.updateListAsObject(conversationObj, (val) => val.user.id);
             actions.cleanMessages();
@@ -99,7 +100,7 @@ const Chat: FC = () => {
             const finedIndex = list.findIndex((item) => item.user.id === id);
             if (finedIndex > -1) {
               const [removedConversation] = list.splice(finedIndex, 1);
-              const newConversation = { conversation: data, user: removedConversation.user };
+              const newConversation = new Conversation(removedConversation.user, data);
               list.unshift(newConversation);
               conversationListInstance.updateList(list);
               actions.pushMessage(data.lastMessage);

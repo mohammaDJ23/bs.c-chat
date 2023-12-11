@@ -15,6 +15,7 @@ import { useSnackbar } from 'notistack';
 import EmptyUsers from './EmptyUsers';
 import { useAction, useAuth, useForm, useInfinityList, usePaginationList, useRequest, useSelector } from '../../hooks';
 import {
+  Conversation,
   ConversationDocObj,
   ConversationList,
   ConversationObj,
@@ -143,10 +144,10 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
             request.build<[UserObj[], number]>(api).then((response) => {
               const [list] = response.data;
               const conversationList: ConversationObj[] = ids
-                .map((id, i) => ({
-                  conversation: conversationDocs[i],
-                  user: list.find((user) => user.id === id)!,
-                }))
+                .map((id, i) => {
+                  const findedUser = list.find((user) => user.id === id)!;
+                  return new Conversation(findedUser, conversationDocs[i]);
+                })
                 .filter((conversation) => !!conversation.user);
 
               conversationListInstance.updateAndConcatList(conversationList);

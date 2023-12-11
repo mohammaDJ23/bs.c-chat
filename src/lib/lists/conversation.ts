@@ -30,6 +30,10 @@ export interface ConversationObj {
   conversation: ConversationDocObj;
 }
 
+export class Conversation implements ConversationObj {
+  constructor(public readonly user: UserObj, public readonly conversation: ConversationDocObj) {}
+}
+
 export class ConversationList<T = ConversationObj> extends InfinityList.BaseList<T> {
   constructor(arg: Partial<InfinityList.BaseList<T>> = {}) {
     super(arg);
