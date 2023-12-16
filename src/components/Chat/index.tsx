@@ -68,9 +68,11 @@ const Chat: FC = () => {
   }, [connectionSocket, usersStatus, isCurrentOwner]);
 
   useEffect(() => {
-    const conversationListQuery = new FirestoreQueries.ConversationListQuery(decodedToken.id).getQuery();
+    const conversationListForSnapshotQuery = new FirestoreQueries.ConversationListForSnapshotQuery(
+      decodedToken.id
+    ).getQuery();
     const unsubscribe = onSnapshot(
-      conversationListQuery,
+      conversationListForSnapshotQuery,
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
           const data = result.doc.data() as ConversationDocObj;
