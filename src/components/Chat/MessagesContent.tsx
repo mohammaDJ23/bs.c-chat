@@ -1,4 +1,5 @@
-import { FC, useCallback, useState, useEffect } from 'react';
+import { FC, useCallback, useState, useEffect, useRef } from 'react';
+import { unmountComponentAtNode, findDOMNode } from 'react-dom';
 import { Box, TextField as TF, styled, Drawer, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
@@ -8,7 +9,7 @@ import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { ConversationObj, getConversationDate, MessageObj } from '../../lib';
+import { ConversationObj, getConversationDate, isUser, MessageObj } from '../../lib';
 import { useSnackbar } from 'notistack';
 
 interface SendMessageObj extends ConversationObj {
@@ -65,6 +66,7 @@ const EmptyMessagesWrapper = styled(Box)(({ theme }) => ({
 
 const MessagesContent: FC = () => {
   const [text, setText] = useState<string>('');
+  const [isUsersDrawersActive, setIsUsersDrawersActive] = useState(false);
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
@@ -131,8 +133,12 @@ const MessagesContent: FC = () => {
 
   useEffect(() => {
     function resizeProcess() {
-      if (window.innerWidth >= 900 && isConversationDrawerOpen) {
-        actions.hideModal(ModalNames.CONVERSATION);
+      if (window.innerWidth >= 900 && isUsersDrawersActive) {
+        setIsUsersDrawersActive(false);
+        actions.cleanMessages();
+      } else if (window.innerWidth < 900 && !isUsersDrawersActive) {
+        setIsUsersDrawersActive(true);
+        // clean messages, selectedUser, conversatins
       }
     }
 
@@ -140,7 +146,13 @@ const MessagesContent: FC = () => {
     return () => {
       window.removeEventListener('resize', resizeProcess);
     };
-  }, [isConversationDrawerOpen]);
+  }, [isConversationDrawerOpen, isUsersDrawersActive]);
+
+  useEffect(() => {
+    if (window.innerWidth >= 900) {
+      setIsUsersDrawersActive(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (chatSocket) {
@@ -295,17 +307,19 @@ const MessagesContent: FC = () => {
       ) : (
         <StartConversation />
       )}
-      <Drawer
-        sx={{ zIndex: 10 }}
-        ModalProps={{ keepMounted: true }}
-        anchor="left"
-        open={isConversationDrawerOpen}
-        onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
-      >
-        <Box sx={{ width: '280px', height: '100vh' }}>
-          <Users onUserClick={() => actions.hideModal(ModalNames.CONVERSATION)} />
-        </Box>
-      </Drawer>
+      {isUsersDrawersActive && (
+        <Drawer
+          sx={{ zIndex: 10 }}
+          ModalProps={{ keepMounted: true }}
+          anchor="left"
+          open={isConversationDrawerOpen}
+          onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
+        >
+          <Box sx={{ width: '280px', height: '100vh' }}>
+            <Users onUserClick={() => actions.hideModal(ModalNames.CONVERSATION)} />
+          </Box>
+        </Drawer>
+      )}
     </>
   );
 };

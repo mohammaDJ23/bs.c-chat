@@ -36,6 +36,7 @@ const UsersWrapper = styled(Box)(({ theme }) => ({
 const Chat: FC = () => {
   const selectors = useSelector();
   const conversationListInstance = useInfinityList(ConversationList);
+  const selectedConversationRef = useRef<ConversationObj | null>(null);
   const actions = useAction();
   const auth = useAuth();
   const isCurrentOwner = auth.isCurrentOwner();
@@ -43,6 +44,11 @@ const Chat: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const connectionSocket = selectors.userServiceSocket.connection;
   const usersStatus = selectors.specificDetails.usersStatus;
+  const selectedConversation = selectors.conversations.selectedUser;
+
+  useEffect(() => {
+    selectedConversationRef.current = selectedConversation;
+  }, [selectedConversation]);
 
   useEffect(() => {
     if (connectionSocket && isCurrentOwner) {
@@ -76,7 +82,30 @@ const Chat: FC = () => {
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
           const data = result.doc.data() as ConversationDocObj;
-          console.log(data);
+          const conversationListAsObject = conversationListInstance.getListAsObject();
+          const conversationTargetId = getConversationTargetId(data);
+
+          // when a conversation exists in the client
+          if (conversationTargetId in conversationListAsObject) {
+            const conversationList = conversationListInstance.getList();
+            const findedIndex = conversationList.findIndex((item) => item.conversation.roomId === data.roomId);
+            if (findedIndex > -1) {
+              const [newConversation] = conversationList.splice(findedIndex, 1);
+              newConversation.conversation = data;
+              conversationList.unshift(newConversation);
+              conversationListInstance.updateList(conversationList);
+              if (
+                selectedConversationRef.current &&
+                selectedConversationRef.current.conversation.roomId === newConversation.conversation.roomId
+              ) {
+                actions.pushMessage(data.lastMessage!);
+              }
+            }
+          }
+
+          // when a conversation is not exists in the client
+          else if (!(conversationTargetId in conversationListAsObject)) {
+          }
         });
       }, 1),
       (error) => {

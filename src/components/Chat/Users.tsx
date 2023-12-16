@@ -82,15 +82,24 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const connectionSocket = selectors.userServiceSocket.connection;
 
   useEffect(() => {
-    if (chatSocket) {
+    if (chatSocket && connectionSocket) {
       chatSocket.on('fail-start-conversation', (error: Error) => {
         actions.processingApiError(StartConversationApi.name);
         enqueueSnackbar({ message: error.message, variant: 'error' });
       });
 
-      chatSocket.on('success-start-conversation', (data: UserObj) => {
+      chatSocket.on('success-start-conversation', (data: ConversationObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
         userListFiltersFormInstance.onChange('q', '');
+
+        if (!data.conversation.lastMessage) {
+          conversationListInstance.unshiftList(data);
+          conversationListInstance.updateListAsObject(data, (val) => val.user.id);
+        }
+
+        if (!(data.user.id in conversationListInstance.getListAsObject())) {
+          connectionSocket.emit('users-status', { payload: [data.user.id] });
+        }
       });
 
       return () => {
@@ -98,7 +107,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         chatSocket.removeListener('success-start-conversation');
       };
     }
-  }, [chatSocket]);
+  }, [chatSocket, connectionSocket, conversationListInstance]);
 
   const getConversationList = useCallback(
     async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
@@ -219,11 +228,10 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
       userListInstance.updateList([]);
       setIsSearchUsersAutoCompleteOpen(false);
 
-      if (value && chatSocket && connectionSocket) {
+      if (value && chatSocket) {
         userListFiltersFormInstance.onChange('q', `${value.firstName} ${value.lastName}`);
         actions.processingApiLoading(StartConversationApi.name);
         chatSocket.emit('start-conversation', { payload: value });
-        connectionSocket.emit('users-status', { payload: [value.id] });
       }
     },
     [chatSocket]
@@ -314,31 +322,33 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                             primary={`${item.user.firstName} ${item.user.lastName}`}
                           />
                         </Box>
-                        <ListItemText
-                          secondaryTypographyProps={{
-                            fontSize: '10px',
-                            fontWeight: '500',
-                          }}
-                          sx={{ flexGrow: '0', flexShrink: '0' }}
-                          // @ts-ignore
-                          secondary={moment(item.conversation.updatedAt.seconds * 1000).format('L')}
-                        />
-                      </Box>
-                      {item.conversation.lastMessage && (
-                        <Box component="div">
+                        {/* @ts-ignore */}
+                        {item.conversation.updatedAt.seconds && (
                           <ListItemText
                             secondaryTypographyProps={{
-                              fontSize: '11px',
+                              fontSize: '10px',
                               fontWeight: '500',
-                              overflow: 'hidden',
-                              whiteSpace: 'nowrap',
-                              textOverflow: 'ellipsis',
-                              width: '250px',
                             }}
-                            secondary={item.conversation.lastMessage.text}
+                            sx={{ flexGrow: '0', flexShrink: '0' }}
+                            // @ts-ignore
+                            secondary={moment(item.conversation.updatedAt.seconds * 1000).format('L')}
                           />
-                        </Box>
-                      )}
+                        )}
+                      </Box>
+
+                      <Box component="div">
+                        <ListItemText
+                          secondaryTypographyProps={{
+                            fontSize: '11px',
+                            fontWeight: '500',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                            textOverflow: 'ellipsis',
+                            width: '250px',
+                          }}
+                          secondary={item.conversation.lastMessage ? item.conversation.lastMessage.text : 'No mesage'}
+                        />
+                      </Box>
                     </Box>
                   </ListItem>
                 </ListItemButton>
