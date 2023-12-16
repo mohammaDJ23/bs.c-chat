@@ -22,7 +22,6 @@ import {
   UserList,
   UserListFilters,
   UserObj,
-  db,
   debounce,
   getConversationTargetId,
   preventRunAt,
@@ -36,7 +35,6 @@ import {
   StartConversationApi,
 } from '../../apis';
 import { DocumentData, getDocs, QueryDocumentSnapshot, getCountFromServer } from 'firebase/firestore';
-import { UsersStatusType } from '../../store';
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
@@ -92,7 +90,6 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
 
       chatSocket.on('success-start-conversation', (data: UserObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
-        actions.selectFindedUserForStartConversation(data);
         userListFiltersFormInstance.onChange('q', '');
       });
 

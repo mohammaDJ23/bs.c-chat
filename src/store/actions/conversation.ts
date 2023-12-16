@@ -20,15 +20,6 @@ export interface CleanUserForStartConversationAction {
   type: Message.CLEAN_USER_FOR_START_CONVERSATION;
 }
 
-export interface SelecteFindedUserForStartConversationAction {
-  type: Message.SEELCT_FINDED_USER_FOR_START_CONVERSATION;
-  payload: UserObj;
-}
-
-export interface CleanFindedUserForStartConversationAction {
-  type: Message.CLEAN_FINDED_USER_FOR_START_CONVERSATION;
-}
-
 export interface CleanMessagesAction {
   type: Message.CLEAN_MESSAGES;
 }
@@ -37,8 +28,6 @@ export type MessageActions =
   | PushMessageAction
   | UnshiftMessagesAction
   | SelecteUserForStartConversationAction
-  | SelecteFindedUserForStartConversationAction
-  | CleanFindedUserForStartConversationAction
   | CleanUserForStartConversationAction
   | CleanMessagesAction;
 
@@ -60,19 +49,6 @@ export function selectUserForStartConversation(payload: ConversationObj): Select
   return {
     type: Message.SEELCT_USER_FOR_START_CONVERSATION,
     payload,
-  };
-}
-
-export function selectFindedUserForStartConversation(payload: UserObj): SelecteFindedUserForStartConversationAction {
-  return {
-    type: Message.SEELCT_FINDED_USER_FOR_START_CONVERSATION,
-    payload,
-  };
-}
-
-export function cleanFindedUserForStartConversation(): CleanFindedUserForStartConversationAction {
-  return {
-    type: Message.CLEAN_FINDED_USER_FOR_START_CONVERSATION,
   };
 }
 

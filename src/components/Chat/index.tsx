@@ -38,17 +38,11 @@ const Chat: FC = () => {
   const conversationListInstance = useInfinityList(ConversationList);
   const actions = useAction();
   const auth = useAuth();
-  const selectedFindedUserRef = useRef<UserObj | null>(null);
   const isCurrentOwner = auth.isCurrentOwner();
   const decodedToken = auth.getDecodedToken()!;
   const { enqueueSnackbar } = useSnackbar();
   const connectionSocket = selectors.userServiceSocket.connection;
   const usersStatus = selectors.specificDetails.usersStatus;
-  const selectedFindedUser = selectors.conversations.selectedFindedUser;
-
-  useEffect(() => {
-    selectedFindedUserRef.current = selectedFindedUser;
-  }, [selectedFindedUser]);
 
   useEffect(() => {
     if (connectionSocket && isCurrentOwner) {
@@ -80,32 +74,7 @@ const Chat: FC = () => {
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
           const data = result.doc.data() as ConversationDocObj;
-
-          // when a user was selected to start a new conversation
-          if (selectedFindedUserRef.current) {
-            const conversationObj: ConversationObj = new Conversation(selectedFindedUserRef.current, data);
-            conversationListInstance.unshiftList(conversationObj);
-            conversationListInstance.updateListAsObject(conversationObj, (val) => val.user.id);
-            actions.cleanMessages();
-            actions.cleanFindedUserForStartConversation();
-            actions.selectUserForStartConversation(conversationObj);
-            selectedFindedUserRef.current = null;
-            return;
-          }
-
-          // when a user is exist in the conversation list and both of them are trying to send a message
-          const id = getConversationTargetId(data);
-          if (id in conversationListInstance.getListAsObject() && data.lastMessage) {
-            const list = Array.from(conversationListInstance.getList());
-            const finedIndex = list.findIndex((item) => item.user.id === id);
-            if (finedIndex > -1) {
-              const [removedConversation] = list.splice(finedIndex, 1);
-              const newConversation = new Conversation(removedConversation.user, data);
-              list.unshift(newConversation);
-              conversationListInstance.updateList(list);
-              actions.pushMessage(data.lastMessage);
-            }
-          }
+          console.log(data);
         });
       }, 1),
       (error) => {
