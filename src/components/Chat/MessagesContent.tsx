@@ -236,6 +236,7 @@ const MessagesContent: FC = () => {
 
           {selectors.conversations.messages.length > 0 ? (
             <MessagesWrapper
+              id="chat__messages-wrapper"
               component="div"
               sx={{ width: '100%', padding: '10px', overflowY: 'auto', overflowX: 'hidden' }}
             >

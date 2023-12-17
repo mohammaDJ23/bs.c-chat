@@ -76,6 +76,13 @@ const Chat: FC = () => {
   useEffect(() => {
     if (messages.length) {
       lastMessage.current = messages[messages.length - 1];
+      const messagesWrapperEl = document.getElementById('chat__messages-wrapper');
+      if (messagesWrapperEl) {
+        messagesWrapperEl.scrollTo({
+          behavior: 'smooth',
+          top: messagesWrapperEl.scrollHeight,
+        });
+      }
     }
   }, [messages]);
 
