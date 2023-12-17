@@ -13,7 +13,15 @@ import {
 import moment from 'moment';
 import EmptyUsers from './EmptyUsers';
 import { useAction, useAuth, useForm, useInfinityList, usePaginationList, useRequest, useSelector } from '../../hooks';
-import { ConversationList, ConversationObj, UserList, UserListFilters, UserObj, debounce } from '../../lib';
+import {
+  ConversationList,
+  ConversationObj,
+  MessageList,
+  UserList,
+  UserListFilters,
+  UserObj,
+  debounce,
+} from '../../lib';
 import { AllConversationsApi, AllOwnersApi, AllUsersApi, StartConversationApi } from '../../apis';
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
@@ -47,6 +55,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const isCurrentOwner = auth.isCurrentOwner();
   const userListInstance = usePaginationList(UserList);
   const conversationListInstance = useInfinityList(ConversationList);
+  const messageListInstance = useInfinityList(MessageList);
   const conversationList = conversationListInstance.getList();
   const userListFiltersFormInstance = useForm(UserListFilters);
   const userListFiltersForm = userListFiltersFormInstance.getForm();
@@ -93,7 +102,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
 
   const onConversationClick = useCallback((item: ConversationObj) => {
     actions.selectUserForStartConversation(item);
-    actions.cleanMessages();
+    messageListInstance.resetList();
     if (onUserClick) {
       onUserClick.call({});
     }

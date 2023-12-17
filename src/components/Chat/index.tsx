@@ -24,13 +24,14 @@ import {
   ConversationDocObj,
   ConversationList,
   ConversationObj,
+  MessageList,
   MessageObj,
   UserListFilters,
   UserObj,
   getConversationTargetId,
   preventRunAt,
 } from '../../lib';
-import { enqueueSnackbar, useSnackbar } from 'notistack';
+import { useSnackbar } from 'notistack';
 import { UsersStatusType } from '../../store';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
@@ -58,16 +59,17 @@ const Chat: FC = () => {
   const actions = useAction();
   const auth = useAuth();
   const request = useRequest();
+  const messageListInstance = useInfinityList(MessageList);
   const userListFiltersFormInstance = useForm(UserListFilters);
   const isCurrentOwner = auth.isCurrentOwner();
   const decodedToken = auth.getDecodedToken()!;
   const snackbar = useSnackbar();
+  const messageList = messageListInstance.getList();
   const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
   const connectionSocket = selectors.userServiceSocket.connection;
   const chatSocket = selectors.userServiceSocket.chat;
   const usersStatus = selectors.specificDetails.usersStatus;
   const selectedConversation = selectors.conversations.selectedUser;
-  const messages = selectors.conversations.messages;
 
   useEffect(() => {
     if (selectedConversation) {
@@ -85,8 +87,8 @@ const Chat: FC = () => {
   }, [selectedConversation]);
 
   useEffect(() => {
-    if (messages.length) {
-      lastMessage.current = messages[messages.length - 1];
+    if (messageList.length) {
+      lastMessage.current = messageList[messageList.length - 1];
       const messagesWrapperEl = document.getElementById('chat__messages-wrapper');
       if (messagesWrapperEl) {
         messagesWrapperEl.scrollTo({
@@ -95,7 +97,7 @@ const Chat: FC = () => {
         });
       }
     }
-  }, [messages]);
+  }, [messageList]);
 
   useEffect(() => {
     if (connectionSocket && isCurrentOwner) {
@@ -281,7 +283,7 @@ const Chat: FC = () => {
                     // @ts-ignore
                     data.lastMessage.createdAt.seconds > lastMessage.current.createdAt.seconds))
               ) {
-                actions.pushMessage(data.lastMessage!);
+                messageListInstance.updateAndConcatList([data.lastMessage!]);
               }
             }
           }

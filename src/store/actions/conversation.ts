@@ -1,15 +1,5 @@
-import { ConversationObj, MessageObj } from '../../lib';
+import { ConversationObj } from '../../lib';
 import { Message } from '../reducers';
-
-export interface PushMessageAction {
-  type: Message.PUSH_MESSAGE;
-  payload: MessageObj;
-}
-
-export interface UnshiftMessagesAction {
-  type: Message.UNSHIFT_MESSAGES;
-  payload: MessageObj[];
-}
 
 export interface SelecteUserForStartConversationAction {
   type: Message.SEELCT_USER_FOR_START_CONVERSATION;
@@ -20,30 +10,7 @@ export interface CleanUserForStartConversationAction {
   type: Message.CLEAN_USER_FOR_START_CONVERSATION;
 }
 
-export interface CleanMessagesAction {
-  type: Message.CLEAN_MESSAGES;
-}
-
-export type MessageActions =
-  | PushMessageAction
-  | UnshiftMessagesAction
-  | SelecteUserForStartConversationAction
-  | CleanUserForStartConversationAction
-  | CleanMessagesAction;
-
-export function pushMessage(payload: MessageObj): PushMessageAction {
-  return {
-    type: Message.PUSH_MESSAGE,
-    payload,
-  };
-}
-
-export function unshiftMessages(payload: MessageObj[]): UnshiftMessagesAction {
-  return {
-    type: Message.UNSHIFT_MESSAGES,
-    payload,
-  };
-}
+export type MessageActions = SelecteUserForStartConversationAction | CleanUserForStartConversationAction;
 
 export function selectUserForStartConversation(payload: ConversationObj): SelecteUserForStartConversationAction {
   return {
@@ -55,11 +22,5 @@ export function selectUserForStartConversation(payload: ConversationObj): Select
 export function cleanUserForStartConversation(): CleanUserForStartConversationAction {
   return {
     type: Message.CLEAN_USER_FOR_START_CONVERSATION,
-  };
-}
-
-export function cleanMessages(): CleanMessagesAction {
-  return {
-    type: Message.CLEAN_MESSAGES,
   };
 }

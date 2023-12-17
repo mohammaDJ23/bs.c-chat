@@ -6,9 +6,9 @@ import Users from './Users';
 import MessageCard from './MessageCard';
 import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
-import { useAction, useAuth, useSelector } from '../../hooks';
+import { useAction, useAuth, useInfinityList, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { ConversationObj, getConversationDate, MessageObj } from '../../lib';
+import { ConversationObj, getConversationDate, MessageList, MessageObj } from '../../lib';
 import { useSnackbar } from 'notistack';
 
 interface SendMessageObj extends ConversationObj {
@@ -65,10 +65,12 @@ const EmptyMessagesWrapper = styled(Box)(({ theme }) => ({
 
 const MessagesContent: FC = () => {
   const [text, setText] = useState<string>('');
+  const messageListInstance = useInfinityList(MessageList);
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
   const snackbar = useSnackbar();
+  const messageList = messageListInstance.getList();
   const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
   const chatSocket = selectors.userServiceSocket.chat;
@@ -234,7 +236,7 @@ const MessagesContent: FC = () => {
             </Box>
           </Box>
 
-          {selectors.conversations.messages.length > 0 ? (
+          {messageList.length > 0 ? (
             <MessagesWrapper
               id="chat__messages-wrapper"
               component="div"
@@ -250,11 +252,8 @@ const MessagesContent: FC = () => {
                     height: '100%',
                   }}
                 >
-                  {selectors.conversations.messages.map((message, i) => (
-                    <Box
-                      key={message.id}
-                      sx={{ paddingBottom: i >= selectors.conversations.messages.length - 1 ? '5px' : '0' }}
-                    >
+                  {messageList.map((message, i) => (
+                    <Box key={message.id} sx={{ paddingBottom: i >= messageList.length - 1 ? '5px' : '0' }}>
                       <MessageCard message={message} />
                     </Box>
                   ))}
