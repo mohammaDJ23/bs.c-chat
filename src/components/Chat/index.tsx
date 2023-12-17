@@ -246,10 +246,11 @@ const Chat: FC = () => {
               if (
                 selectedConversationRef.current &&
                 selectedConversationRef.current.conversation.roomId === newConversation.conversation.roomId &&
-                lastMessage.current &&
-                data.lastMessage &&
-                // @ts-ignore
-                data.lastMessage.createdAt.seconds > lastMessage.current.createdAt.seconds
+                (!lastMessage.current ||
+                  (lastMessage.current &&
+                    data.lastMessage &&
+                    // @ts-ignore
+                    data.lastMessage.createdAt.seconds > lastMessage.current.createdAt.seconds))
               ) {
                 actions.pushMessage(data.lastMessage!);
               }

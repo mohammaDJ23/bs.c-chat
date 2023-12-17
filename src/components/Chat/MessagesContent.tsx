@@ -173,8 +173,7 @@ const MessagesContent: FC = () => {
             width: '100%',
             height: '100%',
             position: 'relative',
-            overflowY: 'auto',
-            overflowX: 'hidden',
+            overflow: 'hidden',
           }}
         >
           <Box
@@ -236,7 +235,10 @@ const MessagesContent: FC = () => {
           </Box>
 
           {selectors.conversations.messages.length > 0 ? (
-            <MessagesWrapper component="div" sx={{ width: '100%', padding: '10px' }}>
+            <MessagesWrapper
+              component="div"
+              sx={{ width: '100%', padding: '10px', overflowY: 'auto', overflowX: 'hidden' }}
+            >
               <Box sx={{ width: '100%', height: '100%' }}>
                 <Box
                   sx={{
@@ -250,7 +252,7 @@ const MessagesContent: FC = () => {
                   {selectors.conversations.messages.map((message, i) => (
                     <Box
                       key={message.id}
-                      sx={{ paddingBottom: i >= selectors.conversations.messages.length - 1 ? '58px' : '0' }}
+                      sx={{ paddingBottom: i >= selectors.conversations.messages.length - 1 ? '5px' : '0' }}
                     >
                       <MessageCard message={message} />
                     </Box>
