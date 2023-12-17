@@ -1,16 +1,7 @@
 import { InfinityList } from './infinityList';
+import { MessageObj } from './message';
 import { UserObj } from './user';
 import { FieldValue } from 'firebase/app/dist/firestore';
-
-export interface MessageObj {
-  userId: number;
-  id: string;
-  text: string;
-  createdAt: FieldValue;
-  updatedAt: FieldValue;
-  deletedAt: FieldValue | null;
-  isReaded: boolean;
-}
 
 export interface ConversationDocObj {
   id: string;

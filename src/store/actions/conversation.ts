@@ -1,4 +1,4 @@
-import { ConversationObj, MessageObj, UserObj } from '../../lib';
+import { ConversationObj, MessageObj } from '../../lib';
 import { Message } from '../reducers';
 
 export interface PushMessageAction {
