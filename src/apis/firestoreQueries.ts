@@ -63,4 +63,16 @@ export namespace FirestoreQueries {
       return this.q;
     }
   }
+
+  export class MessagesQuery implements FirestoreQuery {
+    private readonly q: Query<DocumentData, DocumentData>;
+
+    constructor(private readonly roomId: string) {
+      this.q = query(collection(db, `conversation/${this.roomId}/messages`));
+    }
+
+    getQuery() {
+      return this.q;
+    }
+  }
 }

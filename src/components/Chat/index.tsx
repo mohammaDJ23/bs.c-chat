@@ -30,7 +30,7 @@ import {
   getConversationTargetId,
   preventRunAt,
 } from '../../lib';
-import { useSnackbar } from 'notistack';
+import { enqueueSnackbar, useSnackbar } from 'notistack';
 import { UsersStatusType } from '../../store';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
@@ -70,7 +70,18 @@ const Chat: FC = () => {
   const messages = selectors.conversations.messages;
 
   useEffect(() => {
-    selectedConversationRef.current = selectedConversation;
+    if (selectedConversation) {
+      selectedConversationRef.current = selectedConversation;
+
+      const messagesQuery = new FirestoreQueries.MessagesQuery(selectedConversation.conversation.roomId).getQuery();
+
+      getDocs(messagesQuery)
+        .then((snapshot) => {
+          const docs = snapshot.docs.map((doc) => doc.data());
+          console.log(docs);
+        })
+        .catch((error: Error) => snackbar.enqueueSnackbar({ message: error.message, variant: 'error' }));
+    }
   }, [selectedConversation]);
 
   useEffect(() => {
