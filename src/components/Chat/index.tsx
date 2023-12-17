@@ -277,6 +277,24 @@ const Chat: FC = () => {
 
           // when a conversation is not exists in the client
           else if (!(conversationTargetId in conversationListAsObject)) {
+            const apiData = {
+              page: 1,
+              take: 1,
+              filters: { ids: [conversationTargetId] },
+            };
+
+            const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
+
+            request.build<[UserObj[], number]>(api).then((response) => {
+              const [list] = response.data;
+              const [findedUser] = list;
+              if (findedUser && connectionSocket) {
+                connectionSocket.emit('users-status', { payload: [conversationTargetId] });
+                const conversation = new Conversation(findedUser, data);
+                conversationListInstance.unshiftList(conversation);
+                conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
+              }
+            });
           }
         });
       }, 1),
