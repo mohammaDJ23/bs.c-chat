@@ -24,6 +24,7 @@ import {
   ConversationDocObj,
   ConversationList,
   ConversationObj,
+  MessageObj,
   UserListFilters,
   UserObj,
   getConversationTargetId,
@@ -52,6 +53,7 @@ const Chat: FC = () => {
   const selectors = useSelector();
   const conversationListInstance = useInfinityList(ConversationList);
   const selectedConversationRef = useRef<ConversationObj | null>(null);
+  const lastMessage = useRef<MessageObj | null>(null);
   const lastVisibleConversationDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | null>(null);
   const actions = useAction();
   const auth = useAuth();
@@ -65,10 +67,17 @@ const Chat: FC = () => {
   const chatSocket = selectors.userServiceSocket.chat;
   const usersStatus = selectors.specificDetails.usersStatus;
   const selectedConversation = selectors.conversations.selectedUser;
+  const messages = selectors.conversations.messages;
 
   useEffect(() => {
     selectedConversationRef.current = selectedConversation;
   }, [selectedConversation]);
+
+  useEffect(() => {
+    if (messages.length) {
+      lastMessage.current = messages[messages.length - 1];
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (connectionSocket && isCurrentOwner) {
@@ -236,7 +245,11 @@ const Chat: FC = () => {
               conversationListInstance.updateList(conversationList);
               if (
                 selectedConversationRef.current &&
-                selectedConversationRef.current.conversation.roomId === newConversation.conversation.roomId
+                selectedConversationRef.current.conversation.roomId === newConversation.conversation.roomId &&
+                lastMessage.current &&
+                data.lastMessage &&
+                // @ts-ignore
+                data.lastMessage.createdAt.seconds > lastMessage.current.createdAt.seconds
               ) {
                 actions.pushMessage(data.lastMessage!);
               }
