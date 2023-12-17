@@ -119,8 +119,23 @@ const Chat: FC = () => {
       chatSocket.on('success-start-conversation', (data: ConversationObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
         userListFiltersFormInstance.onChange('q', '');
+        const conversationListAsObject = conversationListInstance.getListAsObject();
 
         if (!data.conversation.lastMessage) {
+          if (data.user.id in conversationListAsObject) {
+            const conversationList = conversationListInstance.getList();
+            const findedIndex = conversationList.findIndex(
+              (item) => item.conversation.roomId === data.conversation.roomId
+            );
+            if (findedIndex > -1) {
+              let [newConversation] = conversationList.splice(findedIndex, 1);
+              newConversation = data;
+              conversationList.unshift(newConversation);
+              conversationListInstance.updateList(conversationList);
+              conversationListInstance.updateListAsObject(newConversation, (val) => val.user.id);
+            }
+            return;
+          }
           conversationListInstance.unshiftList(data);
           conversationListInstance.updateListAsObject(data, (val) => val.user.id);
         }
