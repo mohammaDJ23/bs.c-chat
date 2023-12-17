@@ -6,6 +6,7 @@ import {
   RootActions,
   UpdateListInfinityListAction,
   UpdateListAsObjectInfinityListAction,
+  ResetListInfinityListAction,
 } from '../actions';
 import { ClearState } from './clearState';
 
@@ -15,6 +16,7 @@ export enum InfinityListEnums {
   UPDATE_TAKE = 'UPDATE_TAKE_INFINITY_LIST',
   UPDATE_PAGE = 'UPDATE_PAGE_INFINITY_LIST',
   UPDATE_TOTAL = 'UPDATE_TOTAL_INFINITY_LIST',
+  RESET_LIST = 'RESET_LIST_INFINITY_LIST',
 }
 
 interface InfinityListState {
@@ -102,6 +104,16 @@ function updateTotalInfinityList(state: InfinityListState, action: UpdateTotalIn
   return newState;
 }
 
+function resetListInfinityList(state: InfinityListState, action: ResetListInfinityListAction): InfinityListState {
+  const newState = Object.assign({}, state);
+
+  const listInstance = action.payload.listInstance;
+
+  newState[listInstance.name] = new listInstance();
+
+  return newState;
+}
+
 function clearState(): InfinityListState {
   return makeListState();
 }
@@ -122,6 +134,9 @@ export function infinityListReducer(state: InfinityListState = initialState, act
 
     case InfinityListEnums.UPDATE_TOTAL:
       return updateTotalInfinityList(state, actions);
+
+    case InfinityListEnums.RESET_LIST:
+      return resetListInfinityList(state, actions);
 
     case ClearState.CLEAR_STATE:
       return clearState();

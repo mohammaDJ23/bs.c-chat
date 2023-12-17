@@ -113,6 +113,10 @@ export function useInfinityList<
         return page * take >= total;
       }
 
+      function resetList(): void {
+        actions.resetListInfinityList(listInstance);
+      }
+
       return {
         getInstance,
         updateList,
@@ -131,6 +135,7 @@ export function useInfinityList<
         isNewPageEqualToCurrentPage,
         isListEnd,
         unshiftList,
+        resetList,
       };
     },
     [selectors.infinityLists[listInstance.name]]

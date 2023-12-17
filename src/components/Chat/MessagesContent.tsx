@@ -1,5 +1,4 @@
-import { FC, useCallback, useState, useEffect, useRef } from 'react';
-import { unmountComponentAtNode, findDOMNode } from 'react-dom';
+import { FC, useCallback, useState, useEffect } from 'react';
 import { Box, TextField as TF, styled, Drawer, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
@@ -7,9 +6,9 @@ import Users from './Users';
 import MessageCard from './MessageCard';
 import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
-import { useAction, useAuth, useSelector } from '../../hooks';
+import { useAction, useAuth, useInfinityList, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { ConversationObj, getConversationDate, isUser, MessageObj } from '../../lib';
+import { ConversationList, ConversationObj, getConversationDate, MessageObj } from '../../lib';
 import { useSnackbar } from 'notistack';
 
 interface SendMessageObj extends ConversationObj {
@@ -70,7 +69,8 @@ const MessagesContent: FC = () => {
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
-  const { enqueueSnackbar } = useSnackbar();
+  const conversationListInstance = useInfinityList(ConversationList);
+  const snackbar = useSnackbar();
   const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
   const chatSocket = selectors.userServiceSocket.chat;
@@ -134,11 +134,13 @@ const MessagesContent: FC = () => {
   useEffect(() => {
     function resizeProcess() {
       if (window.innerWidth >= 900 && isUsersDrawersActive) {
+        actions.hideModal(ModalNames.CONVERSATION);
         setIsUsersDrawersActive(false);
-        actions.cleanMessages();
       } else if (window.innerWidth < 900 && !isUsersDrawersActive) {
         setIsUsersDrawersActive(true);
-        // clean messages, selectedUser, conversatins
+        actions.cleanMessages();
+        actions.cleanUserForStartConversation();
+        conversationListInstance.resetList();
       }
     }
 
@@ -149,9 +151,7 @@ const MessagesContent: FC = () => {
   }, [isConversationDrawerOpen, isUsersDrawersActive]);
 
   useEffect(() => {
-    if (window.innerWidth >= 900) {
-      setIsUsersDrawersActive(false);
-    }
+    setIsUsersDrawersActive(window.innerWidth < 900);
   }, []);
 
   useEffect(() => {
@@ -159,7 +159,7 @@ const MessagesContent: FC = () => {
       chatSocket.on('success-send-message', (data: SendMessageObj) => {});
 
       chatSocket.on('fail-send-message', (error: Error) => {
-        enqueueSnackbar({ message: error.message, variant: 'error' });
+        snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
       });
 
       return () => {

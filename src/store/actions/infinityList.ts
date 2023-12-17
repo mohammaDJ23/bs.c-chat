@@ -5,6 +5,11 @@ export interface InifinityListObj {
   new (...args: any[]): InfinityList.ListInstance;
 }
 
+export interface ResetListInfinityListAction {
+  type: InfinityListEnums.RESET_LIST;
+  payload: { listInstance: InifinityListObj };
+}
+
 export interface UpdateListInfinityListAction {
   type: InfinityListEnums.UPDATE_LIST;
   payload: { listInstance: InifinityListObj; list: InfinityList.ListType };
@@ -35,7 +40,8 @@ export type InfinityListActions =
   | UpdatePageInfinityListAction
   | UpdateListAsObjectInfinityListAction
   | UpdateTakeInfinityListAction
-  | UpdateTotalInfinityListAction;
+  | UpdateTotalInfinityListAction
+  | ResetListInfinityListAction;
 
 export function updateListInfinityList(
   listInstance: InifinityListObj,
@@ -75,6 +81,13 @@ export function updateTotalInfinityList(listInstance: InifinityListObj, total: n
   return {
     type: InfinityListEnums.UPDATE_TOTAL,
     payload: { listInstance, total },
+  };
+}
+
+export function resetListInfinityList(listInstance: InifinityListObj): ResetListInfinityListAction {
+  return {
+    type: InfinityListEnums.RESET_LIST,
+    payload: { listInstance },
   };
 }
 
