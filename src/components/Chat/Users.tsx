@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useCallback, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, FC, useCallback, useRef, useState } from 'react';
 import {
   List,
   Box,
@@ -11,30 +11,10 @@ import {
   styled,
 } from '@mui/material';
 import moment from 'moment';
-import { useSnackbar } from 'notistack';
 import EmptyUsers from './EmptyUsers';
 import { useAction, useAuth, useForm, useInfinityList, usePaginationList, useRequest, useSelector } from '../../hooks';
-import {
-  Conversation,
-  ConversationDocObj,
-  ConversationList,
-  ConversationObj,
-  UserList,
-  UserListFilters,
-  UserObj,
-  debounce,
-  getConversationTargetId,
-  preventRunAt,
-} from '../../lib';
-import {
-  AllConversationsApi,
-  AllOwnersApi,
-  AllUsersApi,
-  FirestoreQueries,
-  RootApi,
-  StartConversationApi,
-} from '../../apis';
-import { DocumentData, getDocs, QueryDocumentSnapshot, getCountFromServer } from 'firebase/firestore';
+import { ConversationList, ConversationObj, UserList, UserListFilters, UserObj, debounce } from '../../lib';
+import { AllConversationsApi, AllOwnersApi, AllUsersApi, StartConversationApi } from '../../apis';
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
@@ -60,15 +40,11 @@ interface UsersImportation {
 
 const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const [isSearchUsersAutoCompleteOpen, setIsSearchUsersAutoCompleteOpen] = useState(false);
-  const conversationListSpinnerRef = useRef<HTMLDivElement | null>(null);
-  const lastVisibleConversationDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | null>(null);
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
   const request = useRequest();
-  const { enqueueSnackbar } = useSnackbar();
   const isCurrentOwner = auth.isCurrentOwner();
-  const decodedToken = auth.getDecodedToken()!;
   const userListInstance = usePaginationList(UserList);
   const conversationListInstance = useInfinityList(ConversationList);
   const conversationList = conversationListInstance.getList();
@@ -76,130 +52,8 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const userListFiltersForm = userListFiltersFormInstance.getForm();
   const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
-  const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
   const halfSecDebounce = useRef(debounce());
   const chatSocket = selectors.userServiceSocket.chat;
-  const connectionSocket = selectors.userServiceSocket.connection;
-
-  useEffect(() => {
-    if (chatSocket && connectionSocket) {
-      chatSocket.on('fail-start-conversation', (error: Error) => {
-        actions.processingApiError(StartConversationApi.name);
-        enqueueSnackbar({ message: error.message, variant: 'error' });
-      });
-
-      chatSocket.on('success-start-conversation', (data: ConversationObj) => {
-        actions.processingApiSuccess(StartConversationApi.name);
-        userListFiltersFormInstance.onChange('q', '');
-
-        if (!data.conversation.lastMessage) {
-          conversationListInstance.unshiftList(data);
-          conversationListInstance.updateListAsObject(data, (val) => val.user.id);
-        }
-
-        if (!(data.user.id in conversationListInstance.getListAsObject())) {
-          connectionSocket.emit('users-status', { payload: [data.user.id] });
-        }
-      });
-
-      return () => {
-        chatSocket.removeListener('fail-start-conversation');
-        chatSocket.removeListener('success-start-conversation');
-      };
-    }
-  }, [chatSocket, connectionSocket, conversationListInstance]);
-
-  const getConversationList = useCallback(
-    async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
-      if (data.isInitialApi) actions.initialProcessingApiLoading(AllConversationsApi.name);
-      else actions.processingApiLoading(AllConversationsApi.name);
-
-      data.page = data.page || conversationListInstance.getPage();
-      const page = data.page!;
-
-      const lastVisible = lastVisibleConversationDocRef.current ? lastVisibleConversationDocRef.current : {};
-      const paginatedConversationListQuery = new FirestoreQueries.PaginatedConversationListQuery(
-        decodedToken.id,
-        conversationListInstance.getTake(),
-        lastVisible
-      ).getQuery();
-      const conversationListQuery = new FirestoreQueries.ConversationListQuery(decodedToken.id).getQuery();
-
-      Promise.all([getDocs(paginatedConversationListQuery), getCountFromServer(conversationListQuery)])
-        .then(([paginatedConversationListSnapshot, conversationListSnapshot]) => {
-          if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
-          else actions.processingApiSuccess(AllConversationsApi.name);
-
-          const docs = paginatedConversationListSnapshot.docs;
-          const count = conversationListSnapshot.data().count;
-
-          const conversationDocs = docs.map((doc) => doc.data()) as ConversationDocObj[];
-          const ids = conversationDocs.map((doc) => getConversationTargetId(doc));
-
-          if (conversationDocs.length && ids.length) {
-            lastVisibleConversationDocRef.current = docs[docs.length - 1];
-
-            const apiData = {
-              page: 1,
-              take: conversationListInstance.getTake(),
-              filters: { ids },
-            };
-
-            const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
-
-            request.build<[UserObj[], number]>(api).then((response) => {
-              const [list] = response.data;
-              const conversationList: ConversationObj[] = ids
-                .map((id, i) => {
-                  const findedUser = list.find((user) => user.id === id)!;
-                  return new Conversation(findedUser, conversationDocs[i]);
-                })
-                .filter((conversation) => !!conversation.user);
-
-              conversationListInstance.updateAndConcatList(conversationList);
-              conversationListInstance.updateListAsObject(conversationList, (val) => val.user.id);
-              conversationListInstance.updatePage(page);
-              conversationListInstance.updateTotal(count);
-
-              if (connectionSocket && isCurrentOwner) {
-                connectionSocket.emit('users-status', { payload: ids });
-              }
-            });
-          }
-        })
-        .catch((error: Error) => {
-          if (data.isInitialApi) actions.initialProcessingApiError(AllConversationsApi.name);
-          else actions.processingApiError(AllConversationsApi.name);
-
-          enqueueSnackbar({ message: error.message, variant: 'error' });
-        });
-    },
-    [connectionSocket, conversationListInstance, isCurrentOwner]
-  );
-
-  useEffect(() => {
-    getConversationList({ isInitialApi: true });
-  }, [connectionSocket]);
-
-  useEffect(() => {
-    const el = conversationListSpinnerRef.current;
-    if (el) {
-      let observer = new IntersectionObserver(
-        preventRunAt(function (entries: IntersectionObserverEntry[]) {
-          if (!isAllConversationApiProcessing && !conversationListInstance.isListEnd()) {
-            let page = conversationListInstance.getPage();
-            page++;
-            getConversationList({ page });
-          }
-        }, 1)
-      );
-      observer.observe(el);
-      return () => {
-        observer.unobserve(el);
-        observer.disconnect();
-      };
-    }
-  }, [isAllConversationApiProcessing, conversationListInstance, getConversationList]);
 
   const onSearchUsersChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = event.target.value;
@@ -355,7 +209,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
               ))}
               {!conversationListInstance.isListEnd() && (
                 <Box
-                  ref={conversationListSpinnerRef}
+                  id="chat__conversation-list-spinner"
                   component={'div'}
                   sx={{
                     display: 'flex',
