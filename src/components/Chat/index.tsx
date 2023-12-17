@@ -118,6 +118,7 @@ const Chat: FC = () => {
 
       chatSocket.on('success-start-conversation', (data: ConversationObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
+        connectionSocket.emit('users-status', { payload: [data.user.id] });
         userListFiltersFormInstance.onChange('q', '');
         const conversationListAsObject = conversationListInstance.getListAsObject();
 
@@ -132,16 +133,11 @@ const Chat: FC = () => {
               newConversation = data;
               conversationList.unshift(newConversation);
               conversationListInstance.updateList(conversationList);
-              conversationListInstance.updateListAsObject(newConversation, (val) => val.user.id);
             }
-            return;
+          } else {
+            conversationListInstance.unshiftList(data);
+            conversationListInstance.updateListAsObject(data, (val) => val.user.id);
           }
-          conversationListInstance.unshiftList(data);
-          conversationListInstance.updateListAsObject(data, (val) => val.user.id);
-        }
-
-        if (!(data.user.id in conversationListInstance.getListAsObject())) {
-          connectionSocket.emit('users-status', { payload: [data.user.id] });
         }
       });
 
