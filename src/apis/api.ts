@@ -51,3 +51,5 @@ export class AllOwnersApi extends RootApi {
 export class StartConversationApi extends RootApi {}
 
 export class AllConversationsApi extends RootApi {}
+
+export class MessagesApi extends RootApi {}

@@ -67,8 +67,13 @@ export namespace FirestoreQueries {
   export class MessagesQuery implements FirestoreQuery {
     private readonly q: Query<DocumentData, DocumentData>;
 
-    constructor(private readonly roomId: string) {
-      this.q = query(collection(db, `conversation/${this.roomId}/messages`));
+    constructor(private readonly roomId: string, private readonly take: number, private readonly lastDoc: unknown) {
+      this.q = query(
+        collection(db, `conversation/${this.roomId}/messages`),
+        orderBy('createdAt', 'desc'),
+        limit(this.take),
+        startAfter(this.lastDoc)
+      );
     }
 
     getQuery() {

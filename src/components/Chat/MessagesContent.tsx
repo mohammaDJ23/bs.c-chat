@@ -1,15 +1,16 @@
 import { FC, useCallback, useState, useEffect } from 'react';
-import { Box, TextField as TF, styled, Drawer, Typography } from '@mui/material';
+import { Box, TextField as TF, styled, Drawer, Typography, CircularProgress } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 import Users from './Users';
 import MessageCard from './MessageCard';
 import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
-import { useAction, useAuth, useInfinityList, useSelector } from '../../hooks';
+import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
 import { ConversationObj, getConversationDate, MessageList, MessageObj } from '../../lib';
 import { useSnackbar } from 'notistack';
+import { AllConversationsApi, MessagesApi } from '../../apis';
 
 interface SendMessageObj extends ConversationObj {
   text: string;
@@ -63,6 +64,13 @@ const EmptyMessagesWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
+const MessagesSpinnerWrapper = styled(Box)(({ theme }) => ({
+  height: 'calc(100% - 48px)',
+  [theme.breakpoints.down('sm')]: {
+    height: 'calc(100% - 33px)',
+  },
+}));
+
 const MessagesContent: FC = () => {
   const [text, setText] = useState<string>('');
   const messageListInstance = useInfinityList(MessageList);
@@ -70,6 +78,9 @@ const MessagesContent: FC = () => {
   const actions = useAction();
   const auth = useAuth();
   const snackbar = useSnackbar();
+  const request = useRequest();
+  const isMessagesApiProcessing = request.isApiProcessing(MessagesApi);
+  const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
   const messageList = messageListInstance.getList();
   const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
@@ -167,7 +178,20 @@ const MessagesContent: FC = () => {
     }
   }, [text, chatSocket, selectedUser]);
 
-  return (
+  return isInitialAllConversationApiProcessing ? (
+    <Box
+      component={'div'}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+      }}
+    >
+      <CircularProgress size={30} />
+    </Box>
+  ) : (
     <>
       {selectors.conversations.selectedUser ? (
         <Box
@@ -236,63 +260,81 @@ const MessagesContent: FC = () => {
             </Box>
           </Box>
 
-          {messageList.length > 0 ? (
-            <MessagesWrapper
-              id="chat__messages-wrapper"
-              component="div"
-              sx={{ width: '100%', padding: '10px', overflowY: 'auto', overflowX: 'hidden' }}
-            >
-              <Box sx={{ width: '100%', height: '100%' }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '5px',
-                    width: '100%',
-                    height: '100%',
-                  }}
-                >
-                  {messageList.map((message, i) => (
-                    <Box key={message.id} sx={{ paddingBottom: i >= messageList.length - 1 ? '5px' : '0' }}>
-                      <MessageCard message={message} />
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            </MessagesWrapper>
-          ) : (
-            <EmptyMessagesWrapper component="div" sx={{ width: '100%' }}>
-              <EmptyMessages />
-            </EmptyMessagesWrapper>
-          )}
-          <FormWrapper>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                onSendText();
+          {isMessagesApiProcessing ? (
+            <MessagesSpinnerWrapper
+              sx={{
+                width: '100%',
+                padding: '10px',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column',
               }}
             >
-              <Box
-                component="div"
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <TextField
-                  onChange={(event) => setText(event.target.value)}
-                  placeholder={'Type your message here'}
-                  fullWidth
-                  value={text}
-                  sx={{ height: '100%', width: '100%' }}
-                />
-                <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
-                  <SendIcon color="primary" sx={{ cursor: 'pointer' }} />
-                </Box>
-              </Box>
-            </form>
-          </FormWrapper>
+              <CircularProgress size={30} />
+            </MessagesSpinnerWrapper>
+          ) : (
+            <>
+              {messageList.length > 0 ? (
+                <MessagesWrapper
+                  id="chat__messages-wrapper"
+                  component="div"
+                  sx={{ width: '100%', padding: '10px', overflowY: 'auto', overflowX: 'hidden' }}
+                >
+                  <Box sx={{ width: '100%', height: '100%' }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '5px',
+                        width: '100%',
+                        height: '100%',
+                      }}
+                    >
+                      {messageList.map((message, i) => (
+                        <Box key={message.id} sx={{ paddingBottom: i >= messageList.length - 1 ? '5px' : '0' }}>
+                          <MessageCard message={message} />
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                </MessagesWrapper>
+              ) : (
+                <EmptyMessagesWrapper component="div" sx={{ width: '100%' }}>
+                  <EmptyMessages />
+                </EmptyMessagesWrapper>
+              )}
+              <FormWrapper>
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    onSendText();
+                  }}
+                >
+                  <Box
+                    component="div"
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <TextField
+                      onChange={(event) => setText(event.target.value)}
+                      placeholder={'Type your message here'}
+                      fullWidth
+                      value={text}
+                      sx={{ height: '100%', width: '100%' }}
+                    />
+                    <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
+                      <SendIcon color="primary" sx={{ cursor: 'pointer' }} />
+                    </Box>
+                  </Box>
+                </form>
+              </FormWrapper>
+            </>
+          )}
         </Box>
       ) : (
         <StartConversation />

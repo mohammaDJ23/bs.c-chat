@@ -22,7 +22,7 @@ import {
   UserObj,
   debounce,
 } from '../../lib';
-import { AllConversationsApi, AllOwnersApi, AllUsersApi, StartConversationApi } from '../../apis';
+import { AllConversationsApi, AllOwnersApi, AllUsersApi, MessagesApi, StartConversationApi } from '../../apis';
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
@@ -61,33 +61,44 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const userListFiltersForm = userListFiltersFormInstance.getForm();
   const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
+  const isMessagesApiProcessing = request.isApiProcessing(MessagesApi);
   const halfSecDebounce = useRef(debounce());
   const chatSocket = selectors.userServiceSocket.chat;
+  const selectedConversation = selectors.conversations.selectedUser;
 
-  const onSearchUsersChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = event.target.value;
-    userListFiltersFormInstance.onChange('q', value);
+  const onSearchUsersChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (isMessagesApiProcessing) {
+        return;
+      }
+      const value = event.target.value;
+      userListFiltersFormInstance.onChange('q', value);
 
-    halfSecDebounce.current(() => {
-      const apiData = {
-        page: userListInstance.getPage(),
-        take: userListInstance.getTake(),
-        filters: { q: value.trim() },
-      };
+      halfSecDebounce.current(() => {
+        const apiData = {
+          page: userListInstance.getPage(),
+          take: userListInstance.getTake(),
+          filters: { q: value.trim() },
+        };
 
-      const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
+        const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
 
-      request.build<[UserObj[], number]>(api).then((response) => {
-        const [list, total] = response.data;
-        userListInstance.updateList(list);
-        userListInstance.updateTotal(total);
-        setIsSearchUsersAutoCompleteOpen(true);
+        request.build<[UserObj[], number]>(api).then((response) => {
+          const [list, total] = response.data;
+          userListInstance.updateList(list);
+          userListInstance.updateTotal(total);
+          setIsSearchUsersAutoCompleteOpen(true);
+        });
       });
-    });
-  }, []);
+    },
+    [isMessagesApiProcessing]
+  );
 
   const onAutoCompleteChange = useCallback(
     (value: UserObj | null) => {
+      if (isMessagesApiProcessing) {
+        return;
+      }
       userListInstance.updateList([]);
       setIsSearchUsersAutoCompleteOpen(false);
 
@@ -97,16 +108,26 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         chatSocket.emit('start-conversation', { payload: value });
       }
     },
-    [chatSocket]
+    [chatSocket, isMessagesApiProcessing]
   );
 
-  const onConversationClick = useCallback((item: ConversationObj) => {
-    actions.selectUserForStartConversation(item);
-    messageListInstance.resetList();
-    if (onUserClick) {
-      onUserClick.call({});
-    }
-  }, []);
+  const onConversationClick = useCallback(
+    (item: ConversationObj) => {
+      if (isMessagesApiProcessing) {
+        return;
+      }
+
+      if (!selectedConversation || (selectedConversation && selectedConversation.user.id !== item.user.id)) {
+        actions.selectUserForStartConversation(item);
+        messageListInstance.resetList();
+      }
+
+      if (onUserClick) {
+        onUserClick.call({});
+      }
+    },
+    [selectedConversation, isMessagesApiProcessing]
+  );
 
   return (
     <UsersWrapper
@@ -116,8 +137,23 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         overflowY: 'auto',
         overflowX: 'hidden',
         wordBreak: 'break-word',
+        position: 'relative',
       }}
     >
+      {isMessagesApiProcessing && (
+        <Box
+          sx={{
+            opacity: 0.5,
+            backgroundColor: '#f0f0f0',
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            zIndex: 10,
+            top: '0',
+            left: '0',
+          }}
+        ></Box>
+      )}
       {isInitialAllConversationApiProcessing ? (
         <Box
           component={'div'}

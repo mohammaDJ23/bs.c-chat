@@ -7,6 +7,7 @@ import {
   AllOwnersApi,
   AllUsersApi,
   FirestoreQueries,
+  MessagesApi,
   RootApi,
   StartConversationApi,
 } from '../../apis';
@@ -56,6 +57,7 @@ const Chat: FC = () => {
   const selectedConversationRef = useRef<ConversationObj | null>(null);
   const lastMessage = useRef<MessageObj | null>(null);
   const lastVisibleConversationDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | null>(null);
+  const lastVisibleMessageDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | null>(null);
   const actions = useAction();
   const auth = useAuth();
   const request = useRequest();
@@ -73,16 +75,35 @@ const Chat: FC = () => {
 
   useEffect(() => {
     if (selectedConversation) {
+      actions.processingApiLoading(MessagesApi.name);
+
+      if (selectedConversationRef.current && selectedConversationRef.current.user.id !== selectedConversation.user.id) {
+        lastVisibleMessageDocRef.current = null;
+      }
+
       selectedConversationRef.current = selectedConversation;
 
-      const messagesQuery = new FirestoreQueries.MessagesQuery(selectedConversation.conversation.roomId).getQuery();
+      const lastVisible = lastVisibleMessageDocRef.current || {};
+      const messagesQuery = new FirestoreQueries.MessagesQuery(
+        selectedConversation.conversation.roomId,
+        messageListInstance.getTake(),
+        lastVisible
+      ).getQuery();
 
       getDocs(messagesQuery)
         .then((snapshot) => {
-          const docs = snapshot.docs.map((doc) => doc.data());
-          console.log(docs);
+          actions.processingApiSuccess(MessagesApi.name);
+
+          if (snapshot.size) {
+            lastVisibleMessageDocRef.current = snapshot.docs[snapshot.docs.length - 1];
+          }
+          const docs = snapshot.docs.map((doc) => doc.data()) as MessageObj[];
+          messageListInstance.updateList(docs);
         })
-        .catch((error: Error) => snackbar.enqueueSnackbar({ message: error.message, variant: 'error' }));
+        .catch((error: Error) => {
+          actions.processingApiError(MessagesApi.name);
+          snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
+        });
     }
   }, [selectedConversation]);
 
