@@ -73,7 +73,7 @@ const Chat: FC = () => {
   const usersStatus = selectors.specificDetails.usersStatus;
   const selectedConversation = selectors.conversations.selectedUser;
 
-  useEffect(() => {
+  const getMessages = useCallback(() => {
     if (selectedConversation) {
       actions.processingApiLoading(MessagesApi.name);
 
@@ -106,6 +106,10 @@ const Chat: FC = () => {
         });
     }
   }, [selectedConversation]);
+
+  useEffect(() => {
+    getMessages();
+  }, [selectedConversation, getMessages]);
 
   useEffect(() => {
     if (messageList.length) {
