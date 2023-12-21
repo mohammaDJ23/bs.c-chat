@@ -56,8 +56,8 @@ const Chat: FC = () => {
   const conversationListInstance = useInfinityList(ConversationList);
   const selectedConversationRef = useRef<ConversationObj | null>(null);
   const lastMessage = useRef<MessageObj | null>(null);
-  const lastVisibleConversationDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | null>(null);
-  const lastVisibleMessageDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | null>(null);
+  const lastVisibleConversationDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | object>({});
+  const lastVisibleMessageDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | object>({});
   const actions = useAction();
   const auth = useAuth();
   const request = useRequest();
@@ -78,16 +78,15 @@ const Chat: FC = () => {
       actions.processingApiLoading(MessagesApi.name);
 
       if (selectedConversationRef.current && selectedConversationRef.current.user.id !== selectedConversation.user.id) {
-        lastVisibleMessageDocRef.current = null;
+        lastVisibleMessageDocRef.current = {};
       }
 
       selectedConversationRef.current = selectedConversation;
 
-      const lastVisible = lastVisibleMessageDocRef.current || {};
       const messagesQuery = new FirestoreQueries.MessagesQuery(
         selectedConversation.conversation.roomId,
         messageListInstance.getTake(),
-        lastVisible
+        lastVisibleMessageDocRef.current
       ).getQuery();
 
       getDocs(messagesQuery)
@@ -194,11 +193,10 @@ const Chat: FC = () => {
       data.page = data.page || conversationListInstance.getPage();
       const page = data.page!;
 
-      const lastVisible = lastVisibleConversationDocRef.current ? lastVisibleConversationDocRef.current : {};
       const paginatedConversationListQuery = new FirestoreQueries.PaginatedConversationListQuery(
         decodedToken.id,
         conversationListInstance.getTake(),
-        lastVisible
+        lastVisibleConversationDocRef.current
       ).getQuery();
       const conversationListQuery = new FirestoreQueries.ConversationListQuery(decodedToken.id).getQuery();
 
