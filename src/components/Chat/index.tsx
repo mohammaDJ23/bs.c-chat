@@ -277,6 +277,25 @@ const Chat: FC = () => {
   }, [isAllConversationApiProcessing, conversationListInstance, getConversationList]);
 
   useEffect(() => {
+    const el = document.getElementById('chat__message-list-spinner');
+    if (el) {
+      let observer = new IntersectionObserver(
+        preventRunAt(function (entries: IntersectionObserverEntry[]) {
+          const [entry] = entries;
+          if (entry.isIntersecting) {
+          }
+        }, 1),
+        { threshold: 0.2 }
+      );
+      observer.observe(el);
+      return () => {
+        observer.unobserve(el);
+        observer.disconnect();
+      };
+    }
+  }, [messageListInstance]);
+
+  useEffect(() => {
     const conversationListForSnapshotQuery = new FirestoreQueries.ConversationListForSnapshotQuery(
       decodedToken.id
     ).getQuery();

@@ -282,6 +282,19 @@ const MessagesContent: FC = () => {
                   component="div"
                   sx={{ width: '100%', padding: '10px', overflowY: 'auto', overflowX: 'hidden' }}
                 >
+                  <Box
+                    id="chat__message-list-spinner"
+                    component={'div'}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                      padding: '16px',
+                    }}
+                  >
+                    <CircularProgress size={30} />
+                  </Box>
                   <Box sx={{ width: '100%', height: '100%' }}>
                     <Box
                       sx={{
