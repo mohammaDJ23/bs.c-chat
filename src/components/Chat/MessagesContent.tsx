@@ -8,7 +8,7 @@ import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { ConversationObj, getConversationDate, MessageList, MessageObj } from '../../lib';
+import { ConversationObj, getConversationDate, getUserStatusDate, MessageList, MessageObj } from '../../lib';
 import { useSnackbar } from 'notistack';
 import { AllConversationsApi, MessagesApi } from '../../apis';
 
@@ -246,7 +246,7 @@ const MessagesContent: FC = () => {
                   if (userLastConnection) {
                     return (
                       <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
-                        {getConversationDate(userLastConnection)}
+                        {getUserStatusDate(userLastConnection)}
                       </Typography>
                     );
                   } else if (userLastConnection === null) {

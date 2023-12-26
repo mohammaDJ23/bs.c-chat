@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-export function getConversationDate(date: Date | number) {
+export function getUserStatusDate(date: Date | number) {
   const now = moment();
   const startOfDay = now.startOf('day').toDate();
   const endOfDay = now.endOf('day').toDate();
@@ -14,6 +14,6 @@ export function getConversationDate(date: Date | number) {
   } else if (messageDate >= startOfWeek && messageDate <= endOfWeek) {
     return moment(messageDate).subtract(1, 'days').format('dddd LT');
   } else {
-    return moment(messageDate).format('ll');
+    return moment(messageDate).format('llll');
   }
 }

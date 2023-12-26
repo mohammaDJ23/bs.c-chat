@@ -21,6 +21,7 @@ import {
   UserListFilters,
   UserObj,
   debounce,
+  getConversationDate,
 } from '../../lib';
 import { AllConversationsApi, AllOwnersApi, AllUsersApi, MessagesApi, StartConversationApi } from '../../apis';
 
@@ -223,7 +224,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                           />
                         </Box>
                         {/* @ts-ignore */}
-                        {item.conversation.updatedAt.seconds && (
+                        {item.conversation.lastMessage && (
                           <ListItemText
                             secondaryTypographyProps={{
                               fontSize: '10px',
@@ -231,7 +232,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                             }}
                             sx={{ flexGrow: '0', flexShrink: '0' }}
                             // @ts-ignore
-                            secondary={moment(item.conversation.updatedAt.seconds * 1000).format('L')}
+                            secondary={getConversationDate(item.conversation.lastMessage.updatedAt.seconds * 1000)}
                           />
                         )}
                       </Box>
@@ -246,7 +247,13 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                             textOverflow: 'ellipsis',
                             width: '250px',
                           }}
-                          secondary={item.conversation.lastMessage ? item.conversation.lastMessage.text : 'No mesage'}
+                          secondary={
+                            item.conversation.lastMessage
+                              ? auth.isUserEqualToCurrentUser(item.conversation.lastMessage.userId)
+                                ? `You: ${item.conversation.lastMessage.text}`
+                                : item.conversation.lastMessage.text
+                              : 'No mesage'
+                          }
                         />
                       </Box>
                     </Box>
