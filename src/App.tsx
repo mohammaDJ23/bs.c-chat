@@ -1,20 +1,39 @@
+import 'reflect-metadata';
+import './assets/styles/index.css';
 import { FC } from 'react';
-import { Pathes, UserRoles, getTokenInfo, isContainerApp, isUserAuthenticated } from './lib';
+import { Pathes, isContainerApp } from './lib';
 import { Navigate } from 'react-router-dom';
-import OwnerChat from './components/OwnerChat';
-import UserChat from './components/UserChat';
+import { createBrowserHistory } from 'history';
+import { SnackbarProvider } from 'notistack';
+import Chat from './components/Chat';
+import { useAuth } from './hooks';
+import UserServiceChatSocketProvider from './lib/providers/userServiceChatSocketProvider';
+import UserServiceConnectionSocketProvider from './lib/providers/userServiceConnectionSocketProvider';
+
+export const history = createBrowserHistory();
 
 const App: FC = () => {
+  const auth = useAuth();
+
   if (isContainerApp()) {
-    const isUserLoggedIn = isUserAuthenticated();
+    const isUserLoggedIn = auth.isUserAuthenticated();
     if (!isUserLoggedIn) {
       return <Navigate to={Pathes.LOGIN} />;
     }
-    const userInfo = getTokenInfo()!;
-    if (userInfo.role === UserRoles.OWNER) {
-      return <OwnerChat />;
-    }
-    return <UserChat />;
+    return (
+      <SnackbarProvider
+        dense
+        maxSnack={Infinity}
+        anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
+        style={{ maxWidth: '300px', wordBreak: 'break-word', overflow: 'hidden' }}
+      >
+        <UserServiceConnectionSocketProvider>
+          <UserServiceChatSocketProvider>
+            <Chat />
+          </UserServiceChatSocketProvider>
+        </UserServiceConnectionSocketProvider>
+      </SnackbarProvider>
+    );
   }
   return <div>Runs the app in the container</div>;
 };
