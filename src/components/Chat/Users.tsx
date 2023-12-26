@@ -132,22 +132,13 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   );
 
   return (
-    <UsersWrapper
-      sx={{
-        width: '100%',
-        borderRight: '1px solid #e0e0e0',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        wordBreak: 'break-word',
-        position: 'relative',
-      }}
-    >
+    <>
       {isInitialMessagesApiProcessing && (
         <Box
           sx={{
             opacity: 0.5,
             backgroundColor: '#f0f0f0',
-            width: '100%',
+            width: '280px',
             height: '100%',
             position: 'absolute',
             zIndex: 10,
@@ -156,176 +147,187 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           }}
         ></Box>
       )}
-      {isInitialAllConversationApiProcessing ? (
-        <Box
-          component={'div'}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            height: '100%',
-          }}
-        >
-          <CircularProgress size={30} />
-        </Box>
-      ) : (
-        <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
-          {conversationList.length > 0 ? (
-            <ListWrapper disablePadding>
-              {conversationList.map((item) => (
-                <ListItemButton
-                  selected={selectors.conversations.selectedUser?.user?.id === item.user.id}
-                  key={item.conversation.id}
-                  sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}
-                  onClick={() => onConversationClick(item)}
-                >
-                  <ListItem disablePadding>
-                    <Box sx={{ width: '100%', height: '100%' }}>
-                      <Box
-                        component="div"
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          flexWrap: 'nowrap',
-                          width: '100%',
-                        }}
-                      >
+      <UsersWrapper
+        sx={{
+          width: '100%',
+          borderRight: '1px solid #e0e0e0',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          wordBreak: 'break-word',
+          position: 'relative',
+        }}
+      >
+        {isInitialAllConversationApiProcessing ? (
+          <Box
+            component={'div'}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+            }}
+          >
+            <CircularProgress size={30} />
+          </Box>
+        ) : (
+          <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+            {conversationList.length > 0 ? (
+              <ListWrapper disablePadding>
+                {conversationList.map((item) => (
+                  <ListItemButton
+                    selected={selectors.conversations.selectedUser?.user?.id === item.user.id}
+                    key={item.conversation.id}
+                    sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}
+                    onClick={() => onConversationClick(item)}
+                  >
+                    <ListItem disablePadding>
+                      <Box sx={{ width: '100%', height: '100%' }}>
                         <Box
                           component="div"
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px',
+                            justifyContent: 'space-between',
                             flexWrap: 'nowrap',
+                            width: '100%',
                           }}
                         >
-                          {isCurrentOwner && (
+                          <Box
+                            component="div"
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              flexWrap: 'nowrap',
+                            }}
+                          >
+                            {isCurrentOwner && (
+                              <ListItemText
+                                sx={{
+                                  flex: 'unset',
+                                  width: '8px',
+                                  height: '8px',
+                                  backgroundColor: auth.getUserStatusColor(item.user.id),
+                                  borderRadius: '50%',
+                                }}
+                                secondary={<Box component="span"></Box>}
+                              />
+                            )}
                             <ListItemText
-                              sx={{
-                                flex: 'unset',
-                                width: '8px',
-                                height: '8px',
-                                backgroundColor: auth.getUserStatusColor(item.user.id),
-                                borderRadius: '50%',
+                              primaryTypographyProps={{
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                textOverflow: 'ellipsis',
+                                width: '165px',
                               }}
-                              secondary={<Box component="span"></Box>}
+                              primary={`${item.user.firstName} ${item.user.lastName}`}
+                            />
+                          </Box>
+                          {/* @ts-ignore */}
+                          {item.conversation.lastMessage && (
+                            <ListItemText
+                              secondaryTypographyProps={{
+                                fontSize: '10px',
+                                fontWeight: '500',
+                              }}
+                              sx={{ flexGrow: '0', flexShrink: '0' }}
+                              // @ts-ignore
+                              secondary={getConversationDate(item.conversation.lastMessage.updatedAt.seconds * 1000)}
                             />
                           )}
+                        </Box>
+
+                        <Box component="div">
                           <ListItemText
-                            primaryTypographyProps={{
-                              fontSize: '14px',
-                              fontWeight: 'bold',
+                            secondaryTypographyProps={{
+                              fontSize: '11px',
+                              fontWeight: '500',
                               overflow: 'hidden',
                               whiteSpace: 'nowrap',
                               textOverflow: 'ellipsis',
-                              width: '165px',
+                              width: '250px',
                             }}
-                            primary={`${item.user.firstName} ${item.user.lastName}`}
+                            secondary={
+                              item.conversation.lastMessage
+                                ? auth.isUserEqualToCurrentUser(item.conversation.lastMessage.userId)
+                                  ? `You: ${item.conversation.lastMessage.text}`
+                                  : item.conversation.lastMessage.text
+                                : 'No mesage'
+                            }
                           />
                         </Box>
-                        {/* @ts-ignore */}
-                        {item.conversation.lastMessage && (
-                          <ListItemText
-                            secondaryTypographyProps={{
-                              fontSize: '10px',
-                              fontWeight: '500',
-                            }}
-                            sx={{ flexGrow: '0', flexShrink: '0' }}
-                            // @ts-ignore
-                            secondary={getConversationDate(item.conversation.lastMessage.updatedAt.seconds * 1000)}
-                          />
-                        )}
                       </Box>
-
-                      <Box component="div">
-                        <ListItemText
-                          secondaryTypographyProps={{
-                            fontSize: '11px',
-                            fontWeight: '500',
-                            overflow: 'hidden',
-                            whiteSpace: 'nowrap',
-                            textOverflow: 'ellipsis',
-                            width: '250px',
-                          }}
-                          secondary={
-                            item.conversation.lastMessage
-                              ? auth.isUserEqualToCurrentUser(item.conversation.lastMessage.userId)
-                                ? `You: ${item.conversation.lastMessage.text}`
-                                : item.conversation.lastMessage.text
-                              : 'No mesage'
-                          }
-                        />
-                      </Box>
-                    </Box>
-                  </ListItem>
-                </ListItemButton>
-              ))}
-              {!conversationListInstance.isListEnd() && (
-                <Box
-                  id="chat__conversation-list-spinner"
-                  component={'div'}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '100%',
-                    height: '100%',
-                    padding: '16px',
-                  }}
-                >
-                  <CircularProgress size={30} />
-                </Box>
-              )}
-            </ListWrapper>
-          ) : (
-            <EmptyUsers />
-          )}
-          <Box sx={{ position: 'fixed', zIndex: 1, bottom: '0', left: '0', width: '280px', height: '50px' }}>
-            <Box sx={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0' }}>
-              <Autocomplete
-                freeSolo
-                disabled={isStartConversationApiProcessing}
-                open={isSearchUsersAutoCompleteOpen}
-                options={userListInstance.getList()}
-                // @ts-ignore
-                onChange={(_, value: UserObj | null) => onAutoCompleteChange(value)}
-                filterOptions={(options) => options}
-                // @ts-ignore
-                getOptionLabel={(option) => {
-                  if (typeof option === 'object' && option.firstName && option.lastName) {
-                    return `${option.firstName} ${option.lastName}`;
-                  }
-                  return option;
-                }}
-                clearIcon={false}
-                value={userListFiltersForm.q}
-                inputValue={userListFiltersForm.q}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    sx={{ padding: '8px 16px' }}
-                    disabled={isStartConversationApiProcessing}
-                    onFocus={() => {
-                      userListInstance.updateList([]);
-                      setIsSearchUsersAutoCompleteOpen(false);
+                    </ListItem>
+                  </ListItemButton>
+                ))}
+                {!conversationListInstance.isListEnd() && (
+                  <Box
+                    id="chat__conversation-list-spinner"
+                    component={'div'}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                      height: '100%',
+                      padding: '16px',
                     }}
-                    variant="standard"
-                    value={userListFiltersForm.q}
-                    placeholder={isCurrentOwner ? 'Search the users here!' : 'Search the owners here!'}
-                    onChange={onSearchUsersChange}
-                  />
+                  >
+                    <CircularProgress size={30} />
+                  </Box>
                 )}
-              />
-              {isStartConversationApiProcessing && (
-                <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
-              )}
+              </ListWrapper>
+            ) : (
+              <EmptyUsers />
+            )}
+            <Box sx={{ position: 'fixed', zIndex: 1, bottom: '0', left: '0', width: '280px', height: '50px' }}>
+              <Box sx={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0' }}>
+                <Autocomplete
+                  freeSolo
+                  disabled={isStartConversationApiProcessing}
+                  open={isSearchUsersAutoCompleteOpen}
+                  options={userListInstance.getList()}
+                  // @ts-ignore
+                  onChange={(_, value: UserObj | null) => onAutoCompleteChange(value)}
+                  filterOptions={(options) => options}
+                  // @ts-ignore
+                  getOptionLabel={(option) => {
+                    if (typeof option === 'object' && option.firstName && option.lastName) {
+                      return `${option.firstName} ${option.lastName}`;
+                    }
+                    return option;
+                  }}
+                  clearIcon={false}
+                  value={userListFiltersForm.q}
+                  inputValue={userListFiltersForm.q}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      sx={{ padding: '8px 16px' }}
+                      disabled={isStartConversationApiProcessing}
+                      onFocus={() => {
+                        userListInstance.updateList([]);
+                        setIsSearchUsersAutoCompleteOpen(false);
+                      }}
+                      variant="standard"
+                      value={userListFiltersForm.q}
+                      placeholder={isCurrentOwner ? 'Search the users here!' : 'Search the owners here!'}
+                      onChange={onSearchUsersChange}
+                    />
+                  )}
+                />
+                {isStartConversationApiProcessing && (
+                  <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
+                )}
+              </Box>
             </Box>
           </Box>
-        </Box>
-      )}
-    </UsersWrapper>
+        )}
+      </UsersWrapper>
+    </>
   );
 };
 
