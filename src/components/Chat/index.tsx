@@ -13,6 +13,8 @@ import {
 } from '../../apis';
 import { useAction, useAuth, useForm, useInfinityList, useRequest, useSelector } from '../../hooks';
 import {
+  AggregateField,
+  AggregateQuerySnapshot,
   DocumentData,
   QueryDocumentSnapshot,
   QuerySnapshot,
@@ -55,7 +57,7 @@ const Chat: FC = () => {
   const selectors = useSelector();
   const conversationListInstance = useInfinityList(ConversationList);
   const selectedConversationRef = useRef<ConversationObj | null>(null);
-  const lastMessage = useRef<MessageObj | null>(null);
+  const lastVisibleMessageRef = useRef<MessageObj | null>(null);
   const lastVisibleConversationDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | object>({});
   const lastVisibleMessageDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | object>({});
   const actions = useAction();
@@ -68,58 +70,142 @@ const Chat: FC = () => {
   const snackbar = useSnackbar();
   const messageList = messageListInstance.getList();
   const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
+  const isMessagesApiProcessing = request.isApiProcessing(MessagesApi);
   const connectionSocket = selectors.userServiceSocket.connection;
   const chatSocket = selectors.userServiceSocket.chat;
   const usersStatus = selectors.specificDetails.usersStatus;
   const selectedConversation = selectors.conversations.selectedUser;
+  const isMessagesSpinnerElementActive = selectors.conversations.isMessagesSpinnerElementActive;
 
-  const getMessages = useCallback(() => {
+  const getMessages = useCallback(async (arg: Partial<RootApi> = {}) => {
+    const isInitialApi = arg.isInitialApi;
+
+    if (isInitialApi) actions.initialProcessingApiLoading(MessagesApi.name);
+    else actions.processingApiLoading(MessagesApi.name);
+
+    const conversation = selectedConversationRef.current!;
+    const paginatedMessageListQuery = new FirestoreQueries.PaginatedMessageListQuery(
+      conversation.conversation.roomId,
+      messageListInstance.getTake(),
+      lastVisibleMessageDocRef.current
+    ).getQuery();
+    const messageListQuery = new FirestoreQueries.MessageListQuery(conversation.conversation.roomId).getQuery();
+    return Promise.all([getDocs(paginatedMessageListQuery), getCountFromServer(messageListQuery)])
+      .then((responses) => {
+        if (isInitialApi) actions.initialProcessingApiSuccess(MessagesApi.name);
+        else actions.processingApiSuccess(MessagesApi.name);
+
+        return responses;
+      })
+      .catch((error: Error) => {
+        if (isInitialApi) actions.initialProcessingApiError(MessagesApi.name);
+        else actions.processingApiError(MessagesApi.name);
+
+        throw error;
+      });
+  }, []);
+
+  const updateLastVisibleMessageDoc = useCallback((snapshot: QuerySnapshot<DocumentData, DocumentData>) => {
+    if (snapshot.size) {
+      lastVisibleMessageDocRef.current = snapshot.docs[snapshot.docs.length - 1];
+    }
+  }, []);
+
+  const getMessagesCount = useCallback(
+    (snapshot: AggregateQuerySnapshot<{ count: AggregateField<number> }, DocumentData, DocumentData>) => {
+      return snapshot.data().count;
+    },
+    []
+  );
+
+  const getMessagesData = useCallback((snapshot: QuerySnapshot<DocumentData, DocumentData>) => {
+    return snapshot.docs.map((doc) => doc.data()).reverse() as MessageObj[];
+  }, []);
+
+  const getMessageWrapperElement = useCallback(() => {
+    return document.getElementById('chat__messages-wrapper');
+  }, []);
+
+  useEffect(() => {
     if (selectedConversation) {
-      actions.processingApiLoading(MessagesApi.name);
-
       if (selectedConversationRef.current && selectedConversationRef.current.user.id !== selectedConversation.user.id) {
         lastVisibleMessageDocRef.current = {};
       }
 
       selectedConversationRef.current = selectedConversation;
 
-      const messagesQuery = new FirestoreQueries.MessagesQuery(
-        selectedConversation.conversation.roomId,
-        messageListInstance.getTake(),
-        lastVisibleMessageDocRef.current
-      ).getQuery();
+      getMessages({ isInitialApi: true })
+        .then(([paginatedMessageListSnapshot, messageListSnapshot]) => {
+          updateLastVisibleMessageDoc(paginatedMessageListSnapshot);
+          messageListInstance.updateList(getMessagesData(paginatedMessageListSnapshot));
+          messageListInstance.updateTotal(getMessagesCount(messageListSnapshot));
+          messageListInstance.updatePage(1);
 
-      getDocs(messagesQuery)
-        .then((snapshot) => {
-          actions.processingApiSuccess(MessagesApi.name);
-
-          if (snapshot.size) {
-            lastVisibleMessageDocRef.current = snapshot.docs[snapshot.docs.length - 1];
+          {
+            const timer = setTimeout(() => {
+              const messagesWrapperElement = getMessageWrapperElement();
+              if (messagesWrapperElement) {
+                messagesWrapperElement.scrollTo({ top: messagesWrapperElement.scrollHeight });
+              }
+              clearTimeout(timer);
+            });
           }
-          const docs = snapshot.docs.map((doc) => doc.data()) as MessageObj[];
-          messageListInstance.updateList(docs);
+
+          {
+            const timer = setTimeout(() => {
+              actions.showMessagesSpinnerElement();
+              clearTimeout(timer);
+            }, 500);
+          }
         })
-        .catch((error: Error) => {
-          actions.processingApiError(MessagesApi.name);
+        .catch((error) => {
           snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
         });
     }
-  }, [selectedConversation]);
-
-  useEffect(() => {
-    getMessages();
   }, [selectedConversation, getMessages]);
 
   useEffect(() => {
+    const el = document.getElementById('chat__message-list-spinner');
+    if (el) {
+      let observer = new IntersectionObserver(
+        preventRunAt(function (entries: IntersectionObserverEntry[]) {
+          const [entry] = entries;
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          const messagesWrapperElement = getMessageWrapperElement();
+          if (messagesWrapperElement) {
+            const height = window.getComputedStyle(el).getPropertyValue('height');
+            const paddingBottom = window.getComputedStyle(el).getPropertyValue('padding-bottom');
+            const scrollHeight = Number.parseInt(height) + Number.parseInt(paddingBottom);
+            messagesWrapperElement.scrollTo({ behavior: 'smooth', top: scrollHeight });
+          }
+
+          if (!isMessagesApiProcessing && !messageListInstance.isListEnd()) {
+            getMessages().then(([paginatedMessageListSnapshot, messageListSnapshot]) => {
+              let page = messageListInstance.getPage();
+              page++;
+              updateLastVisibleMessageDoc(paginatedMessageListSnapshot);
+              messageListInstance.unshiftList(getMessagesData(paginatedMessageListSnapshot));
+              messageListInstance.updateTotal(getMessagesCount(messageListSnapshot));
+              messageListInstance.updatePage(page);
+            });
+          }
+        }, 1),
+        { threshold: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] }
+      );
+      observer.observe(el);
+      return () => {
+        observer.unobserve(el);
+        observer.disconnect();
+      };
+    }
+  }, [isMessagesSpinnerElementActive, messageListInstance, isMessagesApiProcessing, getMessages]);
+
+  useEffect(() => {
     if (messageList.length) {
-      lastMessage.current = messageList[messageList.length - 1];
-      const messagesWrapperEl = document.getElementById('chat__messages-wrapper');
-      if (messagesWrapperEl) {
-        messagesWrapperEl.scrollTo({
-          behavior: 'smooth',
-          top: messagesWrapperEl.scrollHeight,
-        });
-      }
+      lastVisibleMessageRef.current = messageList[messageList.length - 1];
     }
   }, [messageList]);
 
@@ -277,25 +363,6 @@ const Chat: FC = () => {
   }, [isAllConversationApiProcessing, conversationListInstance, getConversationList]);
 
   useEffect(() => {
-    const el = document.getElementById('chat__message-list-spinner');
-    if (el) {
-      let observer = new IntersectionObserver(
-        preventRunAt(function (entries: IntersectionObserverEntry[]) {
-          const [entry] = entries;
-          if (entry.isIntersecting) {
-          }
-        }, 1),
-        { threshold: 0.2 }
-      );
-      observer.observe(el);
-      return () => {
-        observer.unobserve(el);
-        observer.disconnect();
-      };
-    }
-  }, [messageListInstance]);
-
-  useEffect(() => {
     const conversationListForSnapshotQuery = new FirestoreQueries.ConversationListForSnapshotQuery(
       decodedToken.id
     ).getQuery();
@@ -319,13 +386,22 @@ const Chat: FC = () => {
               if (
                 selectedConversationRef.current &&
                 selectedConversationRef.current.conversation.roomId === newConversation.conversation.roomId &&
-                (!lastMessage.current ||
-                  (lastMessage.current &&
+                (!lastVisibleMessageRef.current ||
+                  (lastVisibleMessageRef.current &&
                     data.lastMessage &&
                     // @ts-ignore
-                    data.lastMessage.createdAt.seconds > lastMessage.current.createdAt.seconds))
+                    data.lastMessage.createdAt.seconds > lastVisibleMessageRef.current.createdAt.seconds))
               ) {
                 messageListInstance.updateAndConcatList([data.lastMessage!]);
+                {
+                  const timer = setTimeout(() => {
+                    const messagesWrapperElement = getMessageWrapperElement();
+                    if (messagesWrapperElement) {
+                      messagesWrapperElement.scrollTo({ behavior: 'smooth', top: messagesWrapperElement.scrollHeight });
+                    }
+                    clearTimeout(timer);
+                  });
+                }
               }
             }
           }
@@ -361,7 +437,7 @@ const Chat: FC = () => {
     return () => {
       unsubscribe();
     };
-  }, [conversationListInstance]);
+  }, [conversationListInstance, messageListInstance]);
 
   return (
     <Box

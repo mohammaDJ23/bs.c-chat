@@ -64,7 +64,7 @@ export namespace FirestoreQueries {
     }
   }
 
-  export class MessagesQuery implements FirestoreQuery {
+  export class PaginatedMessageListQuery implements FirestoreQuery {
     private readonly q: Query<DocumentData, DocumentData>;
 
     constructor(private readonly roomId: string, private readonly take: number, private readonly lastDoc: unknown) {
@@ -74,6 +74,18 @@ export namespace FirestoreQueries {
         limit(this.take),
         startAfter(this.lastDoc)
       );
+    }
+
+    getQuery() {
+      return this.q;
+    }
+  }
+
+  export class MessageListQuery implements FirestoreQuery {
+    private readonly q: Query<DocumentData, DocumentData>;
+
+    constructor(private readonly roomId: string) {
+      this.q = query(collection(db, `conversation/${this.roomId}/messages`), orderBy('createdAt', 'desc'));
     }
 
     getQuery() {

@@ -61,14 +61,14 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const userListFiltersForm = userListFiltersFormInstance.getForm();
   const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
-  const isMessagesApiProcessing = request.isApiProcessing(MessagesApi);
+  const isInitialMessagesApiProcessing = request.isInitialApiProcessing(MessagesApi);
   const halfSecDebounce = useRef(debounce());
   const chatSocket = selectors.userServiceSocket.chat;
   const selectedConversation = selectors.conversations.selectedUser;
 
   const onSearchUsersChange = useCallback(
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      if (isMessagesApiProcessing) {
+      if (isInitialMessagesApiProcessing) {
         return;
       }
       const value = event.target.value;
@@ -91,12 +91,12 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         });
       });
     },
-    [isMessagesApiProcessing]
+    [isInitialMessagesApiProcessing]
   );
 
   const onAutoCompleteChange = useCallback(
     (value: UserObj | null) => {
-      if (isMessagesApiProcessing) {
+      if (isInitialMessagesApiProcessing) {
         return;
       }
       userListInstance.updateList([]);
@@ -108,17 +108,18 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         chatSocket.emit('start-conversation', { payload: value });
       }
     },
-    [chatSocket, isMessagesApiProcessing]
+    [chatSocket, isInitialMessagesApiProcessing]
   );
 
   const onConversationClick = useCallback(
     (item: ConversationObj) => {
-      if (isMessagesApiProcessing) {
+      if (isInitialMessagesApiProcessing) {
         return;
       }
 
       if (!selectedConversation || (selectedConversation && selectedConversation.user.id !== item.user.id)) {
         actions.selectUserForStartConversation(item);
+        actions.hideMessagesSpinnerElement();
         messageListInstance.resetList();
       }
 
@@ -126,7 +127,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         onUserClick.call({});
       }
     },
-    [selectedConversation, isMessagesApiProcessing]
+    [selectedConversation, isInitialMessagesApiProcessing]
   );
 
   return (
@@ -140,7 +141,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         position: 'relative',
       }}
     >
-      {isMessagesApiProcessing && (
+      {isInitialMessagesApiProcessing && (
         <Box
           sx={{
             opacity: 0.5,

@@ -30,10 +30,14 @@ export function useInfinityList<
         actions.updateListInfinityList(listInstance, newList);
       }
 
-      function unshiftList(item: Item): void {
+      function unshiftList(item: Item[] | Item): void {
         const instance = getInstance();
         const newList = instance.list;
-        newList.unshift(item);
+        if (Array.isArray(item)) {
+          newList.unshift(...item);
+        } else {
+          newList.unshift(item);
+        }
         actions.updateListInfinityList(listInstance, newList);
       }
 

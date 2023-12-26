@@ -79,7 +79,7 @@ const MessagesContent: FC = () => {
   const auth = useAuth();
   const snackbar = useSnackbar();
   const request = useRequest();
-  const isMessagesApiProcessing = request.isApiProcessing(MessagesApi);
+  const isInitialMessagesApiProcessing = request.isInitialApiProcessing(MessagesApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
   const messageList = messageListInstance.getList();
   const isCurrentOwner = auth.isCurrentOwner();
@@ -260,7 +260,7 @@ const MessagesContent: FC = () => {
             </Box>
           </Box>
 
-          {isMessagesApiProcessing ? (
+          {isInitialMessagesApiProcessing ? (
             <MessagesSpinnerWrapper
               sx={{
                 width: '100%',
@@ -282,19 +282,21 @@ const MessagesContent: FC = () => {
                   component="div"
                   sx={{ width: '100%', padding: '10px', overflowY: 'auto', overflowX: 'hidden' }}
                 >
-                  <Box
-                    id="chat__message-list-spinner"
-                    component={'div'}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '100%',
-                      padding: '16px',
-                    }}
-                  >
-                    <CircularProgress size={30} />
-                  </Box>
+                  {!messageListInstance.isListEnd() && selectors.conversations.isMessagesSpinnerElementActive && (
+                    <Box
+                      id="chat__message-list-spinner"
+                      component={'div'}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                        padding: '16px',
+                      }}
+                    >
+                      <CircularProgress size={30} />
+                    </Box>
+                  )}
                   <Box sx={{ width: '100%', height: '100%' }}>
                     <Box
                       sx={{

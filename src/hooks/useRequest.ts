@@ -124,10 +124,7 @@ export function useRequest() {
       const isInitialApiLoaded = isInitialProcessingApiLoaded(requestInstance);
       const isInitialApiSuccessed = isInitialProcessingApiSuccessed(requestInstance);
       const isInitialApiFailed = isInitialProcessingApiFailed(requestInstance);
-      return (
-        (isInitialApiLoaded && !isInitialApiSuccessed && !isInitialApiFailed) ||
-        (!isInitialApiLoaded && !isInitialApiSuccessed && !isInitialApiFailed)
-      );
+      return isInitialApiLoaded && !isInitialApiSuccessed && !isInitialApiFailed;
     },
     [isInitialProcessingApiLoaded, isInitialProcessingApiSuccessed, isInitialProcessingApiFailed]
   );
