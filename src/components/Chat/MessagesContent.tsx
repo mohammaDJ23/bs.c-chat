@@ -280,7 +280,7 @@ const MessagesContent: FC = () => {
                 <MessagesWrapper
                   id="chat__messages-wrapper"
                   component="div"
-                  sx={{ width: '100%', padding: '10px', overflowY: 'auto', overflowX: 'hidden' }}
+                  sx={{ width: '100%', padding: '5px', overflowY: 'auto', overflowX: 'hidden' }}
                 >
                   {!messageListInstance.isListEnd() && selectors.conversations.isMessagesSpinnerElementActive && (
                     <Box
