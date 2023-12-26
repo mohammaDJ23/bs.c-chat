@@ -241,7 +241,11 @@ const Chat: FC = () => {
 
       chatSocket.on('success-start-conversation', (data: ConversationObj) => {
         actions.processingApiSuccess(StartConversationApi.name);
-        connectionSocket.emit('users-status', { payload: [data.user.id] });
+
+        if (isCurrentOwner) {
+          connectionSocket.emit('users-status', { payload: [data.user.id] });
+        }
+
         userListFiltersFormInstance.onChange('q', '');
         const conversationListAsObject = conversationListInstance.getListAsObject();
 
@@ -420,7 +424,9 @@ const Chat: FC = () => {
               const [list] = response.data;
               const [findedUser] = list;
               if (findedUser && connectionSocket) {
-                connectionSocket.emit('users-status', { payload: [conversationTargetId] });
+                if (isCurrentOwner) {
+                  connectionSocket.emit('users-status', { payload: [conversationTargetId] });
+                }
                 const conversation = new Conversation(findedUser, data);
                 conversationListInstance.unshiftList(conversation);
                 conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
@@ -437,7 +443,7 @@ const Chat: FC = () => {
     return () => {
       unsubscribe();
     };
-  }, [conversationListInstance, messageListInstance]);
+  }, [conversationListInstance, messageListInstance, connectionSocket]);
 
   return (
     <Box

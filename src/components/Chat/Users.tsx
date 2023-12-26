@@ -201,16 +201,18 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                             flexWrap: 'nowrap',
                           }}
                         >
-                          <ListItemText
-                            sx={{
-                              flex: 'unset',
-                              width: '8px',
-                              height: '8px',
-                              backgroundColor: auth.getUserStatusColor(item.user.id),
-                              borderRadius: '50%',
-                            }}
-                            secondary={<Box component="span"></Box>}
-                          />
+                          {isCurrentOwner && (
+                            <ListItemText
+                              sx={{
+                                flex: 'unset',
+                                width: '8px',
+                                height: '8px',
+                                backgroundColor: auth.getUserStatusColor(item.user.id),
+                                borderRadius: '50%',
+                              }}
+                              secondary={<Box component="span"></Box>}
+                            />
+                          )}
                           <ListItemText
                             primaryTypographyProps={{
                               fontSize: '14px',
