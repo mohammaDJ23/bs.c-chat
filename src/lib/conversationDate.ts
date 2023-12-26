@@ -1,20 +1,19 @@
 import moment from 'moment';
 
 export function getConversationDate(date: Date | number) {
-  const now = new Date().getTime();
-  const messageDate = new Date(date).getTime();
-  const calculatedTime = now - messageDate;
+  const now = moment();
+  const startOfDay = now.startOf('day').toDate();
+  const endOfDay = now.endOf('day').toDate();
+  const startOfWeek = now.startOf('week').toDate();
+  const endOfWeek = now.endOf('week').toDate();
 
-  // one day
-  if (calculatedTime < 86400000) {
+  const messageDate = moment(date).toDate();
+
+  if (messageDate >= startOfDay && messageDate <= endOfDay) {
     return moment(messageDate).format('LT');
-
-    // two days
-  } else if (calculatedTime < 172800000) {
-    return moment(messageDate).subtract(1, 'days').calendar();
-
-    // one week or more
-  } else if (calculatedTime < 604800000 || calculatedTime >= 604800000) {
-    return moment(messageDate).format('l');
+  } else if (messageDate >= startOfWeek && messageDate <= endOfWeek) {
+    return moment(messageDate).subtract(1, 'days').format('dddd LT');
+  } else {
+    return moment(messageDate).format('llll');
   }
 }

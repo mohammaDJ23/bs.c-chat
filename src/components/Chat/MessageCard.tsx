@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useAuth } from '../../hooks';
-import { MessageObj, getMessageDate } from '../../lib';
+import { MessageObj, getConversationDate } from '../../lib';
 
 interface MessageCardImportation {
   message: MessageObj;
@@ -47,7 +47,7 @@ const MessageCard: FC<MessageCardImportation> = ({ message }) => {
             component="p"
           >
             {/* @ts-ignore */}
-            {getMessageDate(message.createdAt.seconds * 1000)}
+            {getConversationDate(message.createdAt.seconds * 1000)}
           </Typography>
         </Box>
       </Box>
