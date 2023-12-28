@@ -8,7 +8,7 @@ import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { ConversationObj, getConversationDate, getUserStatusDate, MessageList, MessageObj } from '../../lib';
+import { ConversationObj, getUserStatusDate, MessageList } from '../../lib';
 import { useSnackbar } from 'notistack';
 import { AllConversationsApi, MessagesApi } from '../../apis';
 
@@ -87,55 +87,6 @@ const MessagesContent: FC = () => {
   const chatSocket = selectors.userServiceSocket.chat;
   const selectedUser = selectors.conversations.selectedUser;
 
-  const chunkedMessageIndexesByTime = useCallback((messages: MessageObj[], time: number = 60000) => {
-    const indexes: number[][] = [];
-    let tempIndexes: number[] = [];
-    const now = new Date();
-
-    for (let i = 0; i < messages.length; i++) {
-      secondLoop: for (let j = i + 1; j < messages.length && messages[j]; j++) {
-        if (
-          messages[i].userId === messages[j].userId &&
-          // @ts-ignore
-          now.getTime() - new Date(messages[i].createdAt.seconds * 1000).getTime() < time &&
-          // @ts-ignore
-          now.getTime() - new Date(messages[j].createdAt.seconds * 1000).getTime() < time
-        ) {
-          tempIndexes.push(i, j);
-          i = j;
-        } else {
-          break secondLoop;
-        }
-      }
-
-      if (tempIndexes.length) {
-        indexes.push(Array.from(new Set(tempIndexes)));
-        tempIndexes = [];
-      }
-    }
-
-    return indexes;
-  }, []);
-
-  useEffect(() => {
-    const messages: MessageObj[] = [];
-
-    const chunkedIndexes = chunkedMessageIndexesByTime(messages);
-
-    for (let indexes of chunkedIndexes) {
-      indexes = indexes.slice(0, -1);
-      for (const index of indexes) {
-        // messages[index].isDateDisabled = true;
-      }
-    }
-
-    // setting the messages
-  }, [chunkedMessageIndexesByTime]);
-
-  useEffect(() => {
-    // write the isDateDisabled for the onSnapshot fn
-  }, []);
-
   const onUserConversationNameClick = useCallback(() => {
     if (window.innerWidth < 900) {
       actions.showModal(ModalNames.CONVERSATION);
@@ -157,7 +108,9 @@ const MessagesContent: FC = () => {
 
   useEffect(() => {
     if (chatSocket) {
-      chatSocket.on('success-send-message', (data: SendMessageObj) => {});
+      chatSocket.on('success-send-message', (data: SendMessageObj) => {
+        console.log(data);
+      });
 
       chatSocket.on('fail-send-message', (error: Error) => {
         snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
@@ -340,7 +293,12 @@ const MessagesContent: FC = () => {
                       placeholder={'Type your message here'}
                       fullWidth
                       value={text}
-                      sx={{ height: '100%', width: '100%', '& fieldset': { border: 'none' }, padding: '14px' }}
+                      sx={{ height: '100%', width: '100%', '& fieldset': { border: 'none' } }}
+                      InputProps={{
+                        style: {
+                          padding: '14px',
+                        },
+                      }}
                     />
                     <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
                       <SendIcon color="primary" sx={{ cursor: 'pointer' }} />
