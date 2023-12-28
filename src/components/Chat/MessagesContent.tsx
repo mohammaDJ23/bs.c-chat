@@ -108,7 +108,9 @@ const MessagesContent: FC = () => {
 
   useEffect(() => {
     if (chatSocket) {
-      chatSocket.on('success-send-message', (data: SendMessageObj) => {});
+      chatSocket.on('success-send-message', (data: SendMessageObj) => {
+        console.log(data);
+      });
 
       chatSocket.on('fail-send-message', (error: Error) => {
         snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
