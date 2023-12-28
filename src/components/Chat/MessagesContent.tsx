@@ -340,11 +340,7 @@ const MessagesContent: FC = () => {
                       placeholder={'Type your message here'}
                       fullWidth
                       value={text}
-                      sx={{ height: '100%', width: '100%' }}
-                      variant="standard"
-                      InputProps={{
-                        disableUnderline: true,
-                      }}
+                      sx={{ height: '100%', width: '100%', '& fieldset': { border: 'none' } }}
                     />
                     <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
                       <SendIcon color="primary" sx={{ cursor: 'pointer' }} />
