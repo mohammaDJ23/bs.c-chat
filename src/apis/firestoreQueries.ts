@@ -2,6 +2,8 @@ import { DocumentData, Query, and, collection, limit, or, orderBy, query, startA
 import { db } from '../lib';
 
 export namespace FirestoreQueries {
+  const conversationCollection = process.env.FIREBASE_CONVERSATION_COLLECTION!;
+
   export interface FirestoreQuery {
     getQuery(): Query<DocumentData, DocumentData>;
   }
@@ -11,7 +13,7 @@ export namespace FirestoreQueries {
 
     constructor(private readonly userId: number, private readonly take: number, private readonly lastDoc: unknown) {
       this.q = query(
-        collection(db, 'conversation'),
+        collection(db, conversationCollection),
         and(
           where('contributors', 'array-contains', this.userId),
           or(where('creatorId', '==', this.userId), where('targetId', '==', this.userId))
@@ -32,7 +34,7 @@ export namespace FirestoreQueries {
 
     constructor(private readonly userId: number) {
       this.q = query(
-        collection(db, 'conversation'),
+        collection(db, conversationCollection),
         and(
           where('contributors', 'array-contains', this.userId),
           or(where('creatorId', '==', this.userId), where('targetId', '==', this.userId))
@@ -50,7 +52,7 @@ export namespace FirestoreQueries {
 
     constructor(private readonly userId: number) {
       this.q = query(
-        collection(db, 'conversation'),
+        collection(db, conversationCollection),
         and(
           where('contributors', 'array-contains', this.userId),
           where('lastMessage', '!=', null),
@@ -69,7 +71,7 @@ export namespace FirestoreQueries {
 
     constructor(private readonly roomId: string, private readonly take: number, private readonly lastDoc: unknown) {
       this.q = query(
-        collection(db, `conversation/${this.roomId}/messages`),
+        collection(db, `${conversationCollection}/${this.roomId}/messages`),
         orderBy('createdAt', 'desc'),
         limit(this.take),
         startAfter(this.lastDoc)
@@ -85,7 +87,7 @@ export namespace FirestoreQueries {
     private readonly q: Query<DocumentData, DocumentData>;
 
     constructor(private readonly roomId: string) {
-      this.q = query(collection(db, `conversation/${this.roomId}/messages`), orderBy('createdAt', 'desc'));
+      this.q = query(collection(db, `${conversationCollection}/${this.roomId}/messages`), orderBy('createdAt', 'desc'));
     }
 
     getQuery() {
