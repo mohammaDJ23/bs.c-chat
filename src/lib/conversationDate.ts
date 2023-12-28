@@ -12,7 +12,7 @@ export function getConversationDate(date: Date | number) {
   if (messageDate >= startOfDay && messageDate <= endOfDay) {
     return moment(messageDate).format('LT');
   } else if (messageDate >= startOfWeek && messageDate <= endOfWeek) {
-    return moment(messageDate).subtract(1, 'days').format('dddd LT');
+    return moment(messageDate).subtract(1, 'days').format('dd LT');
   } else {
     return moment(messageDate).format('ll');
   }
