@@ -240,32 +240,7 @@ const Chat: FC = () => {
       });
 
       chatSocket.on('success-start-conversation', (data: ConversationObj) => {
-        actions.processingApiSuccess(StartConversationApi.name);
-
-        if (isCurrentOwner) {
-          connectionSocket.emit('users-status', { payload: [data.user.id] });
-        }
-
         userListFiltersFormInstance.onChange('q', '');
-        const conversationListAsObject = conversationListInstance.getListAsObject();
-
-        if (!data.conversation.lastMessage) {
-          if (data.user.id in conversationListAsObject) {
-            const conversationList = conversationListInstance.getList();
-            const findedIndex = conversationList.findIndex(
-              (item) => item.conversation.roomId === data.conversation.roomId
-            );
-            if (findedIndex > -1) {
-              let [newConversation] = conversationList.splice(findedIndex, 1);
-              newConversation = data;
-              conversationList.unshift(newConversation);
-              conversationListInstance.updateList(conversationList);
-            }
-          } else {
-            conversationListInstance.unshiftList(data);
-            conversationListInstance.updateListAsObject(data, (val) => val.user.id);
-          }
-        }
       });
 
       return () => {
@@ -366,7 +341,36 @@ const Chat: FC = () => {
     }
   }, [isAllConversationApiProcessing, conversationListInstance, getConversationList]);
 
+  const insertNewConversation = useCallback(
+    (receivedConversation: ConversationDocObj) => {
+      const conversationTargetId = getConversationTargetId(receivedConversation);
+      const apiData = {
+        page: 1,
+        take: 1,
+        filters: { ids: [conversationTargetId] },
+      };
+
+      const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
+
+      request.build<[UserObj[], number]>(api).then((response): void => {
+        const [list] = response.data;
+        const [findedUser] = list;
+        if (findedUser && connectionSocket) {
+          if (isCurrentOwner) {
+            connectionSocket.emit('users-status', { payload: [conversationTargetId] });
+          }
+          const conversation = new Conversation(findedUser, receivedConversation);
+          conversationListInstance.unshiftList(conversation);
+          conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
+          actions.selectUserForStartConversation(conversation);
+        }
+      });
+    },
+    [connectionSocket, conversationListInstance]
+  );
+
   useEffect(() => {
+    // this snapshot is for when the two users have created the conversation before
     const conversationListForSnapshotQuery = new FirestoreQueries.ConversationListForSnapshotQuery(
       decodedToken.id
     ).getQuery();
@@ -374,64 +378,15 @@ const Chat: FC = () => {
       conversationListForSnapshotQuery,
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
+          actions.processingApiSuccess(StartConversationApi.name);
+
           const data = result.doc.data() as ConversationDocObj;
           const conversationListAsObject = conversationListInstance.getListAsObject();
           const conversationTargetId = getConversationTargetId(data);
 
-          // when a conversation exists in the client
-          if (conversationTargetId in conversationListAsObject) {
-            const conversationList = conversationListInstance.getList();
-            const findedIndex = conversationList.findIndex((item) => item.conversation.roomId === data.roomId);
-            if (findedIndex > -1) {
-              const [newConversation] = conversationList.splice(findedIndex, 1);
-              newConversation.conversation = data;
-              conversationList.unshift(newConversation);
-              conversationListInstance.updateList(conversationList);
-              if (
-                selectedConversationRef.current &&
-                selectedConversationRef.current.conversation.roomId === newConversation.conversation.roomId &&
-                (!lastVisibleMessageRef.current ||
-                  (lastVisibleMessageRef.current &&
-                    data.lastMessage &&
-                    // @ts-ignore
-                    data.lastMessage.createdAt.seconds > lastVisibleMessageRef.current.createdAt.seconds))
-              ) {
-                messageListInstance.updateAndConcatList([data.lastMessage!]);
-                {
-                  const timer = setTimeout(() => {
-                    const messagesWrapperElement = getMessageWrapperElement();
-                    if (messagesWrapperElement) {
-                      messagesWrapperElement.scrollTo({ behavior: 'smooth', top: messagesWrapperElement.scrollHeight });
-                    }
-                    clearTimeout(timer);
-                  });
-                }
-              }
-            }
-          }
-
           // when a conversation is not exists in the client
-          else if (!(conversationTargetId in conversationListAsObject)) {
-            const apiData = {
-              page: 1,
-              take: 1,
-              filters: { ids: [conversationTargetId] },
-            };
-
-            const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
-
-            request.build<[UserObj[], number]>(api).then((response) => {
-              const [list] = response.data;
-              const [findedUser] = list;
-              if (findedUser && connectionSocket) {
-                if (isCurrentOwner) {
-                  connectionSocket.emit('users-status', { payload: [conversationTargetId] });
-                }
-                const conversation = new Conversation(findedUser, data);
-                conversationListInstance.unshiftList(conversation);
-                conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
-              }
-            });
+          if (!(conversationTargetId in conversationListAsObject)) {
+            insertNewConversation(data);
           }
         });
       }, 1),
@@ -443,7 +398,50 @@ const Chat: FC = () => {
     return () => {
       unsubscribe();
     };
-  }, [conversationListInstance, messageListInstance, connectionSocket]);
+  }, [conversationListInstance, insertNewConversation]);
+
+  useEffect(() => {
+    // this snapshot is for when the two users have not created the conversation before
+    const initialConversationListForSnapshotQuery = new FirestoreQueries.InitialConversationListForSnapshotQuery(
+      decodedToken.id
+    ).getQuery();
+    const unsubscribe = onSnapshot(
+      initialConversationListForSnapshotQuery,
+      preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
+        snapshot.docChanges().forEach((result) => {
+          actions.processingApiSuccess(StartConversationApi.name);
+
+          const data = result.doc.data() as ConversationDocObj;
+          const conversationListAsObject = conversationListInstance.getListAsObject();
+          const conversationTargetId = getConversationTargetId(data);
+
+          // when the conversation is not exists in the client
+          if (!(conversationTargetId in conversationListAsObject)) {
+            insertNewConversation(data);
+          }
+
+          // when the conversation is exist in the client
+          else {
+            const conversation = conversationListInstance.getList();
+            const index = conversation.findIndex((item) => item.conversation.roomId === data.roomId);
+            if (index > -1) {
+              const [newConversation] = conversation.splice(index, 1);
+              newConversation.conversation = data;
+              conversationListInstance.unshiftList(newConversation);
+              actions.selectUserForStartConversation(newConversation);
+            }
+          }
+        });
+      }, 1),
+      (error) => {
+        snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [conversationListInstance, insertNewConversation]);
 
   return (
     <Box

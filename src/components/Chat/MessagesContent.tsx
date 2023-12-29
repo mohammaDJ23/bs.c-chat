@@ -1,4 +1,4 @@
-import { FC, useCallback, useState, useEffect } from 'react';
+import { FC, useCallback, useState, useEffect, useRef } from 'react';
 import { Box, TextField as TF, styled, Drawer, Typography, CircularProgress } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
@@ -8,12 +8,20 @@ import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { ConversationObj, getUserStatusDate, MessageList } from '../../lib';
+import {
+  ConversationList,
+  ConversationObj,
+  getConversationTargetId,
+  getUserStatusDate,
+  Message,
+  MessageList,
+} from '../../lib';
 import { useSnackbar } from 'notistack';
 import { AllConversationsApi, MessagesApi } from '../../apis';
 
-interface SendMessageObj extends ConversationObj {
-  text: string;
+interface SendMessageObj {
+  message: Message;
+  roomId: string;
 }
 
 const TextField = styled(TF)(({ theme }) => ({
@@ -73,19 +81,27 @@ const MessagesSpinnerWrapper = styled(Box)(({ theme }) => ({
 
 const MessagesContent: FC = () => {
   const [text, setText] = useState<string>('');
+  const selectedConversationRef = useRef<ConversationObj | null>(null);
   const messageListInstance = useInfinityList(MessageList);
+  const conversationListInstance = useInfinityList(ConversationList);
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
   const snackbar = useSnackbar();
   const request = useRequest();
+  const decodedToken = auth.getDecodedToken()!;
   const isInitialMessagesApiProcessing = request.isInitialApiProcessing(MessagesApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
   const messageList = messageListInstance.getList();
+  const conversationList = conversationListInstance.getList();
   const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
   const chatSocket = selectors.userServiceSocket.chat;
-  const selectedUser = selectors.conversations.selectedUser;
+  const selectedConversation = selectors.conversations.selectedUser;
+
+  useEffect(() => {
+    selectedConversationRef.current = selectedConversation;
+  }, [selectedConversation]);
 
   const onUserConversationNameClick = useCallback(() => {
     if (window.innerWidth < 900) {
@@ -108,8 +124,41 @@ const MessagesContent: FC = () => {
 
   useEffect(() => {
     if (chatSocket) {
-      chatSocket.on('success-send-message', (data: SendMessageObj) => {
-        console.log(data);
+      conversationList.forEach((item) => {
+        // listen to all conversation
+        chatSocket.on(item.conversation.roomId, (data: SendMessageObj) => {
+          const findedIndex = conversationList.findIndex((item) => item.conversation.roomId === data.roomId);
+          if (findedIndex > -1) {
+            const [newConversation] = conversationList.splice(findedIndex, 1);
+            newConversation.conversation.lastMessage = data.message;
+            conversationListInstance.unshiftList(newConversation);
+          }
+
+          if (selectedConversationRef.current && selectedConversationRef.current.conversation.roomId === data.roomId) {
+            const messageList = messageListInstance.getList();
+            const findedIndex = messageList.findIndex((item) => item.id === data.message.id);
+
+            // this check runs for sender who has created the message
+            if (findedIndex > -1) {
+              messageList[findedIndex].status = data.message.status;
+              messageListInstance.updateList(messageList);
+            }
+
+            // this check runs for receiver who receive the message from the sender
+            else {
+              messageListInstance.updateAndConcatList([data.message]);
+
+              // scrolling the chat wrapper element to the bottom of the page
+              const timer = setTimeout(() => {
+                const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
+                if (messagesWrapperElement) {
+                  messagesWrapperElement.scrollTo({ behavior: 'smooth', top: messagesWrapperElement.scrollHeight });
+                }
+                clearTimeout(timer);
+              });
+            }
+          }
+        });
       });
 
       chatSocket.on('fail-send-message', (error: Error) => {
@@ -121,15 +170,53 @@ const MessagesContent: FC = () => {
         chatSocket.removeListener('fail-send-message');
       };
     }
-  }, [chatSocket]);
+  }, [chatSocket, messageListInstance, conversationList]);
 
   const onSendText = useCallback(() => {
-    if (chatSocket && selectedUser && text.length) {
-      const payload = Object.assign(selectedUser, { text: text.trim() });
-      chatSocket.emit('send-message', { payload });
-      setText('');
+    if (chatSocket && selectedConversation && text.length) {
+      const message = new Message({
+        userId: decodedToken.id,
+        text: text.trim(),
+      });
+
+      const conversationTargetId = getConversationTargetId(selectedConversation.conversation);
+      const conversationListAsObject = conversationListInstance.getListAsObject();
+
+      // check if the conversation exist
+      if (conversationTargetId in conversationListAsObject) {
+        const conversationList = conversationListInstance.getList();
+
+        // then check if the conversation has been selected
+        // if yes, put the new message in the message list
+        const findedIndex = conversationList.findIndex(
+          (item) => item.conversation.roomId === selectedConversation.conversation.roomId
+        );
+        if (findedIndex > -1) {
+          const [newConversation] = conversationList.splice(findedIndex, 1);
+          newConversation.conversation.lastMessage = message;
+          conversationList.unshift(newConversation);
+          messageListInstance.updateAndConcatList([message]);
+
+          // scrolling the chat wrapper element to the bottom of the page
+          const timer = setTimeout(() => {
+            const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
+            if (messagesWrapperElement) {
+              messagesWrapperElement.scrollTo({ behavior: 'smooth', top: messagesWrapperElement.scrollHeight });
+            }
+            clearTimeout(timer);
+          });
+
+          // then send the created message to the server to create a new one in the db
+          const payload = {
+            message,
+            roomId: selectedConversation.conversation.roomId,
+          };
+          chatSocket.emit('send-message', { payload });
+          setText('');
+        }
+      }
     }
-  }, [text, chatSocket, selectedUser]);
+  }, [text, chatSocket, selectedConversation, messageListInstance, conversationListInstance]);
 
   return isInitialAllConversationApiProcessing ? (
     <Box
@@ -301,7 +388,7 @@ const MessagesContent: FC = () => {
                       }}
                     />
                     <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
-                      <SendIcon color="primary" sx={{ cursor: 'pointer' }} />
+                      <SendIcon color={text.length ? 'primary' : 'disabled'} sx={{ cursor: 'pointer' }} />
                     </Box>
                   </Box>
                 </form>

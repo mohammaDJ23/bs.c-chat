@@ -117,6 +117,12 @@ export function useInfinityList<
         return page * take >= total;
       }
 
+      function isListEndByLength(): boolean {
+        const list = getList();
+        const total = getTotal();
+        return list.length >= total;
+      }
+
       function resetList(): void {
         actions.resetListInfinityList(listInstance);
       }
@@ -140,6 +146,7 @@ export function useInfinityList<
         isListEnd,
         unshiftList,
         resetList,
+        isListEndByLength,
       };
     },
     [selectors.infinityLists[listInstance.name]]
