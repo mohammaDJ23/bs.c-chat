@@ -159,12 +159,14 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
           {conversationList.length > 0 ? (
             <ListWrapper disablePadding>
-              {conversationList.map((item) => (
+              {conversationList.map((item, index) => (
                 <ListItemButton
                   selected={selectors.conversations.selectedUser?.user?.id === item.user.id}
                   key={item.conversation.id}
                   sx={{ padding: '14px 16px', borderBottom: '1px solid #e0e0e0' }}
                   onClick={() => onConversationClick(item)}
+                  data-cid={item.conversation.id}
+                  data-index={index}
                 >
                   <ListItem disablePadding>
                     <Box sx={{ width: '100%', height: '100%' }}>

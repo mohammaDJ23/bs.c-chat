@@ -348,7 +348,12 @@ const MessagesContent: FC = () => {
                       }}
                     >
                       {messageList.map((message, i) => (
-                        <Box key={message.id} sx={{ paddingBottom: i >= messageList.length - 1 ? '5px' : '0' }}>
+                        <Box
+                          key={message.id}
+                          sx={{ paddingBottom: i >= messageList.length - 1 ? '5px' : '0' }}
+                          data-mid={message.id}
+                          data-index={i}
+                        >
                           <MessageCard message={message} />
                         </Box>
                       ))}
