@@ -291,6 +291,9 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 clearIcon={false}
                 value={userListFiltersForm.q}
                 inputValue={userListFiltersForm.q}
+                onBlur={() => {
+                  setIsSearchUsersAutoCompleteOpen(false);
+                }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
