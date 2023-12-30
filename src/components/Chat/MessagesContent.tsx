@@ -22,6 +22,7 @@ import { AllConversationsApi, MessagesApi } from '../../apis';
 interface SendMessageObj {
   message: Message;
   roomId: string;
+  conversationId: string;
 }
 
 const TextField = styled(TF)(({ theme }) => ({
@@ -127,11 +128,14 @@ const MessagesContent: FC = () => {
       conversationList.forEach((item) => {
         // listen to all conversation
         chatSocket.on(item.conversation.roomId, (data: SendMessageObj) => {
-          const findedIndex = conversationList.findIndex((item) => item.conversation.roomId === data.roomId);
-          if (findedIndex > -1) {
-            const [newConversation] = conversationList.splice(findedIndex, 1);
-            newConversation.conversation.lastMessage = data.message;
-            conversationListInstance.unshiftList(newConversation);
+          const conversationEl = document.querySelector(`[data-cid="${data.conversationId}"]`);
+          if (conversationEl) {
+            const index = conversationEl.getAttribute('data-index');
+            if (index) {
+              const [newConversation] = conversationList.splice(+index, 1);
+              newConversation.conversation.lastMessage = data.message;
+              conversationListInstance.unshiftList(newConversation);
+            }
           }
 
           if (selectedConversationRef.current && selectedConversationRef.current.conversation.roomId === data.roomId) {
@@ -210,6 +214,7 @@ const MessagesContent: FC = () => {
           const payload = {
             message,
             roomId: selectedConversation.conversation.roomId,
+            conversationId: selectedConversation.conversation.id,
           };
           chatSocket.emit('send-message', { payload });
           setText('');
