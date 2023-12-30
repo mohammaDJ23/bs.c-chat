@@ -1,6 +1,5 @@
-import { FC, useCallback, useState, useEffect, useRef } from 'react';
-import { Box, TextField as TF, styled, Drawer, Typography, CircularProgress } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
+import { FC, useCallback, useEffect, useRef } from 'react';
+import { Box, styled, Drawer, Typography, CircularProgress } from '@mui/material';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 import Users from './Users';
 import MessageCard from './MessageCard';
@@ -8,34 +7,16 @@ import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import {
-  ConversationList,
-  ConversationObj,
-  getConversationTargetId,
-  getUserStatusDate,
-  Message,
-  MessageList,
-} from '../../lib';
+import { ConversationList, ConversationObj, getUserStatusDate, Message, MessageList } from '../../lib';
 import { useSnackbar } from 'notistack';
 import { AllConversationsApi, MessagesApi } from '../../apis';
+import TextSenderInput from './textSenderInput';
 
 interface SendMessageObj {
   message: Message;
   roomId: string;
   conversationId: string;
 }
-
-const TextField = styled(TF)(({ theme }) => ({
-  '.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input': {
-    border: 'none',
-    padding: '14px',
-    fontSize: '14px',
-    letterSpacing: '0.3px',
-  },
-  '.css-1d3z3hw-MuiOutlinedInput-notchedOutline': {
-    border: 'none',
-  },
-}));
 
 const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
   display: 'none',
@@ -81,7 +62,6 @@ const MessagesSpinnerWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const MessagesContent: FC = () => {
-  const [text, setText] = useState<string>('');
   const selectedConversationRef = useRef<ConversationObj | null>(null);
   const messageListInstance = useInfinityList(MessageList);
   const conversationListInstance = useInfinityList(ConversationList);
@@ -90,7 +70,6 @@ const MessagesContent: FC = () => {
   const auth = useAuth();
   const snackbar = useSnackbar();
   const request = useRequest();
-  const decodedToken = auth.getDecodedToken()!;
   const isInitialMessagesApiProcessing = request.isInitialApiProcessing(MessagesApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
   const messageList = messageListInstance.getList();
@@ -182,44 +161,6 @@ const MessagesContent: FC = () => {
       };
     }
   }, [chatSocket, messageListInstance, conversationList]);
-
-  const onSendText = useCallback(() => {
-    if (chatSocket && selectedConversation && text.length) {
-      const message = new Message({
-        userId: decodedToken.id,
-        text: text.trim(),
-      });
-
-      const conversationEl = document.querySelector(`[data-cactive="true"]`);
-
-      // check if the conversation exist
-      if (conversationEl) {
-        const conversationId = conversationEl.getAttribute('data-cid');
-
-        if (conversationId === selectedConversation.conversation.id) {
-          messageListInstance.updateAndConcatList([message]);
-
-          // scrolling the chat wrapper element to the bottom of the page
-          const timer = setTimeout(() => {
-            const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
-            if (messagesWrapperElement) {
-              messagesWrapperElement.scrollTo({ behavior: 'smooth', top: messagesWrapperElement.scrollHeight });
-            }
-            clearTimeout(timer);
-          });
-
-          // then send the created message to the server to create a new one in the db
-          const payload = {
-            message,
-            roomId: selectedConversation.conversation.roomId,
-            conversationId: selectedConversation.conversation.id,
-          };
-          chatSocket.emit('send-message', { payload });
-          setText('');
-        }
-      }
-    }
-  }, [text, chatSocket, selectedConversation, messageListInstance, conversationListInstance]);
 
   return isInitialAllConversationApiProcessing ? (
     <Box
@@ -369,37 +310,7 @@ const MessagesContent: FC = () => {
                 </EmptyMessagesWrapper>
               )}
               <FormWrapper>
-                <form
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    onSendText();
-                  }}
-                >
-                  <Box
-                    component="div"
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <TextField
-                      onChange={(event) => setText(event.target.value)}
-                      placeholder={'Type your message here'}
-                      fullWidth
-                      value={text}
-                      sx={{
-                        height: '100%',
-                        width: '100%',
-                        '& fieldset': { border: 'none' },
-                        '& input': { padding: '14px' },
-                      }}
-                    />
-                    <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
-                      <SendIcon color={text.length ? 'primary' : 'disabled'} sx={{ cursor: 'pointer' }} />
-                    </Box>
-                  </Box>
-                </form>
+                <TextSenderInput />
               </FormWrapper>
             </>
           )}
