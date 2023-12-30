@@ -167,6 +167,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                   onClick={() => onConversationClick(item)}
                   data-cid={item.conversation.id}
                   data-index={index}
+                  data-cactive={selectedConversation && selectedConversation.conversation.id === item.conversation.id}
                 >
                   <ListItem disablePadding>
                     <Box sx={{ width: '100%', height: '100%' }}>

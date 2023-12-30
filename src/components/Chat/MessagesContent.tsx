@@ -139,13 +139,20 @@ const MessagesContent: FC = () => {
           }
 
           if (selectedConversationRef.current && selectedConversationRef.current.conversation.roomId === data.roomId) {
-            const messageList = messageListInstance.getList();
-            const findedIndex = messageList.findIndex((item) => item.id === data.message.id);
-
             // this check runs for sender who has created the message
-            if (findedIndex > -1) {
-              messageList[findedIndex].status = data.message.status;
-              messageListInstance.updateList(messageList);
+            const messageEl = document.querySelector(`[data-mid="${data.message.id}"]`);
+            if (messageEl) {
+              const index = messageEl.getAttribute('data-index');
+              if (index) {
+                const parsedIndex = +index;
+                const messageList = messageListInstance.getList();
+                const message = messageList[parsedIndex];
+                if (message) {
+                  message.status = data.message.status;
+                  messageList.splice(parsedIndex, 1, message);
+                  messageListInstance.updateList(messageList);
+                }
+              }
             }
 
             // this check runs for receiver who receive the message from the sender
@@ -183,22 +190,13 @@ const MessagesContent: FC = () => {
         text: text.trim(),
       });
 
-      const conversationTargetId = getConversationTargetId(selectedConversation.conversation);
-      const conversationListAsObject = conversationListInstance.getListAsObject();
+      const conversationEl = document.querySelector(`[data-cactive="true"]`);
 
       // check if the conversation exist
-      if (conversationTargetId in conversationListAsObject) {
-        const conversationList = conversationListInstance.getList();
+      if (conversationEl) {
+        const conversationId = conversationEl.getAttribute('data-cid');
 
-        // then check if the conversation has been selected
-        // if yes, put the new message in the message list
-        const findedIndex = conversationList.findIndex(
-          (item) => item.conversation.roomId === selectedConversation.conversation.roomId
-        );
-        if (findedIndex > -1) {
-          const [newConversation] = conversationList.splice(findedIndex, 1);
-          newConversation.conversation.lastMessage = message;
-          conversationList.unshift(newConversation);
+        if (conversationId === selectedConversation.conversation.id) {
           messageListInstance.updateAndConcatList([message]);
 
           // scrolling the chat wrapper element to the bottom of the page
