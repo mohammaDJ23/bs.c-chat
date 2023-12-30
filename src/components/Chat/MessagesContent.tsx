@@ -10,7 +10,7 @@ import StartConversation from './StartConversation';
 import { ConversationList, ConversationObj, getUserStatusDate, Message, MessageList } from '../../lib';
 import { useSnackbar } from 'notistack';
 import { AllConversationsApi, MessagesApi } from '../../apis';
-import TextSenderInput from './textSenderInput';
+import TextSenderInput from './TextSenderInput';
 
 interface SendMessageObj {
   message: Message;
@@ -110,10 +110,13 @@ const MessagesContent: FC = () => {
           const conversationEl = document.querySelector(`[data-cid="${data.conversationId}"]`);
           if (conversationEl) {
             const index = conversationEl.getAttribute('data-index');
-            if (index) {
-              const [newConversation] = conversationList.splice(+index, 1);
-              newConversation.conversation.lastMessage = data.message;
-              conversationListInstance.unshiftList(newConversation);
+            if (index && !isNaN(parseInt(index))) {
+              const parsedIndex = +index;
+              if (conversationList[parsedIndex]) {
+                const [newConversation] = conversationList.splice(parsedIndex, 1);
+                newConversation.conversation.lastMessage = data.message;
+                conversationListInstance.unshiftList(newConversation);
+              }
             }
           }
 
@@ -122,7 +125,7 @@ const MessagesContent: FC = () => {
             const messageEl = document.querySelector(`[data-mid="${data.message.id}"]`);
             if (messageEl) {
               const index = messageEl.getAttribute('data-index');
-              if (index) {
+              if (index && !isNaN(parseInt(index))) {
                 const parsedIndex = +index;
                 const messageList = messageListInstance.getList();
                 const message = messageList[parsedIndex];

@@ -381,11 +381,10 @@ const Chat: FC = () => {
           actions.processingApiSuccess(StartConversationApi.name);
 
           const data = result.doc.data() as ConversationDocObj;
-          const conversationListAsObject = conversationListInstance.getListAsObject();
-          const conversationTargetId = getConversationTargetId(data);
+          const conversationEl = document.querySelector(`[data-cid="${data.id}"]`);
 
           // when a conversation is not exists in the client
-          if (!(conversationTargetId in conversationListAsObject)) {
+          if (!conversationEl) {
             insertNewConversation(data);
           }
         });
@@ -412,23 +411,26 @@ const Chat: FC = () => {
           actions.processingApiSuccess(StartConversationApi.name);
 
           const data = result.doc.data() as ConversationDocObj;
-          const conversationListAsObject = conversationListInstance.getListAsObject();
-          const conversationTargetId = getConversationTargetId(data);
+          const conversationEl = document.querySelector(`[data-cid="${data.id}"]`);
 
           // when the conversation is not exists in the client
-          if (!(conversationTargetId in conversationListAsObject)) {
+          if (!conversationEl) {
             insertNewConversation(data);
           }
 
           // when the conversation is exist in the client
           else {
-            const conversation = conversationListInstance.getList();
-            const index = conversation.findIndex((item) => item.conversation.roomId === data.roomId);
-            if (index > -1) {
-              const [newConversation] = conversation.splice(index, 1);
-              newConversation.conversation = data;
-              conversationListInstance.unshiftList(newConversation);
-              actions.selectUserForStartConversation(newConversation);
+            const index = conversationEl.getAttribute('data-index');
+
+            if (index && !isNaN(parseInt(index))) {
+              const parsedIndex = +index;
+              const conversationList = conversationListInstance.getList();
+
+              if (conversationList[parsedIndex]) {
+                const [newConversation] = conversationList.splice(parsedIndex, 1);
+                conversationListInstance.unshiftList(newConversation);
+                actions.selectUserForStartConversation(newConversation);
+              }
             }
           }
         });

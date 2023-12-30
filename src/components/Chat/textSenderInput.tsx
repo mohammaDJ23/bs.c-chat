@@ -1,5 +1,5 @@
 import { Box, TextField as TF, styled } from '@mui/material';
-import { memo, useCallback, useState } from 'react';
+import { FC, memo, useCallback, useState } from 'react';
 import { useAuth, useInfinityList, useSelector } from '../../hooks';
 import { ConversationList, Message, MessageList } from '../../lib';
 import SendIcon from '@mui/icons-material/Send';
@@ -16,7 +16,7 @@ const TextField = styled(TF)(({ theme }) => ({
   },
 }));
 
-const TextSenderInput = () => {
+const TextSenderInput: FC = () => {
   const [text, setText] = useState<string>('');
   const selectors = useSelector();
   const auth = useAuth();

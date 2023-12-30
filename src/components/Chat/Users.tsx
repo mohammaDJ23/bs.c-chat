@@ -1,29 +1,10 @@
-import { ChangeEvent, FC, useCallback, useRef, useState } from 'react';
-import {
-  List,
-  Box,
-  ListItemButton,
-  ListItem,
-  ListItemText,
-  Autocomplete,
-  TextField,
-  CircularProgress,
-  styled,
-} from '@mui/material';
-import moment from 'moment';
+import { FC, useCallback } from 'react';
+import { List, Box, ListItemButton, ListItem, ListItemText, CircularProgress, styled } from '@mui/material';
 import EmptyUsers from './EmptyUsers';
-import { useAction, useAuth, useForm, useInfinityList, usePaginationList, useRequest, useSelector } from '../../hooks';
-import {
-  ConversationList,
-  ConversationObj,
-  MessageList,
-  UserList,
-  UserListFilters,
-  UserObj,
-  debounce,
-  getConversationDate,
-} from '../../lib';
-import { AllConversationsApi, AllOwnersApi, AllUsersApi, MessagesApi, StartConversationApi } from '../../apis';
+import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
+import { ConversationList, ConversationObj, MessageList, getConversationDate } from '../../lib';
+import { AllConversationsApi, MessagesApi, StartConversationApi } from '../../apis';
+import UsersFinderInput from './UsersFinderInput';
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
@@ -48,69 +29,18 @@ interface UsersImportation {
 }
 
 const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
-  const [isSearchUsersAutoCompleteOpen, setIsSearchUsersAutoCompleteOpen] = useState(false);
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
   const request = useRequest();
   const isCurrentOwner = auth.isCurrentOwner();
-  const userListInstance = usePaginationList(UserList);
   const conversationListInstance = useInfinityList(ConversationList);
   const messageListInstance = useInfinityList(MessageList);
   const conversationList = conversationListInstance.getList();
-  const userListFiltersFormInstance = useForm(UserListFilters);
-  const userListFiltersForm = userListFiltersFormInstance.getForm();
   const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
   const isInitialMessagesApiProcessing = request.isInitialApiProcessing(MessagesApi);
-  const halfSecDebounce = useRef(debounce());
-  const chatSocket = selectors.userServiceSocket.chat;
   const selectedConversation = selectors.conversations.selectedUser;
-
-  const onSearchUsersChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      if (isInitialMessagesApiProcessing) {
-        return;
-      }
-      const value = event.target.value;
-      userListFiltersFormInstance.onChange('q', value);
-
-      halfSecDebounce.current(() => {
-        const apiData = {
-          page: userListInstance.getPage(),
-          take: userListInstance.getTake(),
-          filters: { q: value.trim() },
-        };
-
-        const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
-
-        request.build<[UserObj[], number]>(api).then((response) => {
-          const [list, total] = response.data;
-          userListInstance.updateList(list);
-          userListInstance.updateTotal(total);
-          setIsSearchUsersAutoCompleteOpen(true);
-        });
-      });
-    },
-    [isInitialMessagesApiProcessing]
-  );
-
-  const onAutoCompleteChange = useCallback(
-    (value: UserObj | null) => {
-      if (isInitialMessagesApiProcessing) {
-        return;
-      }
-      userListInstance.updateList([]);
-      setIsSearchUsersAutoCompleteOpen(false);
-
-      if (value && chatSocket) {
-        userListFiltersFormInstance.onChange('q', `${value.firstName} ${value.lastName}`);
-        actions.processingApiLoading(StartConversationApi.name);
-        chatSocket.emit('start-conversation', { payload: value });
-      }
-    },
-    [chatSocket, isInitialMessagesApiProcessing]
-  );
 
   const onConversationClick = useCallback(
     (item: ConversationObj) => {
@@ -273,43 +203,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           )}
           <Box sx={{ position: 'fixed', zIndex: 1, bottom: '0', left: '0', width: '280px', height: '50px' }}>
             <Box sx={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0' }}>
-              <Autocomplete
-                freeSolo
-                disabled={isStartConversationApiProcessing}
-                open={isSearchUsersAutoCompleteOpen}
-                options={userListInstance.getList()}
-                // @ts-ignore
-                onChange={(_, value: UserObj | null) => onAutoCompleteChange(value)}
-                filterOptions={(options) => options}
-                // @ts-ignore
-                getOptionLabel={(option) => {
-                  if (typeof option === 'object' && option.firstName && option.lastName) {
-                    return `${option.firstName} ${option.lastName}`;
-                  }
-                  return option;
-                }}
-                clearIcon={false}
-                value={userListFiltersForm.q}
-                inputValue={userListFiltersForm.q}
-                onBlur={() => {
-                  setIsSearchUsersAutoCompleteOpen(false);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    sx={{ padding: '8px 16px' }}
-                    disabled={isStartConversationApiProcessing}
-                    onFocus={() => {
-                      userListInstance.updateList([]);
-                      setIsSearchUsersAutoCompleteOpen(false);
-                    }}
-                    variant="standard"
-                    value={userListFiltersForm.q}
-                    placeholder={isCurrentOwner ? 'Search the users here!' : 'Search the owners here!'}
-                    onChange={onSearchUsersChange}
-                  />
-                )}
-              />
+              <UsersFinderInput />
               {isStartConversationApiProcessing && (
                 <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
               )}
