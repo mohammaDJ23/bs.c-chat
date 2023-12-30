@@ -20,7 +20,6 @@ import {
   QuerySnapshot,
   getCountFromServer,
   getDocs,
-  onSnapshot,
 } from 'firebase/firestore';
 import {
   Conversation,
@@ -36,6 +35,7 @@ import {
 } from '../../lib';
 import { useSnackbar } from 'notistack';
 import { UsersStatusType } from '../../store';
+import ConversationListSnapshotsProvider from '../../lib/providers/ConversationListSnapshotsProvider';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
   display: 'grid',
@@ -341,128 +341,26 @@ const Chat: FC = () => {
     }
   }, [isAllConversationApiProcessing, conversationListInstance, getConversationList]);
 
-  const insertNewConversation = useCallback(
-    (receivedConversation: ConversationDocObj) => {
-      const conversationTargetId = getConversationTargetId(receivedConversation);
-      const apiData = {
-        page: 1,
-        take: 1,
-        filters: { ids: [conversationTargetId] },
-      };
-
-      const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
-
-      request.build<[UserObj[], number]>(api).then((response): void => {
-        const [list] = response.data;
-        const [findedUser] = list;
-        if (findedUser && connectionSocket) {
-          if (isCurrentOwner) {
-            connectionSocket.emit('users-status', { payload: [conversationTargetId] });
-          }
-          const conversation = new Conversation(findedUser, receivedConversation);
-          conversationListInstance.unshiftList(conversation);
-          conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
-          actions.selectUserForStartConversation(conversation);
-        }
-      });
-    },
-    [connectionSocket, conversationListInstance]
-  );
-
-  useEffect(() => {
-    // this snapshot is for when the two users have created the conversation before
-    const conversationListForSnapshotQuery = new FirestoreQueries.ConversationListForSnapshotQuery(
-      decodedToken.id
-    ).getQuery();
-    const unsubscribe = onSnapshot(
-      conversationListForSnapshotQuery,
-      preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
-        snapshot.docChanges().forEach((result) => {
-          actions.processingApiSuccess(StartConversationApi.name);
-
-          const data = result.doc.data() as ConversationDocObj;
-          const conversationEl = document.querySelector(`[data-cid="${data.id}"]`);
-
-          // when a conversation is not exists in the client
-          if (!conversationEl) {
-            insertNewConversation(data);
-          }
-        });
-      }, 1),
-      (error) => {
-        snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, [conversationListInstance, insertNewConversation]);
-
-  useEffect(() => {
-    // this snapshot is for when the two users have not created the conversation before
-    const initialConversationListForSnapshotQuery = new FirestoreQueries.InitialConversationListForSnapshotQuery(
-      decodedToken.id
-    ).getQuery();
-    const unsubscribe = onSnapshot(
-      initialConversationListForSnapshotQuery,
-      preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
-        snapshot.docChanges().forEach((result) => {
-          actions.processingApiSuccess(StartConversationApi.name);
-
-          const data = result.doc.data() as ConversationDocObj;
-          const conversationEl = document.querySelector(`[data-cid="${data.id}"]`);
-
-          // when the conversation is not exists in the client
-          if (!conversationEl) {
-            insertNewConversation(data);
-          }
-
-          // when the conversation is exist in the client
-          else {
-            const index = conversationEl.getAttribute('data-index');
-
-            if (index && !isNaN(parseInt(index))) {
-              const parsedIndex = +index;
-              const conversationList = conversationListInstance.getList();
-
-              if (conversationList[parsedIndex]) {
-                const [newConversation] = conversationList.splice(parsedIndex, 1);
-                conversationListInstance.unshiftList(newConversation);
-                actions.selectUserForStartConversation(newConversation);
-              }
-            }
-          }
-        });
-      }, 1),
-      (error) => {
-        snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
-      }
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, [conversationListInstance, insertNewConversation]);
-
   return (
-    <Box
-      sx={{
-        width: '100vw',
-        height: 'calc(100vh - 64px)',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <Box sx={{ width: '100%', height: '100%' }}>
-        <MessageWrapper>
-          <UsersWrapper>
-            <Users />
-          </UsersWrapper>
-          <MessagesContent />
-        </MessageWrapper>
+    <ConversationListSnapshotsProvider>
+      <Box
+        sx={{
+          width: '100vw',
+          height: 'calc(100vh - 64px)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <Box sx={{ width: '100%', height: '100%' }}>
+          <MessageWrapper>
+            <UsersWrapper>
+              <Users />
+            </UsersWrapper>
+            <MessagesContent />
+          </MessageWrapper>
+        </Box>
       </Box>
-    </Box>
+    </ConversationListSnapshotsProvider>
   );
 };
 
