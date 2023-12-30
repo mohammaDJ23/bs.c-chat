@@ -11,6 +11,7 @@ import { ConversationList, ConversationObj, getUserStatusDate, Message, MessageL
 import { useSnackbar } from 'notistack';
 import { AllConversationsApi, MessagesApi } from '../../apis';
 import TextSenderInput from './TextSenderInput';
+import GetMessageListProvider from '../../lib/providers/GetMessageListProvider';
 
 interface SendMessageObj {
   message: Message;
@@ -165,174 +166,180 @@ const MessagesContent: FC = () => {
     }
   }, [chatSocket, messageListInstance, conversationList]);
 
-  return isInitialAllConversationApiProcessing ? (
-    <Box
-      component={'div'}
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        height: '100%',
-      }}
-    >
-      <CircularProgress size={30} />
-    </Box>
-  ) : (
-    <>
-      {selectors.conversations.selectedUser ? (
+  return (
+    <GetMessageListProvider>
+      {isInitialAllConversationApiProcessing ? (
         <Box
+          component={'div'}
           sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             width: '100%',
             height: '100%',
-            position: 'relative',
-            overflow: 'hidden',
           }}
         >
-          <Box
-            onClick={() => onUserConversationNameClick()}
-            sx={{
-              position: 'sticky',
-              top: 0,
-              left: 0,
-              padding: '8px 10px',
-              borderBottom: '1px solid #e0e0e0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              height: '53px',
-              backgroundColor: 'white',
-            }}
-          >
-            <ArrowLeftIconWrapper>
-              <ArrowLeftIcon fontSize="medium" />
-            </ArrowLeftIconWrapper>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-              }}
-            >
-              <Typography
-                fontSize="14px"
-                fontWeight={'bold'}
-                sx={{
-                  maxWidth: '560px',
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {selectors.conversations.selectedUser.user.firstName}{' '}
-                {selectors.conversations.selectedUser.user.lastName}
-              </Typography>
-              {isCurrentOwner &&
-                (() => {
-                  const userLastConnection = auth.getUserLastConnection(selectors.conversations.selectedUser.user.id);
-                  if (userLastConnection) {
-                    return (
-                      <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
-                        {getUserStatusDate(userLastConnection)}
-                      </Typography>
-                    );
-                  } else if (userLastConnection === null) {
-                    return (
-                      <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
-                        online
-                      </Typography>
-                    );
-                  }
-                })()}
-            </Box>
-          </Box>
-
-          {isInitialMessagesApiProcessing ? (
-            <MessagesSpinnerWrapper
-              sx={{
-                width: '100%',
-                padding: '10px',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'column',
-              }}
-            >
-              <CircularProgress size={30} />
-            </MessagesSpinnerWrapper>
-          ) : (
-            <>
-              {messageList.length > 0 ? (
-                <MessagesWrapper
-                  id="chat__messages-wrapper"
-                  component="div"
-                  sx={{ width: '100%', padding: '5px', overflowY: 'auto', overflowX: 'hidden' }}
-                >
-                  {!messageListInstance.isListEnd() && selectors.conversations.isMessagesSpinnerElementActive && (
-                    <Box
-                      id="chat__message-list-spinner"
-                      component={'div'}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '100%',
-                        padding: '16px',
-                      }}
-                    >
-                      <CircularProgress size={30} />
-                    </Box>
-                  )}
-                  <Box sx={{ width: '100%', height: '100%' }}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '5px',
-                        width: '100%',
-                        height: '100%',
-                      }}
-                    >
-                      {messageList.map((message, i) => (
-                        <Box
-                          key={message.id}
-                          sx={{ paddingBottom: i >= messageList.length - 1 ? '5px' : '0' }}
-                          data-mid={message.id}
-                          data-index={i}
-                        >
-                          <MessageCard message={message} />
-                        </Box>
-                      ))}
-                    </Box>
-                  </Box>
-                </MessagesWrapper>
-              ) : (
-                <EmptyMessagesWrapper component="div" sx={{ width: '100%' }}>
-                  <EmptyMessages />
-                </EmptyMessagesWrapper>
-              )}
-              <FormWrapper>
-                <TextSenderInput />
-              </FormWrapper>
-            </>
-          )}
+          <CircularProgress size={30} />
         </Box>
       ) : (
-        <StartConversation />
+        <>
+          {selectors.conversations.selectedUser ? (
+            <Box
+              sx={{
+                width: '100%',
+                height: '100%',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                onClick={() => onUserConversationNameClick()}
+                sx={{
+                  position: 'sticky',
+                  top: 0,
+                  left: 0,
+                  padding: '8px 10px',
+                  borderBottom: '1px solid #e0e0e0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  height: '53px',
+                  backgroundColor: 'white',
+                }}
+              >
+                <ArrowLeftIconWrapper>
+                  <ArrowLeftIcon fontSize="medium" />
+                </ArrowLeftIconWrapper>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Typography
+                    fontSize="14px"
+                    fontWeight={'bold'}
+                    sx={{
+                      maxWidth: '560px',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {selectors.conversations.selectedUser.user.firstName}{' '}
+                    {selectors.conversations.selectedUser.user.lastName}
+                  </Typography>
+                  {isCurrentOwner &&
+                    (() => {
+                      const userLastConnection = auth.getUserLastConnection(
+                        selectors.conversations.selectedUser.user.id
+                      );
+                      if (userLastConnection) {
+                        return (
+                          <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                            {getUserStatusDate(userLastConnection)}
+                          </Typography>
+                        );
+                      } else if (userLastConnection === null) {
+                        return (
+                          <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                            online
+                          </Typography>
+                        );
+                      }
+                    })()}
+                </Box>
+              </Box>
+
+              {isInitialMessagesApiProcessing ? (
+                <MessagesSpinnerWrapper
+                  sx={{
+                    width: '100%',
+                    padding: '10px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <CircularProgress size={30} />
+                </MessagesSpinnerWrapper>
+              ) : (
+                <>
+                  {messageList.length > 0 ? (
+                    <MessagesWrapper
+                      id="chat__messages-wrapper"
+                      component="div"
+                      sx={{ width: '100%', padding: '5px', overflowY: 'auto', overflowX: 'hidden' }}
+                    >
+                      {!messageListInstance.isListEnd() && selectors.conversations.isMessagesSpinnerElementActive && (
+                        <Box
+                          id="chat__message-list-spinner"
+                          component={'div'}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                            padding: '16px',
+                          }}
+                        >
+                          <CircularProgress size={30} />
+                        </Box>
+                      )}
+                      <Box sx={{ width: '100%', height: '100%' }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '5px',
+                            width: '100%',
+                            height: '100%',
+                          }}
+                        >
+                          {messageList.map((message, i) => (
+                            <Box
+                              key={message.id}
+                              sx={{ paddingBottom: i >= messageList.length - 1 ? '5px' : '0' }}
+                              data-mid={message.id}
+                              data-index={i}
+                            >
+                              <MessageCard message={message} />
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    </MessagesWrapper>
+                  ) : (
+                    <EmptyMessagesWrapper component="div" sx={{ width: '100%' }}>
+                      <EmptyMessages />
+                    </EmptyMessagesWrapper>
+                  )}
+                  <FormWrapper>
+                    <TextSenderInput />
+                  </FormWrapper>
+                </>
+              )}
+            </Box>
+          ) : (
+            <StartConversation />
+          )}
+          <Drawer
+            sx={{ zIndex: 10 }}
+            ModalProps={{ keepMounted: true }}
+            anchor="left"
+            open={isConversationDrawerOpen}
+            onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
+          >
+            <Box sx={{ width: '280px', height: '100vh' }}>
+              <Users onUserClick={() => actions.hideModal(ModalNames.CONVERSATION)} />
+            </Box>
+          </Drawer>
+        </>
       )}
-      <Drawer
-        sx={{ zIndex: 10 }}
-        ModalProps={{ keepMounted: true }}
-        anchor="left"
-        open={isConversationDrawerOpen}
-        onClose={() => actions.hideModal(ModalNames.CONVERSATION)}
-      >
-        <Box sx={{ width: '280px', height: '100vh' }}>
-          <Users onUserClick={() => actions.hideModal(ModalNames.CONVERSATION)} />
-        </Box>
-      </Drawer>
-    </>
+    </GetMessageListProvider>
   );
 };
 
