@@ -185,24 +185,6 @@ const Chat: FC = () => {
     }
   }, [messageList]);
 
-  useEffect(() => {
-    if (chatSocket && connectionSocket) {
-      chatSocket.on('fail-start-conversation', (error: Error) => {
-        actions.processingApiError(StartConversationApi.name);
-        snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
-      });
-
-      chatSocket.on('success-start-conversation', (data: ConversationObj) => {
-        userListFiltersFormInstance.onChange('q', '');
-      });
-
-      return () => {
-        chatSocket.removeListener('fail-start-conversation');
-        chatSocket.removeListener('success-start-conversation');
-      };
-    }
-  }, [chatSocket, connectionSocket, conversationListInstance]);
-
   return (
     <ConversationListSnapshotsProvider>
       <UserStatusEventsProvider>
