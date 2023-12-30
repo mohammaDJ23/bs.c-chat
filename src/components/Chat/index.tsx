@@ -34,8 +34,8 @@ import {
   preventRunAt,
 } from '../../lib';
 import { useSnackbar } from 'notistack';
-import { UsersStatusType } from '../../store';
 import ConversationListSnapshotsProvider from '../../lib/providers/ConversationListSnapshotsProvider';
+import UserStatusEventsProvider from '../../lib/providers/UserStatusEventsProvider';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
   display: 'grid',
@@ -73,7 +73,6 @@ const Chat: FC = () => {
   const isMessagesApiProcessing = request.isApiProcessing(MessagesApi);
   const connectionSocket = selectors.userServiceSocket.connection;
   const chatSocket = selectors.userServiceSocket.chat;
-  const usersStatus = selectors.specificDetails.usersStatus;
   const selectedConversation = selectors.conversations.selectedUser;
   const isMessagesSpinnerElementActive = selectors.conversations.isMessagesSpinnerElementActive;
 
@@ -210,29 +209,6 @@ const Chat: FC = () => {
   }, [messageList]);
 
   useEffect(() => {
-    if (connectionSocket && isCurrentOwner) {
-      connectionSocket.on('users-status', (data: UsersStatusType) => {
-        const newUsersStatus = Object.assign({}, usersStatus, data);
-        actions.setSpecificDetails('usersStatus', newUsersStatus);
-      });
-
-      connectionSocket.on('user-status', (data: UsersStatusType) => {
-        const conversationListAsObject = conversationListInstance.getListAsObject();
-        const [id] = Object.keys(data);
-        if (conversationListAsObject[id]) {
-          const newUsersStatus = Object.assign({}, usersStatus, data);
-          actions.setSpecificDetails('usersStatus', newUsersStatus);
-        }
-      });
-
-      return () => {
-        connectionSocket.removeListener('users-status');
-        connectionSocket.removeListener('user-status');
-      };
-    }
-  }, [connectionSocket, usersStatus, isCurrentOwner]);
-
-  useEffect(() => {
     if (chatSocket && connectionSocket) {
       chatSocket.on('fail-start-conversation', (error: Error) => {
         actions.processingApiError(StartConversationApi.name);
@@ -343,23 +319,25 @@ const Chat: FC = () => {
 
   return (
     <ConversationListSnapshotsProvider>
-      <Box
-        sx={{
-          width: '100vw',
-          height: 'calc(100vh - 64px)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <Box sx={{ width: '100%', height: '100%' }}>
-          <MessageWrapper>
-            <UsersWrapper>
-              <Users />
-            </UsersWrapper>
-            <MessagesContent />
-          </MessageWrapper>
+      <UserStatusEventsProvider>
+        <Box
+          sx={{
+            width: '100vw',
+            height: 'calc(100vh - 64px)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <Box sx={{ width: '100%', height: '100%' }}>
+            <MessageWrapper>
+              <UsersWrapper>
+                <Users />
+              </UsersWrapper>
+              <MessagesContent />
+            </MessageWrapper>
+          </Box>
         </Box>
-      </Box>
+      </UserStatusEventsProvider>
     </ConversationListSnapshotsProvider>
   );
 };
