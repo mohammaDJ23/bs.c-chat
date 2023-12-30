@@ -7,8 +7,8 @@ import { createBrowserHistory } from 'history';
 import { SnackbarProvider } from 'notistack';
 import Chat from './components/Chat';
 import { useAuth } from './hooks';
-import UserServiceChatSocketProvider from './lib/providers/userServiceChatSocketProvider';
-import UserServiceConnectionSocketProvider from './lib/providers/userServiceConnectionSocketProvider';
+import UserServiceChatSocketProvider from './lib/providers/UserServiceChatSocketProvider';
+import UserServiceConnectionSocketProvider from './lib/providers/UserServiceConnectionSocketProvider';
 
 export const history = createBrowserHistory();
 
