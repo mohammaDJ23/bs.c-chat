@@ -17,6 +17,11 @@ const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
   const snackbar = useSnackbar();
   const conversationList = conversationListInstance.getList();
   const chatSocket = selectors.userServiceSocket.chat;
+  const selectedConversation = selectors.conversations.selectedUser;
+
+  useEffect(() => {
+    selectedConversationRef.current = selectedConversation;
+  }, [selectedConversation]);
 
   useEffect(() => {
     if (chatSocket) {
