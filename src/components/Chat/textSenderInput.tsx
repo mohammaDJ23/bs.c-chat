@@ -1,7 +1,7 @@
 import { Box, TextField as TF, styled } from '@mui/material';
-import { FC, memo, useCallback, useState } from 'react';
+import { ChangeEvent, FC, memo, useCallback, useRef, useState } from 'react';
 import { useAuth, useInfinityList, useSelector } from '../../hooks';
-import { ConversationList, Message, MessageList } from '../../lib';
+import { ConversationList, Message, MessageList, debounce } from '../../lib';
 import SendIcon from '@mui/icons-material/Send';
 
 const TextField = styled(TF)(({ theme }) => ({
@@ -18,6 +18,7 @@ const TextField = styled(TF)(({ theme }) => ({
 
 const TextSenderInput: FC = () => {
   const [text, setText] = useState<string>('');
+  const halfSecondDebounce = useRef(debounce());
   const selectors = useSelector();
   const auth = useAuth();
   const messageListInstance = useInfinityList(MessageList);
@@ -64,6 +65,26 @@ const TextSenderInput: FC = () => {
     }
   }, [text, chatSocket, selectedConversation, messageListInstance, conversationListInstance]);
 
+  const onTextFieldChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setText(event.target.value);
+
+      if (chatSocket && selectedConversation) {
+        const payload = {
+          roomId: selectedConversation.conversation.roomId,
+          userId: decodedToken.id,
+        };
+
+        chatSocket.emit('typing-text', { payload });
+
+        halfSecondDebounce.current(() => {
+          chatSocket.emit('stoping-text', { payload });
+        });
+      }
+    },
+    [chatSocket, selectedConversation]
+  );
+
   return (
     <form
       onSubmit={(event) => {
@@ -80,7 +101,7 @@ const TextSenderInput: FC = () => {
         }}
       >
         <TextField
-          onChange={(event) => setText(event.target.value)}
+          onChange={onTextFieldChange}
           placeholder={'Type your message here'}
           fullWidth
           value={text}

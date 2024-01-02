@@ -25,6 +25,7 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
   const snackbar = useSnackbar();
   const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
   const connectionSocket = selectors.userServiceSocket.connection;
+  const chatSocket = selectors.userServiceSocket.chat;
 
   const getConversationList = useCallback(
     async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
@@ -80,6 +81,12 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
               if (connectionSocket && isCurrentOwner) {
                 connectionSocket.emit('users-status', { payload: ids });
               }
+
+              if (chatSocket) {
+                chatSocket.emit('make-rooms', {
+                  payload: conversationList.map((item) => item.conversation.roomId),
+                });
+              }
             });
           }
         })
@@ -90,7 +97,7 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
           snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
         });
     },
-    [connectionSocket, conversationListInstance, isCurrentOwner]
+    [connectionSocket, chatSocket, conversationListInstance, isCurrentOwner]
   );
 
   useEffect(() => {

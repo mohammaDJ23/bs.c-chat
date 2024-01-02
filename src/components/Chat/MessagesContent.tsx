@@ -12,6 +12,11 @@ import { AllConversationsApi, MessagesApi } from '../../apis';
 import TextSenderInput from './TextSenderInput';
 import GetMessageListProvider from '../../lib/providers/GetMessageListProvider';
 
+interface TypingText {
+  roomId: string;
+  userId: number;
+}
+
 const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
   display: 'none',
   [theme.breakpoints.down('md')]: {
@@ -66,6 +71,19 @@ const MessagesContent: FC = () => {
   const messageList = messageListInstance.getList();
   const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
+  const chatSocket = selectors.userServiceSocket.chat;
+
+  useEffect(() => {
+    if (chatSocket && isCurrentOwner) {
+      chatSocket.on('typing-text', (data: TypingText) => {
+        console.log('typeing', data);
+      });
+
+      chatSocket.on('stoping-text', (data: TypingText) => {
+        console.log('stopped', data);
+      });
+    }
+  }, [chatSocket, isCurrentOwner]);
 
   const onUserConversationNameClick = useCallback(() => {
     if (window.innerWidth < 900) {

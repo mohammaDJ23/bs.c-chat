@@ -22,6 +22,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
   const decodedToken = auth.getDecodedToken()!;
   const snackbar = useSnackbar();
   const connectionSocket = selectors.userServiceSocket.connection;
+  const chatSocket = selectors.userServiceSocket.chat;
 
   const insertNewConversation = useCallback(
     (receivedConversation: ConversationDocObj) => {
@@ -45,10 +46,16 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
           conversationListInstance.unshiftList(conversation);
           conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
           actions.selectUserForStartConversation(conversation);
+
+          if (chatSocket) {
+            chatSocket.emit('make-rooms', {
+              payload: conversation.conversation.roomId,
+            });
+          }
         }
       });
     },
-    [connectionSocket, conversationListInstance]
+    [connectionSocket, chatSocket, conversationListInstance]
   );
 
   useEffect(() => {
