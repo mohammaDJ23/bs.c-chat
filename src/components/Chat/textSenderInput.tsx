@@ -29,11 +29,6 @@ const TextSenderInput: FC = () => {
 
   const onSendText = useCallback(() => {
     if (chatSocket && selectedConversation && text.length) {
-      const message = new Message({
-        userId: decodedToken.id,
-        text: text.trim(),
-      });
-
       const conversationEl = document.querySelector(`[data-cactive="true"]`);
 
       // check if the conversation exist
@@ -41,6 +36,11 @@ const TextSenderInput: FC = () => {
         const conversationId = conversationEl.getAttribute('data-cid');
 
         if (conversationId === selectedConversation.conversation.id) {
+          const message = new Message({
+            userId: decodedToken.id,
+            text: text.trim(),
+          });
+
           messageListInstance.updateAndConcatList([message]);
 
           // scrolling the chat wrapper element to the bottom of the page
@@ -53,12 +53,11 @@ const TextSenderInput: FC = () => {
           });
 
           // then send the created message to the server to create a new one in the db
-          const payload = {
+          chatSocket.emit('send-message', {
             message,
             roomId: selectedConversation.conversation.roomId,
             conversationId: selectedConversation.conversation.id,
-          };
-          chatSocket.emit('send-message', { payload });
+          });
           setText('');
         }
       }

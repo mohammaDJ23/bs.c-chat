@@ -2,11 +2,17 @@ import { InfinityList } from './infinityList';
 import { FieldValue, Timestamp } from 'firebase/firestore';
 import { v4 as uuid } from 'uuid';
 
+export enum MessageStatus {
+  PENDING = 'pending',
+  SUCCESS = 'success',
+  ERROR = 'error',
+}
+
 export interface MessageObj {
   userId: number;
   id: string;
   text: string;
-  status: 'pending' | 'success' | 'error';
+  status: MessageStatus;
   isReaded: boolean;
   createdAt: FieldValue;
   updatedAt: FieldValue;
@@ -18,7 +24,7 @@ export class Message implements MessageObj {
   userId: number;
   text: string;
   isReaded: boolean = true;
-  status: 'pending' | 'success' | 'error' = 'pending';
+  status: MessageStatus = MessageStatus.PENDING;
   createdAt: FieldValue = Timestamp.fromDate(new Date());
   updatedAt: FieldValue = Timestamp.fromDate(new Date());
   deletedAt: FieldValue | null = null;
