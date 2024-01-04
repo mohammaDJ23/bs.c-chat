@@ -45,7 +45,6 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
           const conversation = new Conversation(findedUser, receivedConversation);
           conversationListInstance.unshiftList(conversation);
           conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
-          actions.selectUserForStartConversation(conversation);
 
           if (chatSocket) {
             chatSocket.emit('make-rooms', {
