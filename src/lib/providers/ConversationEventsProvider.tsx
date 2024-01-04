@@ -11,6 +11,7 @@ interface SendMessageObj {
 
 const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
   const selectedConversationRef = useRef<ConversationObj | null>(null);
+  const conversationListRef = useRef<ConversationObj[]>([]);
   const messageListInstance = useInfinityList(MessageList);
   const conversationListInstance = useInfinityList(ConversationList);
   const selectors = useSelector();
@@ -24,8 +25,12 @@ const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
   }, [selectedConversation]);
 
   useEffect(() => {
+    conversationListRef.current = conversationList;
+  }, [conversationList]);
+
+  useEffect(() => {
     if (chatSocket) {
-      conversationList.forEach((item) => {
+      conversationListRef.current.forEach((item) => {
         // listen to all conversation
         chatSocket.on(item.conversation.roomId, (data: SendMessageObj) => {
           // move the conversation to the top
@@ -85,7 +90,7 @@ const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
         chatSocket.removeListener('fail-send-message');
       };
     }
-  }, [chatSocket, messageListInstance, conversationList]);
+  }, [chatSocket, messageListInstance]);
 
   return <Fragment>{children}</Fragment>;
 };
