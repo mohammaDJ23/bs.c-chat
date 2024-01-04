@@ -81,7 +81,7 @@ const UsersFinderInput: FC = () => {
       if (value && chatSocket) {
         userListFiltersFormInstance.onChange('q', `${value.firstName} ${value.lastName}`);
         actions.processingApiLoading(StartConversationApi.name);
-        chatSocket.emit('start-conversation', { payload: value });
+        chatSocket.emit('start-conversation', { id: value.id });
       }
     },
     [chatSocket, isInitialMessagesApiProcessing]
