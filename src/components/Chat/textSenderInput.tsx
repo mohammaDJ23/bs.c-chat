@@ -72,6 +72,7 @@ const TextSenderInput: FC = () => {
       if (chatSocket && selectedConversation) {
         const payload = {
           roomId: selectedConversation.conversation.roomId,
+          conversationId: selectedConversation.conversation.id,
           userId: decodedToken.id,
         };
 

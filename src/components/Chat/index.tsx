@@ -6,6 +6,7 @@ import ConversationListSnapshotsProvider from '../../lib/providers/ConversationL
 import UserStatusEventsProvider from '../../lib/providers/UserStatusEventsProvider';
 import GetConversationListProvider from '../../lib/providers/GetConversationListProvider';
 import ConversationEventsProvider from '../../lib/providers/ConversationEventsProvider';
+import TypingTextEventsProvider from '../../lib/providers/TypingTextEventsProvider';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
   display: 'grid',
@@ -29,23 +30,25 @@ const Chat: FC = () => {
       <ConversationEventsProvider>
         <UserStatusEventsProvider>
           <GetConversationListProvider>
-            <Box
-              sx={{
-                width: '100vw',
-                height: 'calc(100vh - 64px)',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              <Box sx={{ width: '100%', height: '100%' }}>
-                <MessageWrapper>
-                  <UsersWrapper>
-                    <Users />
-                  </UsersWrapper>
-                  <MessagesContent />
-                </MessageWrapper>
+            <TypingTextEventsProvider>
+              <Box
+                sx={{
+                  width: '100vw',
+                  height: 'calc(100vh - 64px)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <Box sx={{ width: '100%', height: '100%' }}>
+                  <MessageWrapper>
+                    <UsersWrapper>
+                      <Users />
+                    </UsersWrapper>
+                    <MessagesContent />
+                  </MessageWrapper>
+                </Box>
               </Box>
-            </Box>
+            </TypingTextEventsProvider>
           </GetConversationListProvider>
         </UserStatusEventsProvider>
       </ConversationEventsProvider>

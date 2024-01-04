@@ -8,6 +8,8 @@ export interface ConversationDocObj {
   creatorId: number;
   targetId: number;
   roomId: string;
+  isCreatorTyping: boolean;
+  isTargetTyping: boolean;
   contributors: number[];
   lastMessage: MessageObj | null;
   createdAt: FieldValue;

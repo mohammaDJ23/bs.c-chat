@@ -2,7 +2,13 @@ import { FC, useCallback } from 'react';
 import { List, Box, ListItemButton, ListItem, ListItemText, CircularProgress, styled } from '@mui/material';
 import EmptyUsers from './EmptyUsers';
 import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
-import { ConversationList, ConversationObj, MessageList, getConversationDate } from '../../lib';
+import {
+  ConversationList,
+  ConversationObj,
+  MessageList,
+  getConversationDate,
+  getConversationTargetId,
+} from '../../lib';
 import { AllConversationsApi, MessagesApi, StartConversationApi } from '../../apis';
 import UsersFinderInput from './UsersFinderInput';
 
@@ -169,7 +175,10 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                             width: '250px',
                           }}
                           secondary={
-                            item.conversation.lastMessage
+                            (item.conversation.isCreatorTyping || item.conversation.isTargetTyping) &&
+                            !auth.isUserEqualToCurrentUser(getConversationTargetId(item.conversation))
+                              ? 'Typing...'
+                              : item.conversation.lastMessage
                               ? auth.isUserEqualToCurrentUser(item.conversation.lastMessage.userId)
                                 ? `You: ${item.conversation.lastMessage.text}`
                                 : item.conversation.lastMessage.text

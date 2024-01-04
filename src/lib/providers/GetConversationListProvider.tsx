@@ -44,9 +44,6 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
 
       Promise.all([getDocs(paginatedConversationListQuery), getCountFromServer(conversationListQuery)])
         .then(([paginatedConversationListSnapshot, conversationListSnapshot]) => {
-          if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
-          else actions.processingApiSuccess(AllConversationsApi.name);
-
           const docs = paginatedConversationListSnapshot.docs;
           const count = conversationListSnapshot.data().count;
 
@@ -65,6 +62,9 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
             const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
 
             request.build<[UserObj[], number]>(api).then((response) => {
+              if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
+              else actions.processingApiSuccess(AllConversationsApi.name);
+
               const [list] = response.data;
               const conversationList: ConversationObj[] = ids
                 .map((id, i) => {
@@ -88,6 +88,9 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
                 });
               }
             });
+          } else {
+            if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
+            else actions.processingApiSuccess(AllConversationsApi.name);
           }
         })
         .catch((error: Error) => {

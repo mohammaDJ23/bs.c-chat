@@ -7,15 +7,10 @@ import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { getUserStatusDate, MessageList } from '../../lib';
+import { getConversationTargetId, getUserStatusDate, MessageList } from '../../lib';
 import { AllConversationsApi, MessagesApi } from '../../apis';
 import TextSenderInput from './TextSenderInput';
 import GetMessageListProvider from '../../lib/providers/GetMessageListProvider';
-
-interface TypingText {
-  roomId: string;
-  userId: number;
-}
 
 const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
   display: 'none',
@@ -71,19 +66,7 @@ const MessagesContent: FC = () => {
   const messageList = messageListInstance.getList();
   const isCurrentOwner = auth.isCurrentOwner();
   const isConversationDrawerOpen = !!selectors.modals[ModalNames.CONVERSATION];
-  const chatSocket = selectors.userServiceSocket.chat;
-
-  useEffect(() => {
-    if (chatSocket && isCurrentOwner) {
-      chatSocket.on('typing-text', (data: TypingText) => {
-        console.log('typeing', data);
-      });
-
-      chatSocket.on('stoping-text', (data: TypingText) => {
-        console.log('stopped', data);
-      });
-    }
-  }, [chatSocket, isCurrentOwner]);
+  const selectedConversation = selectors.conversations.selectedUser;
 
   const onUserConversationNameClick = useCallback(() => {
     if (window.innerWidth < 900) {
@@ -121,7 +104,7 @@ const MessagesContent: FC = () => {
         </Box>
       ) : (
         <>
-          {selectors.conversations.selectedUser ? (
+          {selectedConversation ? (
             <Box
               sx={{
                 width: '100%',
@@ -165,18 +148,26 @@ const MessagesContent: FC = () => {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {selectors.conversations.selectedUser.user.firstName}{' '}
-                    {selectors.conversations.selectedUser.user.lastName}
+                    {selectedConversation.user.firstName} {selectedConversation.user.lastName}
                   </Typography>
                   {isCurrentOwner &&
                     (() => {
-                      const userLastConnection = auth.getUserLastConnection(
-                        selectors.conversations.selectedUser.user.id
-                      );
+                      const userLastConnection = auth.getUserLastConnection(selectedConversation.user.id);
                       if (userLastConnection) {
                         return (
                           <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
                             {getUserStatusDate(userLastConnection)}
+                          </Typography>
+                        );
+                      } else if (
+                        userLastConnection === null &&
+                        (selectedConversation.conversation.isCreatorTyping ||
+                          selectedConversation.conversation.isTargetTyping) &&
+                        !auth.isUserEqualToCurrentUser(getConversationTargetId(selectedConversation.conversation))
+                      ) {
+                        return (
+                          <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                            Typing...
                           </Typography>
                         );
                       } else if (userLastConnection === null) {
