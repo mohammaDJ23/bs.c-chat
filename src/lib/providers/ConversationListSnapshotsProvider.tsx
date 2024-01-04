@@ -85,7 +85,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
     return () => {
       unsubscribe();
     };
-  }, [conversationListInstance, insertNewConversation]);
+  }, [insertNewConversation]);
 
   useEffect(() => {
     // this snapshot is for when the two users have not created the conversation before
@@ -117,7 +117,6 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
               if (conversationList[parsedIndex]) {
                 const [newConversation] = conversationList.splice(parsedIndex, 1);
                 conversationListInstance.unshiftList(newConversation);
-                actions.selectUserForStartConversation(newConversation);
               }
             }
           }
