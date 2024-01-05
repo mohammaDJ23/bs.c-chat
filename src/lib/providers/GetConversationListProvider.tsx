@@ -84,7 +84,7 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
 
               if (chatSocket) {
                 chatSocket.emit('make-rooms', {
-                  payload: conversationList.map((item) => item.conversation.roomId),
+                  roomIds: conversationList.map((item) => item.conversation.roomId),
                 });
               }
             });

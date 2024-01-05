@@ -48,7 +48,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
 
           if (chatSocket) {
             chatSocket.emit('make-rooms', {
-              payload: conversation.conversation.roomId,
+              roomIds: [conversation.conversation.roomId],
             });
           }
         }
