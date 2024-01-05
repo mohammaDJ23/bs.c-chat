@@ -115,6 +115,7 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
   );
 
   useEffect(() => {
+    conversationListInstance.resetList();
     getConversationList({ isInitialApi: true });
   }, []);
 
