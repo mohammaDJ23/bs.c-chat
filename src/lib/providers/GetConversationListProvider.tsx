@@ -12,11 +12,14 @@ import {
   preventRunAt,
 } from '../../lib';
 import { useSnackbar } from 'notistack';
+import { Socket } from 'socket.io-client';
 
 const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
   const selectors = useSelector();
   const conversationListInstance = useInfinityList(ConversationList);
   const lastVisibleConversationDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | object>({});
+  const connectionSocketRef = useRef<Socket | null>(null);
+  const chatSocketRef = useRef<Socket | null>(null);
   const actions = useAction();
   const auth = useAuth();
   const request = useRequest();
@@ -26,6 +29,14 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
   const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
   const connectionSocket = selectors.userServiceSocket.connection;
   const chatSocket = selectors.userServiceSocket.chat;
+
+  useEffect(() => {
+    connectionSocketRef.current = connectionSocket;
+  }, [connectionSocket]);
+
+  useEffect(() => {
+    chatSocketRef.current = chatSocket;
+  }, [chatSocket]);
 
   const getConversationList = useCallback(
     async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
@@ -78,12 +89,12 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
               conversationListInstance.updatePage(page);
               conversationListInstance.updateTotal(count);
 
-              if (connectionSocket && isCurrentOwner) {
-                connectionSocket.emit('users-status', { payload: ids });
+              if (connectionSocketRef.current && isCurrentOwner) {
+                connectionSocketRef.current.emit('users-status', { payload: ids });
               }
 
-              if (chatSocket) {
-                chatSocket.emit('make-rooms', {
+              if (chatSocketRef.current) {
+                chatSocketRef.current.emit('make-rooms', {
                   roomIds: conversationList.map((item) => item.conversation.roomId),
                 });
               }
@@ -100,12 +111,12 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
           snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
         });
     },
-    [connectionSocket, chatSocket, conversationListInstance, isCurrentOwner]
+    [conversationListInstance]
   );
 
   useEffect(() => {
     getConversationList({ isInitialApi: true });
-  }, [connectionSocket]);
+  }, []);
 
   useEffect(() => {
     const el = document.getElementById('chat__conversation-list-spinner');
