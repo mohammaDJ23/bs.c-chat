@@ -75,10 +75,10 @@ const TextSenderInput: FC = () => {
           userId: decodedToken.id,
         };
 
-        chatSocket.emit('typing-text', { payload });
+        chatSocket.emit('typing-text', payload);
 
         halfSecondDebounce.current(() => {
-          chatSocket.emit('stoping-text', { payload });
+          chatSocket.emit('stoping-text', payload);
         });
       }
     },
