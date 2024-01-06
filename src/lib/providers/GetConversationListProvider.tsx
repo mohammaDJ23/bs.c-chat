@@ -90,7 +90,7 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
               conversationListInstance.updateTotal(count);
 
               if (connectionSocketRef.current && isCurrentOwner) {
-                connectionSocketRef.current.emit('users-status', { payload: ids });
+                connectionSocketRef.current.emit('users-status', { ids });
               }
 
               if (chatSocketRef.current) {

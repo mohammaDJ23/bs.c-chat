@@ -39,12 +39,13 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
         const [list] = response.data;
         const [findedUser] = list;
         if (findedUser && connectionSocket) {
-          if (isCurrentOwner) {
-            connectionSocket.emit('users-status', { payload: [conversationTargetId] });
-          }
           const conversation = new Conversation(findedUser, receivedConversation);
           conversationListInstance.unshiftList(conversation);
           conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
+
+          if (isCurrentOwner) {
+            connectionSocket.emit('users-status', { ids: [conversationTargetId] });
+          }
 
           if (chatSocket) {
             chatSocket.emit('make-rooms', {
