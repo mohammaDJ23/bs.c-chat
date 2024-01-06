@@ -26,6 +26,9 @@ const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
   useEffect(() => {
     if (chatSocket) {
       conversationList.forEach((item) => {
+        // removing the previous roomId listener to prevent extra running on each rendering
+        chatSocket.removeListener(item.conversation.roomId);
+
         // listen to all conversation
         chatSocket.on(item.conversation.roomId, (data: SendMessageObj) => {
           // move the conversation to the top
@@ -81,11 +84,10 @@ const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
       });
 
       return () => {
-        chatSocket.removeListener('success-send-message');
         chatSocket.removeListener('fail-send-message');
       };
     }
-  }, [chatSocket, messageListInstance, conversationList]);
+  }, [chatSocket, messageListInstance, conversationList, conversationListInstance]);
 
   return <Fragment>{children}</Fragment>;
 };
