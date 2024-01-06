@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useAuth } from '../../hooks';
-import { MessageObj, getConversationDate, getMessageDate } from '../../lib';
+import { MessageObj, MessageStatus, getMessageDate } from '../../lib';
 
 interface MessageCardImportation {
   message: MessageObj;
@@ -29,6 +29,7 @@ const MessageCard: FC<MessageCardImportation> = ({ message }) => {
           color: isUserEqualToCurrentUser ? 'white' : 'black',
           wordBreak: 'break-word',
           minWidth: '20px',
+          opacity: message.status === MessageStatus.PENDING || message.status === MessageStatus.ERROR ? 0.7 : 1,
         }}
       >
         <Box

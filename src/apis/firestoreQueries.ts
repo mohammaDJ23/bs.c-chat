@@ -47,6 +47,25 @@ export namespace FirestoreQueries {
     }
   }
 
+  export class InitialConversationListForSnapshotQuery implements FirestoreQuery {
+    private readonly q: Query<DocumentData, DocumentData>;
+
+    constructor(private readonly userId: number) {
+      this.q = query(
+        collection(db, conversationCollection),
+        and(
+          where('contributors', 'array-contains', this.userId),
+          where('lastMessage', '==', null),
+          or(where('creatorId', '==', this.userId), where('targetId', '==', this.userId))
+        )
+      );
+    }
+
+    getQuery() {
+      return this.q;
+    }
+  }
+
   export class ConversationListForSnapshotQuery implements FirestoreQuery {
     private readonly q: Query<DocumentData, DocumentData>;
 
