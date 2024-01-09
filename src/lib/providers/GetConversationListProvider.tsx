@@ -6,7 +6,6 @@ import {
   Conversation,
   ConversationDocObj,
   ConversationList,
-  ConversationObj,
   UserObj,
   getConversationTargetId,
   preventRunAt,
@@ -38,56 +37,74 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
     chatSocketRef.current = chatSocket;
   }, [chatSocket]);
 
-  const getConversationList = useCallback(
-    async (data: Partial<ConversationList> & Partial<RootApi> = {}) => {
-      if (data.isInitialApi) actions.initialProcessingApiLoading(AllConversationsApi.name);
-      else actions.processingApiLoading(AllConversationsApi.name);
-
-      data.page = data.page || conversationListInstance.getPage();
-      const page = data.page!;
-
+  const getPaginatedConversationListAndCount = useCallback(
+    async (id: number, take: number, lastVisible: QueryDocumentSnapshot<DocumentData, DocumentData> | object) => {
       const paginatedConversationListQuery = new FirestoreQueries.PaginatedConversationListQuery(
-        decodedToken.id,
-        conversationListInstance.getTake(),
-        lastVisibleConversationDocRef.current
+        id,
+        take,
+        lastVisible
       ).getQuery();
       const conversationListQuery = new FirestoreQueries.ConversationListQuery(decodedToken.id).getQuery();
+      return Promise.all([getDocs(paginatedConversationListQuery), getCountFromServer(conversationListQuery)])
+        .then((responses) => {
+          return responses;
+        })
+        .catch((error: Error) => {
+          throw error;
+        });
+    },
+    []
+  );
 
-      Promise.all([getDocs(paginatedConversationListQuery), getCountFromServer(conversationListQuery)])
-        .then(([paginatedConversationListSnapshot, conversationListSnapshot]) => {
+  const getUserList = useCallback(async (ids: number[], take: number) => {
+    const apiData = {
+      page: 1,
+      take,
+      filters: { ids },
+    };
+
+    const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
+    return request
+      .build<[UserObj[], number]>(api)
+      .then((response) => {
+        return response;
+      })
+      .catch((error: Error) => {
+        throw error;
+      });
+  }, []);
+
+  const getConversationList = useCallback(async (data: Partial<RootApi> = {}) => {
+    if (data.isInitialApi) actions.initialProcessingApiLoading(AllConversationsApi.name);
+    else actions.processingApiLoading(AllConversationsApi.name);
+
+    return getPaginatedConversationListAndCount(
+      decodedToken.id,
+      conversationListInstance.getTake(),
+      lastVisibleConversationDocRef.current
+    )
+      .then(([paginatedConversationListSnapshot, conversationListSnapshot]) => {
+        const count = conversationListSnapshot.data().count;
+        if (paginatedConversationListSnapshot.size > 0 || count > 0) {
           const docs = paginatedConversationListSnapshot.docs;
-          const count = conversationListSnapshot.data().count;
+          lastVisibleConversationDocRef.current = docs[docs.length - 1];
 
           const conversationDocs = docs.map((doc) => doc.data()) as ConversationDocObj[];
           const ids = conversationDocs.map((doc) => getConversationTargetId(doc));
 
-          if (conversationDocs.length && ids.length) {
-            lastVisibleConversationDocRef.current = docs[docs.length - 1];
-
-            const apiData = {
-              page: 1,
-              take: conversationListInstance.getTake(),
-              filters: { ids },
-            };
-
-            const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
-
-            request.build<[UserObj[], number]>(api).then((response) => {
+          return getUserList(ids, conversationListInstance.getTake())
+            .then((response) => {
               if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
               else actions.processingApiSuccess(AllConversationsApi.name);
 
               const [list] = response.data;
-              const conversationList: ConversationObj[] = ids
+
+              const conversationList = ids
                 .map((id, i) => {
                   const findedUser = list.find((user) => user.id === id)!;
                   return new Conversation(findedUser, conversationDocs[i]);
                 })
                 .filter((conversation) => !!conversation.user);
-
-              conversationListInstance.updateAndConcatList(conversationList);
-              conversationListInstance.updateListAsObject(conversationList, (val) => val.user.id);
-              conversationListInstance.updatePage(page);
-              conversationListInstance.updateTotal(count);
 
               if (connectionSocketRef.current && isCurrentOwner) {
                 connectionSocketRef.current.emit('users-status', { ids });
@@ -98,25 +115,39 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
                   roomIds: conversationList.map((item) => item.conversation.roomId),
                 });
               }
-            });
-          } else {
-            if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
-            else actions.processingApiSuccess(AllConversationsApi.name);
-          }
-        })
-        .catch((error: Error) => {
-          if (data.isInitialApi) actions.initialProcessingApiError(AllConversationsApi.name);
-          else actions.processingApiError(AllConversationsApi.name);
 
-          snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
-        });
-    },
-    [conversationListInstance]
-  );
+              return { list: conversationList, count };
+            })
+            .catch((error: Error) => {
+              if (data.isInitialApi) actions.initialProcessingApiError(AllConversationsApi.name);
+              else actions.processingApiError(AllConversationsApi.name);
+
+              snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
+
+              throw error;
+            });
+        }
+        return undefined;
+      })
+      .catch((error: Error) => {
+        if (data.isInitialApi) actions.initialProcessingApiError(AllConversationsApi.name);
+        else actions.processingApiError(AllConversationsApi.name);
+
+        snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
+
+        throw error;
+      });
+  }, []);
 
   useEffect(() => {
-    conversationListInstance.resetList();
-    getConversationList({ isInitialApi: true });
+    getConversationList({ isInitialApi: true }).then((conversationList) => {
+      if (conversationList) {
+        conversationListInstance.updateList(conversationList.list);
+        conversationListInstance.updateListAsObject(conversationList.list, (val) => val.user.id);
+        conversationListInstance.updatePage(1);
+        conversationListInstance.updateTotal(conversationList.count);
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -127,7 +158,15 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
           if (!isAllConversationApiProcessing && !conversationListInstance.isListEnd()) {
             let page = conversationListInstance.getPage();
             page++;
-            getConversationList({ page });
+
+            getConversationList().then((conversationList) => {
+              if (conversationList) {
+                conversationListInstance.updateAndConcatList(conversationList.list);
+                conversationListInstance.updateListAsObject(conversationList.list, (val) => val.user.id);
+                conversationListInstance.updatePage(page);
+                conversationListInstance.updateTotal(conversationList.count);
+              }
+            });
           }
         }, 1)
       );
