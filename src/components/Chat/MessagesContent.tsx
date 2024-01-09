@@ -1,16 +1,25 @@
 import { FC, useCallback, useEffect } from 'react';
 import { Box, styled, Drawer, Typography, CircularProgress } from '@mui/material';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import Users from './Users';
 import MessageCard from './MessageCard';
 import { ModalNames } from '../../store';
 import EmptyMessages from './EmptyMessages';
 import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
 import StartConversation from './StartConversation';
-import { getConversationTargetId, getUserStatusDate, MessageList } from '../../lib';
+import {
+  ConversationList,
+  getConversationTargetId,
+  getDynamicPath,
+  getUserStatusDate,
+  MessageList,
+  Pathes,
+} from '../../lib';
 import { AllConversationsApi, MessagesApi } from '../../apis';
 import TextSenderInput from './TextSenderInput';
 import GetMessageListProvider from '../../lib/providers/GetMessageListProvider';
+import { history } from '../../App';
 
 const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
   display: 'none',
@@ -57,6 +66,7 @@ const MessagesSpinnerWrapper = styled(Box)(({ theme }) => ({
 
 const MessagesContent: FC = () => {
   const messageListInstance = useInfinityList(MessageList);
+  const conversationListInstance = useInfinityList(ConversationList);
   const selectors = useSelector();
   const actions = useAction();
   const auth = useAuth();
@@ -114,7 +124,6 @@ const MessagesContent: FC = () => {
               }}
             >
               <Box
-                onClick={() => onUserConversationNameClick()}
                 sx={{
                   position: 'sticky',
                   top: 0,
@@ -123,61 +132,86 @@ const MessagesContent: FC = () => {
                   borderBottom: '1px solid #e0e0e0',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
+                  justifyContent: 'space-between',
+                  gap: '5px',
                   height: '53px',
                   backgroundColor: 'white',
                 }}
               >
-                <ArrowLeftIconWrapper>
-                  <ArrowLeftIcon fontSize="medium" />
-                </ArrowLeftIconWrapper>
                 <Box
+                  onClick={() => onUserConversationNameClick()}
                   sx={{
                     display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
+                    alignItems: 'center',
+                    gap: '10px',
+                    width: '100%',
+                    cursor: 'pointer',
                   }}
                 >
-                  <Typography
-                    fontSize="14px"
-                    fontWeight={'bold'}
+                  <ArrowLeftIconWrapper>
+                    <ArrowLeftIcon fontSize="medium" />
+                  </ArrowLeftIconWrapper>
+                  <Box
                     sx={{
-                      maxWidth: '560px',
-                      textOverflow: 'ellipsis',
+                      display: 'flex',
+                      flexDirection: 'column',
                       overflow: 'hidden',
-                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {selectedConversation.user.firstName} {selectedConversation.user.lastName}
-                  </Typography>
-                  {isCurrentOwner &&
-                    (() => {
-                      const userLastConnection = auth.getUserLastConnection(selectedConversation.user.id);
-                      if (userLastConnection) {
-                        return (
-                          <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
-                            {getUserStatusDate(userLastConnection)}
-                          </Typography>
-                        );
-                      } else if (
-                        userLastConnection === null &&
-                        (selectedConversation.conversation.isCreatorTyping ||
-                          selectedConversation.conversation.isTargetTyping) &&
-                        !auth.isUserEqualToCurrentUser(getConversationTargetId(selectedConversation.conversation))
-                      ) {
-                        return (
-                          <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
-                            Typing...
-                          </Typography>
-                        );
-                      } else if (userLastConnection === null) {
-                        return (
-                          <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
-                            online
-                          </Typography>
-                        );
-                      }
-                    })()}
+                    <Typography
+                      fontSize="14px"
+                      fontWeight={'bold'}
+                      sx={{
+                        maxWidth: '560px',
+                        textOverflow: 'ellipsis',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {selectedConversation.user.firstName} {selectedConversation.user.lastName}
+                    </Typography>
+                    {isCurrentOwner &&
+                      (() => {
+                        const userLastConnection = auth.getUserLastConnection(selectedConversation.user.id);
+                        if (userLastConnection) {
+                          return (
+                            <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                              {getUserStatusDate(userLastConnection)}
+                            </Typography>
+                          );
+                        } else if (
+                          userLastConnection === null &&
+                          (selectedConversation.conversation.isCreatorTyping ||
+                            selectedConversation.conversation.isTargetTyping) &&
+                          !auth.isUserEqualToCurrentUser(getConversationTargetId(selectedConversation.conversation))
+                        ) {
+                          return (
+                            <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                              Typing...
+                            </Typography>
+                          );
+                        } else if (userLastConnection === null) {
+                          return (
+                            <Typography component={'p'} fontSize="10px" color="rgba(0, 0, 0, 0.6)">
+                              online
+                            </Typography>
+                          );
+                        }
+                      })()}
+                  </Box>
+                </Box>
+                <Box
+                  component={'span'}
+                  sx={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    history.push(
+                      getDynamicPath(Pathes.USER, {
+                        id: selectedConversation.user.id,
+                      })
+                    );
+                  }}
+                >
+                  <ArrowRightIcon fontSize="medium" />
                 </Box>
               </Box>
 
