@@ -46,6 +46,7 @@ jobs:
             FIREBASE_CONVERSATION_COLLECTION=${{ secrets.PROD_FIREBASE_CONVERSATION_COLLECTION }}
             CHAT_PUBLIC_PATH=${{ secrets.CHAT_PUBLIC_PATH }}
             CACHE_SECRET_KEY=${{ secrets.PROD_CACHE_SECRET_KEY }}
+            AUTH_SERVICE=${{ secrets.PROD_AUTH_SERVICE }}
             USER_SERVICE=${{ secrets.PROD_USER_SERVICE }}
             NOTIFICATION_SERVICE=${{ secrets.PROD_NOTIFICATION_SERVICE }}
             CONTAINER_APP=${{ secrets.PROD_CONTAINER_APP }}
