@@ -6,7 +6,6 @@ import { Navigate, Routes, unstable_HistoryRouter as HistoryRouter, Route } from
 import { createBrowserHistory } from 'history';
 import { SnackbarProvider } from 'notistack';
 import { useAuth } from './hooks';
-import UserServiceChatSocketProvider from './lib/providers/UserServiceChatSocketProvider';
 import UserServiceConnectionSocketProvider from './lib/providers/UserServiceConnectionSocketProvider';
 import RedirectionProvider from './lib/providers/RedirectionProvider';
 
@@ -31,13 +30,11 @@ const App: FC = () => {
             style={{ maxWidth: '300px', wordBreak: 'break-word', overflow: 'hidden' }}
           >
             <UserServiceConnectionSocketProvider>
-              <UserServiceChatSocketProvider>
-                <Routes>
-                  {routes.map((route) => (
-                    <Route key={route.path} path={route.path} element={route.element} />
-                  ))}
-                </Routes>
-              </UserServiceChatSocketProvider>
+              <Routes>
+                {routes.map((route) => (
+                  <Route key={route.path} path={route.path} element={route.element} />
+                ))}
+              </Routes>
             </UserServiceConnectionSocketProvider>
           </SnackbarProvider>
         </RedirectionProvider>

@@ -8,6 +8,7 @@ import GetConversationListProvider from '../../lib/providers/GetConversationList
 import ConversationEventsProvider from '../../lib/providers/ConversationEventsProvider';
 import TypingTextEventsProvider from '../../lib/providers/TypingTextEventsProvider';
 import GenerateCustomTokenProvider from '../../lib/providers/GenerateCustomTokenProvider';
+import UserServiceChatSocketProvider from '../../lib/providers/UserServiceChatSocketProvider';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
   display: 'grid',
@@ -28,33 +29,35 @@ const UsersWrapper = styled(Box)(({ theme }) => ({
 const Chat: FC = () => {
   return (
     <GenerateCustomTokenProvider>
-      <ConversationListSnapshotsProvider>
-        <ConversationEventsProvider>
-          <UserStatusEventsProvider>
-            <GetConversationListProvider>
-              <TypingTextEventsProvider>
-                <Box
-                  sx={{
-                    width: '100vw',
-                    height: 'calc(100vh - 64px)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <Box sx={{ width: '100%', height: '100%' }}>
-                    <MessageWrapper>
-                      <UsersWrapper>
-                        <Users />
-                      </UsersWrapper>
-                      <MessagesContent />
-                    </MessageWrapper>
+      <UserServiceChatSocketProvider>
+        <ConversationListSnapshotsProvider>
+          <ConversationEventsProvider>
+            <UserStatusEventsProvider>
+              <GetConversationListProvider>
+                <TypingTextEventsProvider>
+                  <Box
+                    sx={{
+                      width: '100vw',
+                      height: 'calc(100vh - 64px)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <Box sx={{ width: '100%', height: '100%' }}>
+                      <MessageWrapper>
+                        <UsersWrapper>
+                          <Users />
+                        </UsersWrapper>
+                        <MessagesContent />
+                      </MessageWrapper>
+                    </Box>
                   </Box>
-                </Box>
-              </TypingTextEventsProvider>
-            </GetConversationListProvider>
-          </UserStatusEventsProvider>
-        </ConversationEventsProvider>
-      </ConversationListSnapshotsProvider>
+                </TypingTextEventsProvider>
+              </GetConversationListProvider>
+            </UserStatusEventsProvider>
+          </ConversationEventsProvider>
+        </ConversationListSnapshotsProvider>
+      </UserServiceChatSocketProvider>
     </GenerateCustomTokenProvider>
   );
 };

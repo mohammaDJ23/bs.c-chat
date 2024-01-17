@@ -14,13 +14,14 @@ export function getUserServiceConnectionSocket() {
   });
 }
 
-export function getUserServiceChatSocket() {
+export function getUserServiceChatSocket(firebaseIdToken: string) {
   return io(`${process.env.USER_SERVICE}`, {
     path: '/api/v1/user/socket/chat',
     transportOptions: {
       polling: {
         extraHeaders: {
           Authorization: `Bearer ${getToken()}`,
+          FBITAuthorization: `Bearer ${firebaseIdToken}`,
         },
       },
     },

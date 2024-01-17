@@ -8,6 +8,7 @@ import {
   FormActions,
   SpecificDetailsActions,
   InfinityListActions,
+  FirebaseActions,
 } from './';
 
 export type RootActions =
@@ -19,4 +20,5 @@ export type RootActions =
   | PaginationListActions
   | FormActions
   | SpecificDetailsActions
-  | InfinityListActions;
+  | InfinityListActions
+  | FirebaseActions;
