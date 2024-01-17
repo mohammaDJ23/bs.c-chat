@@ -53,3 +53,17 @@ export class StartConversationApi extends RootApi {}
 export class AllConversationsApi extends RootApi {}
 
 export class MessagesApi extends RootApi {}
+
+export class GenerateCustomTokenApi extends RootApi {
+  constructor() {
+    super(
+      {
+        url: '/api/v1/auth/firebase/generate-custom-token',
+        method: 'get',
+      },
+      { baseURL: process.env.AUTH_SERVICE }
+    );
+  }
+}
+
+export class SigninWithCustomTokenApi extends RootApi {}
