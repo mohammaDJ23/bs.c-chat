@@ -5,6 +5,8 @@ import { auth } from '../firebase';
 import { GenerateCustomTokenApi, SigninWithCustomTokenApi } from '../../apis';
 import { AccessTokenObj } from '../authentication';
 import ConversationSkeleton from '../../components/Chat/ConversationSkeleton';
+import FailedConnectionOfFirebase from '../../components/Chat/FailedConnectionOfFirebase';
+import FailedConnectionOfConversation from '../../components/Chat/FailedConnectionOfConversation';
 
 const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -42,6 +44,7 @@ const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
               actions.updateFirebaseIdToken(token);
             })
             .catch((error) => {
+              actions.initialProcessingApiError(SigninWithCustomTokenApi.name);
               setUser(null);
               actions.updateFirebaseIdToken('');
             });
@@ -77,11 +80,11 @@ const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
   return isInitialGenerateCustomTokenApiProcessing || isInitialSigninWithCustomTokenApiProcessing ? (
     <ConversationSkeleton />
   ) : isInitialGenerateCustomTokenApiFailed || isInitialSigninWithCustomTokenApiFailed ? (
-    <div>Failed to generate a token.</div>
+    <FailedConnectionOfFirebase />
   ) : user ? (
     <Fragment>{children}</Fragment>
   ) : (
-    <div>you are unable to use the conversation.</div>
+    <FailedConnectionOfConversation />
   );
 };
 
