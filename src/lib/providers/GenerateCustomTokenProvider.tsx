@@ -4,6 +4,7 @@ import { signInWithCustomToken, onIdTokenChanged, User } from 'firebase/auth';
 import { auth } from '../firebase';
 import { GenerateCustomTokenApi, SigninWithCustomTokenApi } from '../../apis';
 import { AccessTokenObj } from '../authentication';
+import ConversationSkeleton from '../../components/Chat/ConversationSkeleton';
 
 const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -74,7 +75,7 @@ const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
   }, [isInitialSigninWithCustomTokenApiProcessing, user]);
 
   return isInitialGenerateCustomTokenApiProcessing || isInitialSigninWithCustomTokenApiProcessing ? (
-    <div>Generating a token...</div>
+    <ConversationSkeleton />
   ) : isInitialGenerateCustomTokenApiFailed || isInitialSigninWithCustomTokenApiFailed ? (
     <div>Failed to generate a token.</div>
   ) : user ? (

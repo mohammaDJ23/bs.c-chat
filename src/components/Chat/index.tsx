@@ -9,6 +9,9 @@ import ConversationEventsProvider from '../../lib/providers/ConversationEventsPr
 import TypingTextEventsProvider from '../../lib/providers/TypingTextEventsProvider';
 import GenerateCustomTokenProvider from '../../lib/providers/GenerateCustomTokenProvider';
 import UserServiceChatSocketProvider from '../../lib/providers/UserServiceChatSocketProvider';
+import { useRequest } from '../../hooks';
+import { AllConversationsApi } from '../../apis';
+import ConversationSkeleton from './ConversationSkeleton';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
   display: 'grid',
@@ -27,6 +30,9 @@ const UsersWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const Chat: FC = () => {
+  const request = useRequest();
+  const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
+
   return (
     <GenerateCustomTokenProvider>
       <UserServiceChatSocketProvider>
@@ -44,12 +50,16 @@ const Chat: FC = () => {
                     }}
                   >
                     <Box sx={{ width: '100%', height: '100%' }}>
-                      <MessageWrapper>
-                        <UsersWrapper>
-                          <Users />
-                        </UsersWrapper>
-                        <MessagesContent />
-                      </MessageWrapper>
+                      {isInitialAllConversationApiProcessing ? (
+                        <ConversationSkeleton />
+                      ) : (
+                        <MessageWrapper>
+                          <UsersWrapper>
+                            <Users />
+                          </UsersWrapper>
+                          <MessagesContent />
+                        </MessageWrapper>
+                      )}
                     </Box>
                   </Box>
                 </TypingTextEventsProvider>

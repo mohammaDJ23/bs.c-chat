@@ -1,6 +1,7 @@
 import { Fragment, useEffect, FC, PropsWithChildren, useState, memo } from 'react';
 import { getUserServiceChatSocket } from '../socket';
 import { useAction, useSelector } from '../../hooks';
+import ConversationSkeleton from '../../components/Chat/ConversationSkeleton';
 
 type IdTokenStatus = 'pending' | 'error' | 'success';
 
@@ -19,7 +20,7 @@ const UserServiceChatSocketProvider: FC<PropsWithChildren> = ({ children }) => {
   }, [firebaseIdToken]);
 
   return idTokenStatus === 'pending' ? (
-    <div>getting the firebase id token...</div>
+    <ConversationSkeleton />
   ) : idTokenStatus === 'error' ? (
     <div>Not found the firebase id token.</div>
   ) : (
