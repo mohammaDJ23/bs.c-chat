@@ -1,8 +1,8 @@
 import { memo, useEffect } from 'react';
 import { ChangeEvent, FC, useCallback, useRef, useState } from 'react';
 import { Autocomplete, TextField } from '@mui/material';
-import { useAction, useAuth, useForm, useInfinityList, usePaginationList, useRequest, useSelector } from '../../hooks';
-import { ConversationList, ConversationObj, UserList, UserListFilters, UserObj, debounce } from '../../lib';
+import { useAction, useAuth, useForm, usePaginationList, useRequest, useSelector } from '../../hooks';
+import { ConversationObj, UserList, UserListFilters, UserObj, debounce } from '../../lib';
 import { AllOwnersApi, AllUsersApi, MessagesApi, StartConversationApi } from '../../apis';
 import { useSnackbar } from 'notistack';
 
@@ -16,7 +16,6 @@ const UsersFinderInput: FC = () => {
   const isCurrentOwner = auth.isCurrentOwner();
   const userListInstance = usePaginationList(UserList);
   const userListFiltersFormInstance = useForm(UserListFilters);
-  const conversationListInstance = useInfinityList(ConversationList);
   const userListFiltersForm = userListFiltersFormInstance.getForm();
   const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
   const isInitialMessagesApiProcessing = request.isInitialApiProcessing(MessagesApi);
@@ -25,21 +24,18 @@ const UsersFinderInput: FC = () => {
 
   useEffect(() => {
     if (chatSocket) {
+      chatSocket.removeListener('fail-start-conversation');
+
       chatSocket.on('fail-start-conversation', (error: Error) => {
         actions.processingApiError(StartConversationApi.name);
         snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
       });
 
-      chatSocket.on('success-start-conversation', (data: ConversationObj) => {
-        userListFiltersFormInstance.onChange('q', '');
-      });
-
       return () => {
         chatSocket.removeListener('fail-start-conversation');
-        chatSocket.removeListener('success-start-conversation');
       };
     }
-  }, [chatSocket, conversationListInstance]);
+  }, [chatSocket]);
 
   const onSearchUsersChange = useCallback(
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
