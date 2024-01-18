@@ -70,10 +70,6 @@ const GetMessageListProvider: FC<PropsWithChildren> = ({ children }) => {
     return snapshot.docs.map((doc) => doc.data()).reverse() as MessageObj[];
   }, []);
 
-  const getMessageWrapperElement = useCallback(() => {
-    return document.getElementById('chat__messages-wrapper');
-  }, []);
-
   useEffect(() => {
     if (selectedConversation) {
       if (selectedConversationRef.current && selectedConversationRef.current.user.id !== selectedConversation.user.id) {
@@ -91,7 +87,7 @@ const GetMessageListProvider: FC<PropsWithChildren> = ({ children }) => {
 
           {
             const timer = setTimeout(() => {
-              const messagesWrapperElement = getMessageWrapperElement();
+              const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
               if (messagesWrapperElement) {
                 messagesWrapperElement.scrollTo({ top: messagesWrapperElement.scrollHeight });
               }
@@ -122,12 +118,10 @@ const GetMessageListProvider: FC<PropsWithChildren> = ({ children }) => {
             return;
           }
 
-          const messagesWrapperElement = getMessageWrapperElement();
+          let previousScrollHeight = 0;
+          const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
           if (messagesWrapperElement) {
-            const height = window.getComputedStyle(el).getPropertyValue('height');
-            const paddingBottom = window.getComputedStyle(el).getPropertyValue('padding-bottom');
-            const scrollHeight = Number.parseInt(height) + Number.parseInt(paddingBottom);
-            messagesWrapperElement.scrollTo({ behavior: 'smooth', top: scrollHeight });
+            previousScrollHeight = messagesWrapperElement.scrollHeight;
           }
 
           if (!isMessagesApiProcessing && !messageListInstance.isListEnd()) {
@@ -138,10 +132,16 @@ const GetMessageListProvider: FC<PropsWithChildren> = ({ children }) => {
               messageListInstance.unshiftList(getMessagesData(paginatedMessageListSnapshot));
               messageListInstance.updateTotal(getMessagesCount(messageListSnapshot));
               messageListInstance.updatePage(page);
+
+              setTimeout(() => {
+                if (messagesWrapperElement) {
+                  messagesWrapperElement.scrollTop = messagesWrapperElement.scrollHeight - previousScrollHeight;
+                }
+              });
             });
           }
         }, 1),
-        { threshold: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] }
+        { threshold: [0.2] }
       );
       observer.observe(el);
       return () => {
