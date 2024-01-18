@@ -22,10 +22,9 @@ const UsersFinderInput: FC = () => {
   const isInitialMessagesApiProcessing = request.isInitialApiProcessing(MessagesApi);
   const halfSecDebounce = useRef(debounce());
   const chatSocket = selectors.userServiceSocket.chat;
-  const connectionSocket = selectors.userServiceSocket.connection;
 
   useEffect(() => {
-    if (chatSocket && connectionSocket) {
+    if (chatSocket) {
       chatSocket.on('fail-start-conversation', (error: Error) => {
         actions.processingApiError(StartConversationApi.name);
         snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
@@ -40,7 +39,7 @@ const UsersFinderInput: FC = () => {
         chatSocket.removeListener('success-start-conversation');
       };
     }
-  }, [chatSocket, connectionSocket, conversationListInstance]);
+  }, [chatSocket, conversationListInstance]);
 
   const onSearchUsersChange = useCallback(
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
