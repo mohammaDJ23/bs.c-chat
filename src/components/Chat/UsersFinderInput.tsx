@@ -2,7 +2,7 @@ import { memo, useEffect } from 'react';
 import { ChangeEvent, FC, useCallback, useRef, useState } from 'react';
 import { Autocomplete, TextField } from '@mui/material';
 import { useAction, useAuth, useForm, usePaginationList, useRequest, useSelector } from '../../hooks';
-import { ConversationObj, UserList, UserListFilters, UserObj, debounce } from '../../lib';
+import { UserList, UserListFilters, UserObj, debounce } from '../../lib';
 import { AllOwnersApi, AllUsersApi, MessagesApi, StartConversationApi } from '../../apis';
 import { useSnackbar } from 'notistack';
 
