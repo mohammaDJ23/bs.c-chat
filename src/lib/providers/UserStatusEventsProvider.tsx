@@ -14,6 +14,9 @@ const UserStatusEventsProvider: FC<PropsWithChildren> = ({ children }) => {
 
   useEffect(() => {
     if (connectionSocket && isCurrentOwner) {
+      connectionSocket.removeListener('users-status');
+      connectionSocket.removeListener('user-status');
+
       connectionSocket.on('users-status', (data: UsersStatusType) => {
         const newUsersStatus = Object.assign({}, usersStatus, data);
         actions.setSpecificDetails('usersStatus', newUsersStatus);
