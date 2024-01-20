@@ -9,6 +9,7 @@ import {
   specificDetailsReducer,
   userServiceSocketReducer,
   infinityListReducer,
+  firebaseReducer,
 } from './reducers';
 
 const reducers = combineReducers({
@@ -20,6 +21,7 @@ const reducers = combineReducers({
   forms: FormReducer,
   specificDetails: specificDetailsReducer,
   infinityLists: infinityListReducer,
+  firebase: firebaseReducer,
 });
 
 export function store() {

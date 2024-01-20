@@ -2,7 +2,7 @@ import { ConversationObj } from '../../lib';
 import { RootActions, SelecteUserForStartConversationAction } from '../actions';
 import { ClearState } from './clearState';
 
-export enum Message {
+export enum Conversation {
   SEELCT_USER_FOR_START_CONVERSATION = 'SEELCT_USER_FOR_START_CONVERSATION',
   CLEAN_USER_FOR_START_CONVERSATION = 'CLEAN_USER_FOR_START_CONVERSATION',
   SHOW_MESSAGES_SPINNER_ELEMENT = 'SHOW_MESSAGES_SPINNER_ELEMENT',
@@ -58,16 +58,16 @@ export function conversationsReducer(
   actions: RootActions
 ): ConversationsState {
   switch (actions.type) {
-    case Message.SEELCT_USER_FOR_START_CONVERSATION:
+    case Conversation.SEELCT_USER_FOR_START_CONVERSATION:
       return selectUserForStartConversation(state, actions);
 
-    case Message.CLEAN_USER_FOR_START_CONVERSATION:
+    case Conversation.CLEAN_USER_FOR_START_CONVERSATION:
       return cleanUserForStartConversation(state);
 
-    case Message.SHOW_MESSAGES_SPINNER_ELEMENT:
+    case Conversation.SHOW_MESSAGES_SPINNER_ELEMENT:
       return showMessagesSpinnerElement(state);
 
-    case Message.HIDE_MESSAGES_SPINNER_ELEMENT:
+    case Conversation.HIDE_MESSAGES_SPINNER_ELEMENT:
       return hideMessagesSpinnerElement(state);
 
     case ClearState.CLEAR_STATE:

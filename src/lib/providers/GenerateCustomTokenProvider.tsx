@@ -4,6 +4,9 @@ import { signInWithCustomToken, onIdTokenChanged, User } from 'firebase/auth';
 import { auth } from '../firebase';
 import { GenerateCustomTokenApi, SigninWithCustomTokenApi } from '../../apis';
 import { AccessTokenObj } from '../authentication';
+import ConversationSkeleton from '../../components/Chat/ConversationSkeleton';
+import FailedConnectionOfFirebase from '../../components/Chat/FailedConnectionOfFirebase';
+import FailedConnectionOfConversation from '../../components/Chat/FailedConnectionOfConversation';
 
 const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -13,7 +16,6 @@ const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
   const isInitialGenerateCustomTokenApiFailed = request.isInitialProcessingApiFailed(GenerateCustomTokenApi);
   const isInitialSigninWithCustomTokenApiProcessing = request.isInitialApiProcessing(SigninWithCustomTokenApi);
   const isInitialSigninWithCustomTokenApiFailed = request.isInitialProcessingApiFailed(SigninWithCustomTokenApi);
-  const isUserExist = !!user;
 
   useEffect(() => {
     const api = new GenerateCustomTokenApi();
@@ -25,6 +27,7 @@ const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
         .catch((error) => {
           actions.initialProcessingApiError(SigninWithCustomTokenApi.name);
           setUser(null);
+          actions.updateFirebaseIdToken('');
         });
     });
   }, []);
@@ -32,25 +35,56 @@ const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
   useEffect(() => {
     onIdTokenChanged(
       auth,
-      (value) => setUser(value),
-      (error) => setUser(null)
+      (user) => {
+        if (user) {
+          user
+            .getIdToken()
+            .then((token) => {
+              setUser(user);
+              actions.updateFirebaseIdToken(token);
+            })
+            .catch((error) => {
+              actions.initialProcessingApiError(SigninWithCustomTokenApi.name);
+              setUser(null);
+              actions.updateFirebaseIdToken('');
+            });
+        } else {
+          setUser(null);
+          actions.updateFirebaseIdToken('');
+        }
+      },
+      (error) => {
+        actions.initialProcessingApiError(SigninWithCustomTokenApi.name);
+        setUser(null);
+        actions.updateFirebaseIdToken('');
+      }
     );
   }, []);
 
   useEffect(() => {
-    if (isInitialSigninWithCustomTokenApiProcessing && isUserExist) {
-      actions.initialProcessingApiSuccess(SigninWithCustomTokenApi.name);
+    if (isInitialSigninWithCustomTokenApiProcessing && user) {
+      user
+        .getIdToken()
+        .then((token) => {
+          actions.initialProcessingApiSuccess(SigninWithCustomTokenApi.name);
+          actions.updateFirebaseIdToken(token);
+        })
+        .catch((error) => {
+          actions.initialProcessingApiError(SigninWithCustomTokenApi.name);
+          setUser(null);
+          actions.updateFirebaseIdToken('');
+        });
     }
-  }, [isInitialSigninWithCustomTokenApiProcessing, isUserExist]);
+  }, [isInitialSigninWithCustomTokenApiProcessing, user]);
 
   return isInitialGenerateCustomTokenApiProcessing || isInitialSigninWithCustomTokenApiProcessing ? (
-    <div>Generating a token...</div>
+    <ConversationSkeleton />
   ) : isInitialGenerateCustomTokenApiFailed || isInitialSigninWithCustomTokenApiFailed ? (
-    <div>Failed to generate a token.</div>
-  ) : isUserExist ? (
+    <FailedConnectionOfFirebase />
+  ) : user ? (
     <Fragment>{children}</Fragment>
   ) : (
-    <div>you are unable to use the conversation.</div>
+    <FailedConnectionOfConversation />
   );
 };
 

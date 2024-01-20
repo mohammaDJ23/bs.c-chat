@@ -1,16 +1,32 @@
-import { Fragment, useEffect, FC, PropsWithChildren } from 'react';
+import { Fragment, useEffect, FC, PropsWithChildren, useState, memo } from 'react';
 import { getUserServiceChatSocket } from '../socket';
-import { useAction } from '../../hooks';
+import { useAction, useSelector } from '../../hooks';
+import ConversationSkeleton from '../../components/Chat/ConversationSkeleton';
+import FailedConnectionOfFirebase from '../../components/Chat/FailedConnectionOfFirebase';
+
+type IdTokenStatus = 'pending' | 'error' | 'success';
 
 const UserServiceChatSocketProvider: FC<PropsWithChildren> = ({ children }) => {
+  const [idTokenStatus, setIdTokenStatus] = useState<IdTokenStatus>('pending');
   const actions = useAction();
+  const selectors = useSelector();
+  const firebaseIdToken = selectors.firebase.firebaseIdToken;
 
   useEffect(() => {
-    const socket = getUserServiceChatSocket();
-    actions.setUserServiceChatSocket(socket);
-  }, []);
+    if (firebaseIdToken) {
+      const socket = getUserServiceChatSocket(firebaseIdToken);
+      actions.setUserServiceChatSocket(socket);
+      setIdTokenStatus('success');
+    }
+  }, [firebaseIdToken]);
 
-  return <Fragment>{children}</Fragment>;
+  return idTokenStatus === 'pending' ? (
+    <ConversationSkeleton />
+  ) : idTokenStatus === 'error' ? (
+    <FailedConnectionOfFirebase />
+  ) : (
+    <Fragment>{children}</Fragment>
+  );
 };
 
-export default UserServiceChatSocketProvider;
+export default memo(UserServiceChatSocketProvider);

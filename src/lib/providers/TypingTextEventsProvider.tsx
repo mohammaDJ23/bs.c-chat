@@ -54,13 +54,22 @@ const TypingTextEventsProvider: FC<PropsWithChildren> = ({ children }) => {
 
   useEffect(() => {
     if (chatSocket && isCurrentOwner) {
+      chatSocket.removeListener('typing-text');
+      chatSocket.removeListener('stoping-text');
+
       chatSocket.on('typing-text', (data: TypingTextObj) => {
+        console.log(data);
         updateUserTypingStatus(data, 'typing');
       });
 
       chatSocket.on('stoping-text', (data: StopingTextObj) => {
         updateUserTypingStatus(data, 'stoping');
       });
+
+      return () => {
+        chatSocket.removeListener('typing-text');
+        chatSocket.removeListener('stoping-text');
+      };
     }
   }, [chatSocket, isCurrentOwner, updateUserTypingStatus]);
 

@@ -1,11 +1,12 @@
 import { FC, Fragment, useEffect, PropsWithChildren, useCallback, memo } from 'react';
 import { AllOwnersApi, AllUsersApi, FirestoreQueries, StartConversationApi } from '../../apis';
-import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
+import { useAction, useAuth, useForm, useInfinityList, useRequest, useSelector } from '../../hooks';
 import { DocumentData, QuerySnapshot, onSnapshot } from 'firebase/firestore';
 import {
   Conversation,
   ConversationDocObj,
   ConversationList,
+  UserListFilters,
   UserObj,
   getConversationTargetId,
   preventRunAt,
@@ -18,6 +19,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
   const actions = useAction();
   const auth = useAuth();
   const request = useRequest();
+  const userListFiltersFormInstance = useForm(UserListFilters);
   const isCurrentOwner = auth.isCurrentOwner();
   const decodedToken = auth.getDecodedToken()!;
   const snackbar = useSnackbar();
@@ -68,6 +70,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
           actions.processingApiSuccess(StartConversationApi.name);
+          userListFiltersFormInstance.onChange('q', '');
 
           const data = result.doc.data() as ConversationDocObj;
           const conversationEl = document.querySelector(`[data-cid="${data.id}"]`);
@@ -98,6 +101,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
           actions.processingApiSuccess(StartConversationApi.name);
+          userListFiltersFormInstance.onChange('q', '');
 
           const data = result.doc.data() as ConversationDocObj;
           const conversationEl = document.querySelector(`[data-cid="${data.id}"]`);
