@@ -1,8 +1,6 @@
 import { FC, Fragment, PropsWithChildren, memo, useEffect, useRef } from 'react';
 import { useInfinityList, useSelector } from '../../hooks';
 import { ConversationList, ConversationObj, Message, MessageList } from '../../lib';
-import { useSnackbar } from 'notistack';
-import { WsErrorObj } from '../socket';
 
 interface SendMessageObj {
   message: Message;
@@ -15,7 +13,6 @@ const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
   const messageListInstance = useInfinityList(MessageList);
   const conversationListInstance = useInfinityList(ConversationList);
   const selectors = useSelector();
-  const snackbar = useSnackbar();
   const conversationList = conversationListInstance.getList();
   const chatSocket = selectors.userServiceSocket.chat;
   const selectedConversation = selectors.conversations.selectedUser;
@@ -79,18 +76,6 @@ const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
           }
         });
       });
-
-      chatSocket.removeListener('error');
-
-      chatSocket.on('error', (data: WsErrorObj) => {
-        if (data.event === 'send-message') {
-          snackbar.enqueueSnackbar({ message: data.message, variant: 'error' });
-        }
-      });
-
-      return () => {
-        chatSocket.removeListener('error');
-      };
     }
   }, [chatSocket, messageListInstance, conversationList, conversationListInstance]);
 

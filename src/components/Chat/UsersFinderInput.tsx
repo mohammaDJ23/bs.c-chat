@@ -25,18 +25,12 @@ const UsersFinderInput: FC = () => {
 
   useEffect(() => {
     if (chatSocket) {
-      chatSocket.removeListener('error');
-
       chatSocket.on('error', (data: WsErrorObj) => {
         if (data.event === 'start-conversation') {
           actions.processingApiError(StartConversationApi.name);
           snackbar.enqueueSnackbar({ message: data.message, variant: 'error' });
         }
       });
-
-      return () => {
-        chatSocket.removeListener('error');
-      };
     }
   }, [chatSocket]);
 

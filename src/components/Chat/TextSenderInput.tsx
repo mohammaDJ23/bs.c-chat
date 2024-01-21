@@ -1,8 +1,10 @@
 import { Box, TextField as TF, styled } from '@mui/material';
-import { ChangeEvent, FC, memo, useCallback, useRef, useState } from 'react';
+import { ChangeEvent, FC, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth, useInfinityList, useSelector } from '../../hooks';
 import { ConversationList, Message, MessageList, debounce } from '../../lib';
 import SendIcon from '@mui/icons-material/Send';
+import { WsErrorObj } from '../../lib/socket';
+import { useSnackbar } from 'notistack';
 
 const TextField = styled(TF)(({ theme }) => ({
   '.css-1t8l2tu-MuiInputBase-input-MuiOutlinedInput-input': {
@@ -20,12 +22,23 @@ const TextSenderInput: FC = () => {
   const [text, setText] = useState<string>('');
   const halfSecondDebounce = useRef(debounce());
   const selectors = useSelector();
+  const snackbar = useSnackbar();
   const auth = useAuth();
   const messageListInstance = useInfinityList(MessageList);
   const conversationListInstance = useInfinityList(ConversationList);
   const decodedToken = auth.getDecodedToken()!;
   const selectedConversation = selectors.conversations.selectedUser;
   const chatSocket = selectors.userServiceSocket.chat;
+
+  useEffect(() => {
+    if (chatSocket) {
+      chatSocket.on('error', (data: WsErrorObj) => {
+        if (data.event === 'send-message') {
+          snackbar.enqueueSnackbar({ message: data.message, variant: 'error' });
+        }
+      });
+    }
+  }, [chatSocket]);
 
   const onSendText = useCallback(() => {
     if (chatSocket && selectedConversation && text.length) {
