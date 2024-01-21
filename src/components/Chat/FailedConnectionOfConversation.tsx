@@ -1,18 +1,32 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { FC } from 'react';
 
 const FailedConnectionOfConversation: FC = () => {
   return (
     <Box
       sx={{
-        width: '100%',
         textAlign: 'center',
-        padding: '26px 16px',
+        width: '100%',
+        height: '100%',
+        paddingTop: '50px',
       }}
     >
-      <Typography fontSize={'16px'} fontWeight={'500'}>
-        You are not able to use the conversation.
-      </Typography>
+      <Box>
+        <Typography fontSize={'16px'} fontWeight={'500'}>
+          You are not able to use the conversation.
+        </Typography>
+
+        <Box sx={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Button
+            onClick={() => window.location.reload()}
+            sx={{ textTransform: 'capitalize' }}
+            size="small"
+            variant="contained"
+          >
+            Reload
+          </Button>
+        </Box>
+      </Box>
     </Box>
   );
 };

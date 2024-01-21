@@ -24,7 +24,7 @@ const StartConversation = () => {
       }}
     >
       <Box>
-        <Typography fontSize={'14px'} fontWeight={'500'}>
+        <Typography fontSize={'16px'} fontWeight={'500'}>
           Start a new conversation
         </Typography>
 
