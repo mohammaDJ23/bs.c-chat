@@ -12,6 +12,7 @@ import UserServiceChatSocketProvider from '../../lib/providers/UserServiceChatSo
 import { useRequest } from '../../hooks';
 import { AllConversationsApi } from '../../apis';
 import ConversationSkeleton from './ConversationSkeleton';
+import UserServiceChatSocketAuthenticationErrorProvider from '../../lib/providers/UserServiceChatSocketAuthenticationErrorProvider';
 
 const MessageWrapper = styled(Box)(({ theme }) => ({
   display: 'grid',
@@ -36,37 +37,39 @@ const Chat: FC = () => {
   return (
     <GenerateCustomTokenProvider>
       <UserServiceChatSocketProvider>
-        <ConversationListSnapshotsProvider>
-          <ConversationEventsProvider>
-            <UserStatusEventsProvider>
-              <GetConversationListProvider>
-                <TypingTextEventsProvider>
-                  <Box
-                    sx={{
-                      width: '100vw',
-                      height: 'calc(100vh - 64px)',
-                      position: 'relative',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <Box sx={{ width: '100%', height: '100%' }}>
-                      {isInitialAllConversationApiProcessing ? (
-                        <ConversationSkeleton />
-                      ) : (
-                        <MessageWrapper>
-                          <UsersWrapper>
-                            <Users />
-                          </UsersWrapper>
-                          <MessagesContent />
-                        </MessageWrapper>
-                      )}
+        <UserServiceChatSocketAuthenticationErrorProvider>
+          <ConversationListSnapshotsProvider>
+            <ConversationEventsProvider>
+              <UserStatusEventsProvider>
+                <GetConversationListProvider>
+                  <TypingTextEventsProvider>
+                    <Box
+                      sx={{
+                        width: '100vw',
+                        height: 'calc(100vh - 64px)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Box sx={{ width: '100%', height: '100%' }}>
+                        {isInitialAllConversationApiProcessing ? (
+                          <ConversationSkeleton />
+                        ) : (
+                          <MessageWrapper>
+                            <UsersWrapper>
+                              <Users />
+                            </UsersWrapper>
+                            <MessagesContent />
+                          </MessageWrapper>
+                        )}
+                      </Box>
                     </Box>
-                  </Box>
-                </TypingTextEventsProvider>
-              </GetConversationListProvider>
-            </UserStatusEventsProvider>
-          </ConversationEventsProvider>
-        </ConversationListSnapshotsProvider>
+                  </TypingTextEventsProvider>
+                </GetConversationListProvider>
+              </UserStatusEventsProvider>
+            </ConversationEventsProvider>
+          </ConversationListSnapshotsProvider>
+        </UserServiceChatSocketAuthenticationErrorProvider>
       </UserServiceChatSocketProvider>
     </GenerateCustomTokenProvider>
   );
