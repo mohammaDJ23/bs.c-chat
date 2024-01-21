@@ -11,7 +11,7 @@ const EmptyMessages = () => {
         height: '100%',
       }}
     >
-      <Typography fontSize={'14px'} fontWeight={'500'}>
+      <Typography fontSize={'16px'} fontWeight={'500'}>
         Empy messages
       </Typography>
     </Box>

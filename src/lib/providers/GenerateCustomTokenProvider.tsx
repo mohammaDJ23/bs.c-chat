@@ -5,7 +5,6 @@ import { auth } from '../firebase';
 import { GenerateCustomTokenApi, SigninWithCustomTokenApi } from '../../apis';
 import { AccessTokenObj } from '../authentication';
 import ConversationSkeleton from '../../components/Chat/ConversationSkeleton';
-import FailedConnectionOfFirebase from '../../components/Chat/FailedConnectionOfFirebase';
 import FailedConnectionOfConversation from '../../components/Chat/FailedConnectionOfConversation';
 
 const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -80,7 +79,7 @@ const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
   return isInitialGenerateCustomTokenApiProcessing || isInitialSigninWithCustomTokenApiProcessing ? (
     <ConversationSkeleton />
   ) : isInitialGenerateCustomTokenApiFailed || isInitialSigninWithCustomTokenApiFailed ? (
-    <FailedConnectionOfFirebase />
+    <FailedConnectionOfConversation />
   ) : user ? (
     <Fragment>{children}</Fragment>
   ) : (
