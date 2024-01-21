@@ -5,6 +5,7 @@ import { useAction, useAuth, useForm, usePaginationList, useRequest, useSelector
 import { UserList, UserListFilters, UserObj, debounce } from '../../lib';
 import { AllOwnersApi, AllUsersApi, MessagesApi, StartConversationApi } from '../../apis';
 import { useSnackbar } from 'notistack';
+import { WsErrorObj } from '../../lib/socket';
 
 const UsersFinderInput: FC = () => {
   const [isSearchUsersAutoCompleteOpen, setIsSearchUsersAutoCompleteOpen] = useState(false);
@@ -24,15 +25,17 @@ const UsersFinderInput: FC = () => {
 
   useEffect(() => {
     if (chatSocket) {
-      chatSocket.removeListener('fail-start-conversation');
+      chatSocket.removeListener('error');
 
-      chatSocket.on('fail-start-conversation', (error: Error) => {
-        actions.processingApiError(StartConversationApi.name);
-        snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
+      chatSocket.on('error', (data: WsErrorObj) => {
+        if (data.event === 'start-conversation') {
+          actions.processingApiError(StartConversationApi.name);
+          snackbar.enqueueSnackbar({ message: data.message, variant: 'error' });
+        }
       });
 
       return () => {
-        chatSocket.removeListener('fail-start-conversation');
+        chatSocket.removeListener('error');
       };
     }
   }, [chatSocket]);

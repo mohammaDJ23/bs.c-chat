@@ -2,6 +2,7 @@ import { FC, Fragment, PropsWithChildren, memo, useEffect, useRef } from 'react'
 import { useInfinityList, useSelector } from '../../hooks';
 import { ConversationList, ConversationObj, Message, MessageList } from '../../lib';
 import { useSnackbar } from 'notistack';
+import { WsErrorObj } from '../socket';
 
 interface SendMessageObj {
   message: Message;
@@ -79,12 +80,16 @@ const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
         });
       });
 
-      chatSocket.on('fail-send-message', (error: Error) => {
-        snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
+      chatSocket.removeListener('error');
+
+      chatSocket.on('error', (data: WsErrorObj) => {
+        if (data.event === 'send-message') {
+          snackbar.enqueueSnackbar({ message: data.message, variant: 'error' });
+        }
       });
 
       return () => {
-        chatSocket.removeListener('fail-send-message');
+        chatSocket.removeListener('error');
       };
     }
   }, [chatSocket, messageListInstance, conversationList, conversationListInstance]);

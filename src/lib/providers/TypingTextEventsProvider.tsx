@@ -58,7 +58,6 @@ const TypingTextEventsProvider: FC<PropsWithChildren> = ({ children }) => {
       chatSocket.removeListener('stoping-text');
 
       chatSocket.on('typing-text', (data: TypingTextObj) => {
-        console.log(data);
         updateUserTypingStatus(data, 'typing');
       });
 

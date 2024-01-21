@@ -10,11 +10,17 @@ const UserServiceChatSocketAuthenticationErrorProvider: FC<PropsWithChildren> = 
 
   useEffect(() => {
     if (chatSocket) {
+      chatSocket.removeListener('error');
+
       chatSocket.on('error', (data: WsErrorObj) => {
         if (data.event === 'authentication') {
           setIsErrorExist(!!data);
         }
       });
+
+      return () => {
+        chatSocket.removeListener('error');
+      };
     }
   }, [chatSocket]);
 
