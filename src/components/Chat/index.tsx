@@ -37,10 +37,10 @@ const Chat: FC = () => {
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
 
   return (
-    <UserServiceChatSocketDisconnectErrorProvider>
-      <UserServiceChatSocketConnectErrorProvider>
-        <GenerateCustomTokenProvider>
-          <UserServiceChatSocketProvider>
+    <GenerateCustomTokenProvider>
+      <UserServiceChatSocketProvider>
+        <UserServiceChatSocketDisconnectErrorProvider>
+          <UserServiceChatSocketConnectErrorProvider>
             <UserServiceChatSocketAuthenticationErrorProvider>
               <ConversationListSnapshotsProvider>
                 <ConversationEventsProvider>
@@ -74,10 +74,10 @@ const Chat: FC = () => {
                 </ConversationEventsProvider>
               </ConversationListSnapshotsProvider>
             </UserServiceChatSocketAuthenticationErrorProvider>
-          </UserServiceChatSocketProvider>
-        </GenerateCustomTokenProvider>
-      </UserServiceChatSocketConnectErrorProvider>
-    </UserServiceChatSocketDisconnectErrorProvider>
+          </UserServiceChatSocketConnectErrorProvider>
+        </UserServiceChatSocketDisconnectErrorProvider>
+      </UserServiceChatSocketProvider>
+    </GenerateCustomTokenProvider>
   );
 };
 
