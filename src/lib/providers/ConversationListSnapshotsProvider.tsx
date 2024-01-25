@@ -12,6 +12,7 @@ import {
   preventRunAt,
 } from '../../lib';
 import { useSnackbar } from 'notistack';
+import { AxiosResponse } from 'axios';
 
 const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) => {
   const selectors = useSelector();
@@ -26,8 +27,12 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
   const connectionSocket = selectors.userServiceSocket.connection;
   const chatSocket = selectors.userServiceSocket.chat;
 
+  const isSearchConversationQueryExist = useCallback(() => {
+    return userListFiltersFormInstance.getForm().q.length > 0;
+  }, [userListFiltersFormInstance]);
+
   const insertNewConversation = useCallback(
-    (receivedConversation: ConversationDocObj) => {
+    async (receivedConversation: ConversationDocObj) => {
       const conversationTargetId = getConversationTargetId(receivedConversation);
       const apiData = {
         page: 1,
@@ -37,7 +42,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
 
       const api = isCurrentOwner ? new AllUsersApi(apiData) : new AllOwnersApi(apiData);
 
-      request.build<[UserObj[], number]>(api).then((response): void => {
+      return request.build<[UserObj[], number]>(api).then((response): AxiosResponse<[UserObj[], number]> => {
         const [list] = response.data;
         const [findedUser] = list;
         if (findedUser && connectionSocket) {
@@ -55,6 +60,8 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
             });
           }
         }
+
+        return response;
       });
     },
     [connectionSocket, chatSocket, conversationListInstance]
@@ -69,19 +76,30 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
       conversationListForSnapshotQuery,
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
-          actions.processingApiSuccess(StartConversationApi.name);
-          userListFiltersFormInstance.onChange('q', '');
-
           const data = result.doc.data() as ConversationDocObj;
           const conversationEl = document.querySelector(`[data-cid="${data.id}"]`);
 
           // when a conversation is not exists in the client
           if (!conversationEl) {
-            insertNewConversation(data);
+            insertNewConversation(data).then(() => {
+              if (isSearchConversationQueryExist()) {
+                actions.processingApiSuccess(StartConversationApi.name);
+                userListFiltersFormInstance.onChange('q', '');
+              }
+            });
+          } else {
+            if (isSearchConversationQueryExist()) {
+              actions.processingApiSuccess(StartConversationApi.name);
+              userListFiltersFormInstance.onChange('q', '');
+            }
           }
         });
       }, 1),
       (error) => {
+        if (isSearchConversationQueryExist()) {
+          actions.processingApiError(StartConversationApi.name);
+          userListFiltersFormInstance.onChange('q', '');
+        }
         snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
       }
     );
@@ -89,7 +107,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
     return () => {
       unsubscribe();
     };
-  }, [insertNewConversation]);
+  }, [userListFiltersFormInstance, conversationListInstance, isSearchConversationQueryExist, insertNewConversation]);
 
   useEffect(() => {
     // this snapshot is for when the two users have not created the conversation before
@@ -100,19 +118,26 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
       initialConversationListForSnapshotQuery,
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
-          actions.processingApiSuccess(StartConversationApi.name);
-          userListFiltersFormInstance.onChange('q', '');
-
           const data = result.doc.data() as ConversationDocObj;
           const conversationEl = document.querySelector(`[data-cid="${data.id}"]`);
 
           // when the conversation is not exists in the client
           if (!conversationEl) {
-            insertNewConversation(data);
+            insertNewConversation(data).then(() => {
+              if (isSearchConversationQueryExist()) {
+                actions.processingApiSuccess(StartConversationApi.name);
+                userListFiltersFormInstance.onChange('q', '');
+              }
+            });
           }
 
           // when the conversation is exist in the client
           else {
+            if (isSearchConversationQueryExist()) {
+              actions.processingApiSuccess(StartConversationApi.name);
+              userListFiltersFormInstance.onChange('q', '');
+            }
+
             const index = conversationEl.getAttribute('data-index');
 
             if (index && !isNaN(parseInt(index))) {
@@ -128,6 +153,10 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
         });
       }, 1),
       (error) => {
+        if (isSearchConversationQueryExist()) {
+          actions.processingApiError(StartConversationApi.name);
+          userListFiltersFormInstance.onChange('q', '');
+        }
         snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
       }
     );
@@ -135,7 +164,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
     return () => {
       unsubscribe();
     };
-  }, [conversationListInstance, insertNewConversation]);
+  }, [conversationListInstance, userListFiltersFormInstance, isSearchConversationQueryExist, insertNewConversation]);
 
   return <Fragment>{children}</Fragment>;
 };

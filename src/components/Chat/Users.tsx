@@ -9,7 +9,7 @@ import {
   getConversationDate,
   getConversationTargetId,
 } from '../../lib';
-import { AllConversationsApi, MessagesApi, StartConversationApi } from '../../apis';
+import { AllConversationsApi, AllOwnersApi, AllUsersApi, MessagesApi, StartConversationApi } from '../../apis';
 import UsersFinderInput from './UsersFinderInput';
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
@@ -45,6 +45,8 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   const conversationList = conversationListInstance.getList();
   const isStartConversationApiProcessing = request.isApiProcessing(StartConversationApi);
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
+  const isAllUsersApiProcessing = request.isApiProcessing(AllUsersApi);
+  const isAllOwnersApiProcessing = request.isApiProcessing(AllOwnersApi);
   const isInitialMessagesApiProcessing = request.isInitialApiProcessing(MessagesApi);
   const selectedConversation = selectors.conversations.selectedUser;
 
@@ -199,7 +201,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
         <Box sx={{ position: 'fixed', zIndex: 1, bottom: '0', left: '0', width: '280px', height: '50px' }}>
           <Box sx={{ width: '100%', height: '100%', backgroundColor: '#e0e0e0' }}>
             <UsersFinderInput />
-            {isStartConversationApiProcessing && (
+            {(isStartConversationApiProcessing || isAllUsersApiProcessing || isAllOwnersApiProcessing) && (
               <CircularProgress size={20} sx={{ position: 'absolute', zIndex: '1', right: '13px', top: '12px' }} />
             )}
           </Box>
