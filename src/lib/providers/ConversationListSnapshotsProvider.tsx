@@ -96,6 +96,10 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
         });
       }, 1),
       (error) => {
+        if (isSearchConversationQueryExist()) {
+          actions.processingApiError(StartConversationApi.name);
+          userListFiltersFormInstance.onChange('q', '');
+        }
         snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
       }
     );
@@ -103,7 +107,7 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
     return () => {
       unsubscribe();
     };
-  }, [userListFiltersFormInstance, isSearchConversationQueryExist, insertNewConversation]);
+  }, [userListFiltersFormInstance, conversationListInstance, isSearchConversationQueryExist, insertNewConversation]);
 
   useEffect(() => {
     // this snapshot is for when the two users have not created the conversation before
@@ -149,6 +153,10 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
         });
       }, 1),
       (error) => {
+        if (isSearchConversationQueryExist()) {
+          actions.processingApiError(StartConversationApi.name);
+          userListFiltersFormInstance.onChange('q', '');
+        }
         snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
       }
     );
