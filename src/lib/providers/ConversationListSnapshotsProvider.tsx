@@ -77,21 +77,15 @@ const ConversationListSnapshotsProvider: FC<PropsWithChildren> = ({ children }) 
       preventRunAt(function (snapshot: QuerySnapshot<DocumentData, DocumentData>) {
         snapshot.docChanges().forEach((result) => {
           const data = result.doc.data() as ConversationDocObj;
-          const conversationEl = document.querySelector(`[data-cid="${data.id}"]`);
 
           // when a conversation is not exists in the client
-          if (!conversationEl) {
+          if (!document.querySelector(`[data-cid="${data.id}"]`)) {
             insertNewConversation(data).then(() => {
               if (isSearchConversationQueryExist()) {
                 actions.processingApiSuccess(StartConversationApi.name);
                 userListFiltersFormInstance.onChange('q', '');
               }
             });
-          } else {
-            if (isSearchConversationQueryExist()) {
-              actions.processingApiSuccess(StartConversationApi.name);
-              userListFiltersFormInstance.onChange('q', '');
-            }
           }
         });
       }, 1),
