@@ -114,6 +114,7 @@ const TextSenderInput: FC = () => {
         }}
       >
         <TextField
+          focused={true}
           onChange={onTextFieldChange}
           placeholder={'Type your message here'}
           fullWidth
