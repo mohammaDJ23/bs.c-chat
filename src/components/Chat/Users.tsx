@@ -1,5 +1,5 @@
 import { FC, useCallback } from 'react';
-import { List, Box, ListItemButton, ListItem, ListItemText, CircularProgress, styled } from '@mui/material';
+import { List, Box, ListItemButton, ListItem, ListItemText, CircularProgress } from '@mui/material';
 import EmptyUsers from './EmptyUsers';
 import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
 import {
@@ -11,24 +11,6 @@ import {
 } from '../../lib';
 import { AllConversationsApi, AllOwnersApi, AllUsersApi, MessagesApi, StartConversationApi } from '../../apis';
 import UsersFinderInput from './UsersFinderInput';
-
-const UsersWrapper = styled(Box)(({ theme }) => ({
-  [theme.breakpoints.down('md')]: {
-    height: 'calc(100vh - 48px)',
-  },
-  [theme.breakpoints.up('md')]: {
-    height: 'calc(100vh - 64px)',
-  },
-}));
-
-const ListWrapper = styled(List)(({ theme }) => ({
-  [theme.breakpoints.down('sm')]: {
-    paddingBottom: '0',
-  },
-  [theme.breakpoints.up('md')]: {
-    paddingBottom: '50px',
-  },
-}));
 
 interface UsersImportation {
   onUserClick: () => void;
@@ -70,9 +52,10 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
   );
 
   return (
-    <UsersWrapper
+    <Box
       sx={{
         width: '100%',
+        height: 'calc(100% - 50px)',
         borderRight: '1px solid #e0e0e0',
         overflowY: isInitialAllConversationApiProcessing ? 'hidden' : 'auto',
         overflowX: 'hidden',
@@ -82,7 +65,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
     >
       <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
         {conversationList.length > 0 ? (
-          <ListWrapper disablePadding>
+          <List disablePadding>
             {conversationList.map((item, index) => (
               <ListItemButton
                 selected={selectors.conversations.selectedUser?.user?.id === item.user.id}
@@ -170,7 +153,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                             ? auth.isUserEqualToCurrentUser(item.conversation.lastMessage.userId)
                               ? `You: ${item.conversation.lastMessage.text}`
                               : item.conversation.lastMessage.text
-                            : 'No mesage'
+                            : 'No message'
                         }
                       />
                     </Box>
@@ -194,7 +177,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
                 <CircularProgress size={30} />
               </Box>
             )}
-          </ListWrapper>
+          </List>
         ) : (
           <EmptyUsers />
         )}
@@ -207,7 +190,7 @@ const Users: FC<Partial<UsersImportation>> = ({ onUserClick }) => {
           </Box>
         </Box>
       </Box>
-    </UsersWrapper>
+    </Box>
   );
 };
 

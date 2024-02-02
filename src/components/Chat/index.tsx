@@ -27,12 +27,22 @@ const MessageWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
+  height: 'calc(100vh - 64px)',
+
   [theme.breakpoints.down('md')]: {
     display: 'none',
   },
 }));
 
 const MessageContentWrapper = styled(Box)(({ theme }) => ({
+  height: 'calc(100vh - 64px)',
+
+  [theme.breakpoints.down('sm')]: {
+    height: 'calc(100vh - 48px)',
+  },
+}));
+
+const ConversationWrapper = styled(Box)(({ theme }) => ({
   width: '100vw',
   height: 'calc(100vh - 64px)',
   position: 'relative',
@@ -58,20 +68,20 @@ const Chat: FC = () => {
                   <UserStatusEventsProvider>
                     <GetConversationListProvider>
                       <TypingTextEventsProvider>
-                        <MessageContentWrapper>
-                          <Box sx={{ width: '100%', height: '100%' }}>
-                            {isInitialAllConversationApiProcessing ? (
-                              <ConversationSkeleton />
-                            ) : (
-                              <MessageWrapper>
-                                <UsersWrapper>
-                                  <Users />
-                                </UsersWrapper>
+                        <ConversationWrapper>
+                          {isInitialAllConversationApiProcessing ? (
+                            <ConversationSkeleton />
+                          ) : (
+                            <MessageWrapper>
+                              <UsersWrapper>
+                                <Users />
+                              </UsersWrapper>
+                              <MessageContentWrapper>
                                 <MessagesContent />
-                              </MessageWrapper>
-                            )}
-                          </Box>
-                        </MessageContentWrapper>
+                              </MessageContentWrapper>
+                            </MessageWrapper>
+                          )}
+                        </ConversationWrapper>
                       </TypingTextEventsProvider>
                     </GetConversationListProvider>
                   </UserStatusEventsProvider>
