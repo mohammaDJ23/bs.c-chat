@@ -23,11 +23,12 @@ const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const FormWrapper = styled(Box)(({ theme }) => ({
-  position: 'fixed',
+  position: 'sticky',
   zIndex: 1,
   bottom: '0',
-  left: '280px',
-  width: 'calc(100% - 280px)',
+  right: '0',
+  left: '0',
+  width: '100%',
   height: '50px',
   backgroundColor: 'white',
   borderTop: '1px solid #e0e0e0',
@@ -39,23 +40,10 @@ const FormWrapper = styled(Box)(({ theme }) => ({
 
 const MessagesWrapper = styled(Box)(({ theme }) => ({
   height: 'calc(100% - 103px)',
-  [theme.breakpoints.down('sm')]: {
-    height: 'calc(100% - 87px)',
-  },
 }));
 
 const EmptyMessagesWrapper = styled(Box)(({ theme }) => ({
   height: 'calc(100% - 103px)',
-  [theme.breakpoints.down('sm')]: {
-    height: 'calc(100% - 83px)',
-  },
-}));
-
-const MessagesSpinnerWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100% - 48px)',
-  [theme.breakpoints.down('sm')]: {
-    height: 'calc(100% - 33px)',
-  },
 }));
 
 const MessagesContent: FC = () => {
@@ -118,6 +106,7 @@ const MessagesContent: FC = () => {
                 gap: '5px',
                 height: '53px',
                 backgroundColor: 'white',
+                width: '100%',
               }}
             >
               <Box
