@@ -8,6 +8,7 @@ const SkeletonWrapper = styled(Box)(({ theme }) => ({
   width: '100%',
   display: 'flex',
   alignItems: 'stretch',
+  overflow: 'hidden',
   [theme.breakpoints.down('md')]: {
     height: 'calc(100vh - 64px)',
   },
