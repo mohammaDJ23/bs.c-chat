@@ -32,6 +32,17 @@ const UsersWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
+const MessageContentWrapper = styled(Box)(({ theme }) => ({
+  width: '100vw',
+  height: 'calc(100vh - 64px)',
+  position: 'relative',
+  overflow: 'hidden',
+
+  [theme.breakpoints.down('sm')]: {
+    height: 'calc(100vh - 48px)',
+  },
+}));
+
 const Chat: FC = () => {
   const request = useRequest();
   const isInitialAllConversationApiProcessing = request.isInitialApiProcessing(AllConversationsApi);
@@ -47,14 +58,7 @@ const Chat: FC = () => {
                   <UserStatusEventsProvider>
                     <GetConversationListProvider>
                       <TypingTextEventsProvider>
-                        <Box
-                          sx={{
-                            width: '100vw',
-                            height: 'calc(100vh - 64px)',
-                            position: 'relative',
-                            overflow: 'hidden',
-                          }}
-                        >
+                        <MessageContentWrapper>
                           <Box sx={{ width: '100%', height: '100%' }}>
                             {isInitialAllConversationApiProcessing ? (
                               <ConversationSkeleton />
@@ -67,7 +71,7 @@ const Chat: FC = () => {
                               </MessageWrapper>
                             )}
                           </Box>
-                        </Box>
+                        </MessageContentWrapper>
                       </TypingTextEventsProvider>
                     </GetConversationListProvider>
                   </UserStatusEventsProvider>
