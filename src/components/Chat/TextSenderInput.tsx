@@ -43,8 +43,9 @@ const TextSenderInput: FC = () => {
 
   const onSendText = useCallback(() => {
     if (chatSocket && selectedConversation && text.length) {
-      if (textInputRef.current) {
-        textInputRef.current.focus();
+      const textSenderInput: HTMLInputElement | null = document.querySelector('#chat__text-sender-input');
+      if (textSenderInput) {
+        textSenderInput.focus();
       }
 
       const conversationEl = document.querySelector(`[data-cactive="true"]`);
@@ -130,6 +131,7 @@ const TextSenderInput: FC = () => {
             '& fieldset': { border: 'none' },
             '& input': { padding: '14px' },
           }}
+          inputProps={{ id: 'chat__text-sender-input' }}
         />
         <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
           <SendIcon color={text.length ? 'primary' : 'disabled'} sx={{ cursor: 'pointer' }} />
