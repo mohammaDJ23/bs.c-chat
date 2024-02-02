@@ -21,6 +21,7 @@ const TextField = styled(TF)(({ theme }) => ({
 const TextSenderInput: FC = () => {
   const [text, setText] = useState<string>('');
   const halfSecondDebounce = useRef(debounce());
+  const textInputRef = useRef<HTMLInputElement | null>(null);
   const selectors = useSelector();
   const snackbar = useSnackbar();
   const auth = useAuth();
@@ -42,6 +43,10 @@ const TextSenderInput: FC = () => {
 
   const onSendText = useCallback(() => {
     if (chatSocket && selectedConversation && text.length) {
+      if (textInputRef.current) {
+        textInputRef.current.focus();
+      }
+
       const conversationEl = document.querySelector(`[data-cactive="true"]`);
 
       // check if the conversation exist
@@ -114,7 +119,7 @@ const TextSenderInput: FC = () => {
         }}
       >
         <TextField
-          focused={true}
+          ref={textInputRef}
           onChange={onTextFieldChange}
           placeholder={'Type your message here'}
           fullWidth
