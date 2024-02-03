@@ -28,6 +28,7 @@ const MessageWrapper = styled(Box)(({ theme }) => ({
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
   height: 'calc(100vh - 64px)',
+  overflow: 'hidden',
 
   [theme.breakpoints.down('md')]: {
     display: 'none',
@@ -36,6 +37,7 @@ const UsersWrapper = styled(Box)(({ theme }) => ({
 
 const MessageContentWrapper = styled(Box)(({ theme }) => ({
   height: 'calc(100vh - 64px)',
+  overflow: 'hidden',
 
   [theme.breakpoints.down('sm')]: {
     height: 'calc(100vh - 48px)',
