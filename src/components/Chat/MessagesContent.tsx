@@ -28,7 +28,7 @@ const MessagesSkeletonWrapper = styled(Box)(({ theme }) => ({
   padding: '16px',
 
   [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 48px)',
+    height: 'calc(100vh - 200px)',
   },
 }));
 
