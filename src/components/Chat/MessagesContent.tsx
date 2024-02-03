@@ -23,7 +23,7 @@ const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const FormWrapper = styled(Box)(({ theme }) => ({
-  position: 'sticky',
+  position: 'absolute',
   zIndex: 1,
   bottom: '0',
   right: '0',
@@ -39,11 +39,7 @@ const FormWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const MessagesWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100% - 103px)',
-}));
-
-const EmptyMessagesWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100% - 103px)',
+  height: 'calc(100% - 50px)',
 }));
 
 const MessagesContent: FC = () => {
@@ -95,7 +91,7 @@ const MessagesContent: FC = () => {
           >
             <Box
               sx={{
-                position: 'sticky',
+                position: 'absolute',
                 top: 0,
                 left: 0,
                 padding: '8px 10px',
@@ -107,6 +103,7 @@ const MessagesContent: FC = () => {
                 height: '53px',
                 backgroundColor: 'white',
                 width: '100%',
+                zIndex: 1,
               }}
             >
               <Box
@@ -230,9 +227,9 @@ const MessagesContent: FC = () => {
                 </Box>
               </MessagesWrapper>
             ) : (
-              <EmptyMessagesWrapper component="div" sx={{ width: '100%' }}>
+              <Box component="div" sx={{ width: '100%', height: '100%' }}>
                 <EmptyMessages />
-              </EmptyMessagesWrapper>
+              </Box>
             )}
             <FormWrapper>
               <TextSenderInput />
