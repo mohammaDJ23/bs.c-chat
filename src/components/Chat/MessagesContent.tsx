@@ -22,16 +22,6 @@ const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
-const MessagesSkeletonWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100vh - 64px)',
-  overflow: 'hidden',
-  padding: '16px',
-
-  [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 48px)',
-  },
-}));
-
 const MessagesContent: FC = () => {
   const messageListInstance = useInfinityList(MessageList);
   const selectors = useSelector();
@@ -67,14 +57,14 @@ const MessagesContent: FC = () => {
     <GetMessageListProvider>
       {selectedConversation ? (
         isInitialMessagesApiProcessing ? (
-          <MessagesSkeletonWrapper>
+          <Box sx={{ padding: '16px', height: '100%' }}>
             <MessagesSkeleton />
-          </MessagesSkeletonWrapper>
+          </Box>
         ) : (
           <Box
             sx={{
               width: '100%',
-              height: 'calc(100vh - 64px)',
+              height: '100%',
               position: 'relative',
               overflow: 'hidden',
             }}
