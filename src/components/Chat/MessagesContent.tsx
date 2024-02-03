@@ -22,26 +22,6 @@ const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
-const FormWrapper = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  zIndex: 1,
-  bottom: '0',
-  right: '0',
-  left: '0',
-  width: '100%',
-  height: '50px',
-  backgroundColor: 'white',
-  borderTop: '1px solid #e0e0e0',
-  [theme.breakpoints.down('md')]: {
-    left: '0',
-    width: '100%',
-  },
-}));
-
-const MessagesWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100% - 50px)',
-}));
-
 const MessagesContent: FC = () => {
   const messageListInstance = useInfinityList(MessageList);
   const selectors = useSelector();
@@ -91,7 +71,7 @@ const MessagesContent: FC = () => {
           >
             <Box
               sx={{
-                position: 'absolute',
+                position: 'sticky',
                 top: 0,
                 left: 0,
                 padding: '8px 10px',
@@ -183,10 +163,16 @@ const MessagesContent: FC = () => {
               </Box>
             </Box>
             {messageList.length > 0 ? (
-              <MessagesWrapper
+              <Box
                 id="chat__messages-wrapper"
                 component="div"
-                sx={{ width: '100%', padding: '5px', overflowY: 'auto', overflowX: 'hidden' }}
+                sx={{
+                  height: 'calc(100% - 103px)',
+                  width: '100%',
+                  padding: '5px',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                }}
               >
                 {!messageListInstance.isListEnd() && selectors.conversations.isMessagesSpinnerElementActive && (
                   <Box
@@ -225,15 +211,27 @@ const MessagesContent: FC = () => {
                     ))}
                   </Box>
                 </Box>
-              </MessagesWrapper>
+              </Box>
             ) : (
               <Box component="div" sx={{ width: '100%', height: '100%' }}>
                 <EmptyMessages />
               </Box>
             )}
-            <FormWrapper>
+            <Box
+              sx={{
+                position: 'sticky',
+                zIndex: 1,
+                bottom: '0',
+                right: '0',
+                left: '0',
+                width: '100%',
+                height: '50px',
+                backgroundColor: 'white',
+                borderTop: '1px solid #e0e0e0',
+              }}
+            >
               <TextSenderInput />
-            </FormWrapper>
+            </Box>
           </Box>
         )
       ) : (
