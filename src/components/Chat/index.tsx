@@ -21,6 +21,7 @@ const MessageWrapper = styled(Box)(({ theme }) => ({
   gridTemplateColumns: '280px auto',
   height: '100%',
   width: '100%',
+  overflow: 'hidden',
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: 'auto',
   },
