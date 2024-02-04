@@ -219,12 +219,12 @@ const MessagesContent: FC = () => {
             )}
             <Box
               sx={{
-                position: 'sticky',
+                position: 'fixed',
                 zIndex: 1,
                 bottom: '0',
                 right: '0',
                 left: '0',
-                width: '100%',
+                width: 'calc(100% - 280px)',
                 height: '50px',
                 backgroundColor: 'white',
                 borderTop: '1px solid #e0e0e0',
