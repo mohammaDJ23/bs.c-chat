@@ -4,17 +4,16 @@ import UsersSkeleton from './UsersSkeleton';
 import MessagesSkeleton from './MessagesSkeleton';
 
 const SkeletonWrapper = styled(Box)(({ theme }) => ({
-  // height: 'calc(100vh - 64px)',
-  height: '100%',
+  height: 'calc(100vh - 64px)',
   width: '100%',
   display: 'flex',
   alignItems: 'stretch',
   overflow: 'hidden',
   [theme.breakpoints.down('md')]: {
-    // height: 'calc(100vh - 64px)',
+    height: 'calc(100vh - 64px)',
   },
   [theme.breakpoints.down('sm')]: {
-    // height: 'calc(100vh - 48px)',
+    height: 'calc(100vh - 48px)',
   },
 }));
 
