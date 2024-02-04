@@ -41,7 +41,7 @@ const MessageContentWrapper = styled(Box)(({ theme }) => ({
   overflow: 'hidden',
 
   [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 48px)',
+    height: 'calc(100vh - 64px)',
   },
 }));
 
@@ -52,7 +52,7 @@ const ConversationWrapper = styled(Box)(({ theme }) => ({
   overflow: 'hidden',
 
   [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 48px)',
+    height: 'calc(100vh - 64px)',
   },
 }));
 
