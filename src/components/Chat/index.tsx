@@ -28,7 +28,8 @@ const MessageWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100vh - 64px)',
+  // height: 'calc(100vh - 64px)',
+  height: '100%',
   overflow: 'hidden',
 
   [theme.breakpoints.down('md')]: {
@@ -37,22 +38,26 @@ const UsersWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const MessageContentWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100vh - 64px)',
+  // height: 'calc(100vh - 64px)',
+  height: '100%',
   overflow: 'hidden',
 
   [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 48px)',
+    // height: 'calc(100vh - 64px)',
+    height: '100%',
   },
 }));
 
 const ConversationWrapper = styled(Box)(({ theme }) => ({
   width: '100vw',
-  height: 'calc(100vh - 64px)',
+  // height: 'calc(100vh - 64px)',
+  height: '100%',
   position: 'relative',
   overflow: 'hidden',
 
   [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 48px)',
+    // height: 'calc(100vh - 64px)',
+    height: '100%',
   },
 }));
 
