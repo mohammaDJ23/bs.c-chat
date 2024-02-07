@@ -22,44 +22,6 @@ const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
-const TextSenderInputWrapper = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  zIndex: 1,
-  bottom: '0',
-  right: '0',
-  left: '0',
-  width: 'calc(100% - 280px)',
-  height: '50px',
-  backgroundColor: 'white',
-  borderTop: '1px solid #e0e0e0',
-
-  [theme.breakpoints.down('md')]: {
-    width: '100%',
-  },
-}));
-
-const UserStatusWrapper = styled(Box)(({ theme }) => ({
-  position: 'fixed',
-  top: '64px',
-  left: 0,
-  right: 0,
-  padding: '8px 10px',
-  borderBottom: '1px solid #e0e0e0',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: '5px',
-  height: '53px',
-  backgroundColor: 'white',
-  width: 'calc(100% - 280px)',
-  zIndex: 1,
-
-  [theme.breakpoints.down('md')]: {
-    width: '100%',
-    top: '48px',
-  },
-}));
-
 const MessagesContent: FC = () => {
   const messageListInstance = useInfinityList(MessageList);
   const selectors = useSelector();
@@ -107,7 +69,23 @@ const MessagesContent: FC = () => {
               overflow: 'hidden',
             }}
           >
-            <UserStatusWrapper>
+            <Box
+              sx={{
+                position: 'sticky',
+                top: 0,
+                left: 0,
+                padding: '8px 10px',
+                borderBottom: '1px solid #e0e0e0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '5px',
+                height: '53px',
+                backgroundColor: 'white',
+                width: '100%',
+                zIndex: 1,
+              }}
+            >
               <Box
                 onClick={() => onUserConversationNameClick()}
                 sx={{
@@ -183,7 +161,7 @@ const MessagesContent: FC = () => {
               >
                 <ArrowRightIcon fontSize="medium" />
               </Box>
-            </UserStatusWrapper>
+            </Box>
             {messageList.length > 0 ? (
               <Box
                 id="chat__messages-wrapper"
@@ -239,9 +217,21 @@ const MessagesContent: FC = () => {
                 <EmptyMessages />
               </Box>
             )}
-            <TextSenderInputWrapper>
+            <Box
+              sx={{
+                position: 'sticky',
+                zIndex: 1,
+                bottom: '0',
+                right: '0',
+                left: '0',
+                width: '100%',
+                height: '50px',
+                backgroundColor: 'white',
+                borderTop: '1px solid #e0e0e0',
+              }}
+            >
               <TextSenderInput />
-            </TextSenderInputWrapper>
+            </Box>
           </Box>
         )
       ) : (
