@@ -13,9 +13,10 @@ const MessagesSkeleton: FC = () => {
         width: '100%',
         gap: '40px',
         height: '100%',
+        overflow: 'hidden',
       }}
     >
-      <Box sx={{ width: '100%' }}>
+      <Box sx={{ width: '100%', flexShrink: '0' }}>
         <Skeleton width={'100%'} height={'50px'} />
       </Box>
       <Box
@@ -25,14 +26,19 @@ const MessagesSkeleton: FC = () => {
           flexDirection: 'column',
           gap: '20px',
           width: '100%',
+          height: '100%',
+          flexShrink: '1',
+          overflow: 'hidden',
         }}
       >
         <Box
           sx={{
             display: 'flex',
-            flexDirection: 'column',
+            flexDirection: 'column-reverse',
             gap: '30px',
             width: '100%',
+            height: '100%',
+            flexShrink: '1',
           }}
         >
           <Box
@@ -52,7 +58,7 @@ const MessagesSkeleton: FC = () => {
           </Box>
         </Box>
 
-        <Box sx={{ width: '100%' }}>
+        <Box sx={{ width: '100%', flexShrink: '0' }}>
           <Skeleton width={'100%'} height={'70px'} />
         </Box>
       </Box>

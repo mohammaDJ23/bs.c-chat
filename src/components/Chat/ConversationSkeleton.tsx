@@ -4,17 +4,12 @@ import UsersSkeleton from './UsersSkeleton';
 import MessagesSkeleton from './MessagesSkeleton';
 
 const SkeletonWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100vh - 64px)',
+  height: '100%',
   width: '100%',
   display: 'flex',
+  flexDirection: 'row',
   alignItems: 'stretch',
   overflow: 'hidden',
-  [theme.breakpoints.down('md')]: {
-    height: 'calc(100vh - 64px)',
-  },
-  [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 48px)',
-  },
 }));
 
 const UsersSkeletonWrapper = styled(Box)(({ theme }) => ({
@@ -22,6 +17,7 @@ const UsersSkeletonWrapper = styled(Box)(({ theme }) => ({
   padding: '16px',
   width: '280px',
   borderRight: '1px solid #e0e0e0',
+  flexShrink: '0',
   [theme.breakpoints.down('md')]: {
     display: 'none',
   },
@@ -31,6 +27,7 @@ const MessagesSkeletonWrapper = styled(Box)(({ theme }) => ({
   padding: '16px',
   width: 'calc(100% - 280px)',
   height: '100%',
+  flexShrink: '1',
   [theme.breakpoints.down('md')]: {
     width: '100%',
   },
