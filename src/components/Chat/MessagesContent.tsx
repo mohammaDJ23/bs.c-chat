@@ -213,7 +213,7 @@ const MessagesContent: FC = () => {
                 </Box>
               </Box>
             ) : (
-              <Box component="div" sx={{ width: '100%', height: '100%' }}>
+              <Box component="div" sx={{ width: '100%', height: 'calc(100% - 103px)' }}>
                 <EmptyMessages />
               </Box>
             )}
