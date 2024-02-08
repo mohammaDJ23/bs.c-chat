@@ -21,7 +21,6 @@ const TextField = styled(TF)(({ theme }) => ({
 const TextSenderInput: FC = () => {
   const [text, setText] = useState<string>('');
   const halfSecondDebounce = useRef(debounce());
-  const textInputRef = useRef<HTMLInputElement | null>(null);
   const selectors = useSelector();
   const snackbar = useSnackbar();
   const auth = useAuth();
@@ -66,13 +65,10 @@ const TextSenderInput: FC = () => {
           const timer = setTimeout(() => {
             const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
             if (messagesWrapperElement) {
-              // messagesWrapperElement.scrollTo({
-              //   behavior: 'smooth',
-              //   top: messagesWrapperElement.scrollHeight - messagesWrapperElement.clientHeight,
-              // });
-
-              messagesWrapperElement.scrollTop =
-                messagesWrapperElement.scrollHeight - messagesWrapperElement.clientHeight;
+              messagesWrapperElement.scrollTo({
+                behavior: 'smooth',
+                top: messagesWrapperElement.scrollHeight,
+              });
             }
             clearTimeout(timer);
           });
@@ -113,7 +109,10 @@ const TextSenderInput: FC = () => {
   const onTextFieldFocus = useCallback(() => {
     const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
     if (messagesWrapperElement) {
-      messagesWrapperElement.scrollTop = messagesWrapperElement.scrollHeight - messagesWrapperElement.clientHeight;
+      messagesWrapperElement.scrollTo({
+        behavior: 'smooth',
+        top: messagesWrapperElement.scrollHeight,
+      });
     }
   }, []);
 
@@ -133,9 +132,6 @@ const TextSenderInput: FC = () => {
         }}
       >
         <TextField
-          ref={textInputRef}
-          onChange={onTextFieldChange}
-          onFocus={onTextFieldFocus}
           placeholder={'Type your message here'}
           fullWidth
           value={text}
@@ -145,7 +141,7 @@ const TextSenderInput: FC = () => {
             '& fieldset': { border: 'none' },
             '& input': { padding: '14px' },
           }}
-          inputProps={{ id: 'chat__text-sender-input' }}
+          inputProps={{ id: 'chat__text-sender-input', onFocus: onTextFieldFocus, onChange: onTextFieldChange }}
         />
         <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
           <SendIcon color={text.length ? 'primary' : 'disabled'} sx={{ cursor: 'pointer' }} />
