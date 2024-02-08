@@ -110,6 +110,13 @@ const TextSenderInput: FC = () => {
     [chatSocket, selectedConversation]
   );
 
+  const onTextFieldFocus = useCallback(() => {
+    const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
+    if (messagesWrapperElement) {
+      messagesWrapperElement.scrollTop = messagesWrapperElement.scrollHeight - messagesWrapperElement.clientHeight;
+    }
+  }, []);
+
   return (
     <form
       onSubmit={(event) => {
@@ -128,6 +135,7 @@ const TextSenderInput: FC = () => {
         <TextField
           ref={textInputRef}
           onChange={onTextFieldChange}
+          onFocus={onTextFieldFocus}
           placeholder={'Type your message here'}
           fullWidth
           value={text}
