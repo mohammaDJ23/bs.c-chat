@@ -66,7 +66,7 @@ const TextSenderInput: FC = () => {
           const timer = setTimeout(() => {
             const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
             if (messagesWrapperElement) {
-              messagesWrapperElement.scrollTo({ behavior: 'smooth', top: messagesWrapperElement.scrollHeight });
+              messagesWrapperElement.scrollIntoView({ behavior: 'smooth' });
             }
             clearTimeout(timer);
           });
