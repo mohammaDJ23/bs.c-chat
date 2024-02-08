@@ -29,7 +29,7 @@ const MessageCard: FC<MessageCardImportation> = ({ message }) => {
           color: isUserEqualToCurrentUser ? 'white' : 'black',
           wordBreak: 'break-word',
           minWidth: '20px',
-          opacity: message.status === MessageStatus.PENDING || message.status === MessageStatus.ERROR ? 0.7 : 1,
+          opacity: message.status === MessageStatus.PENDING || message.status === MessageStatus.ERROR ? 0.55 : 1,
         }}
       >
         <Box
