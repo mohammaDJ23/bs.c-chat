@@ -10,19 +10,20 @@ const UsersSkeleton: FC = () => {
         alignItems: 'center',
         flexDirection: 'column',
         gap: '10px',
+        height: '100%',
       }}
     >
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
-      <Skeleton width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
+      <Skeleton sx={{ flexShrink: '0' }} width={'100%'} height={'80px'} />
     </Box>
   );
 };
