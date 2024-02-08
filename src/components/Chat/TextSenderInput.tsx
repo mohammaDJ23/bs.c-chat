@@ -66,13 +66,13 @@ const TextSenderInput: FC = () => {
           const timer = setTimeout(() => {
             const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
             if (messagesWrapperElement) {
-              messagesWrapperElement.scrollTo({
-                behavior: 'smooth',
-                top: messagesWrapperElement.scrollHeight - messagesWrapperElement.clientHeight,
-              });
+              // messagesWrapperElement.scrollTo({
+              //   behavior: 'smooth',
+              //   top: messagesWrapperElement.scrollHeight - messagesWrapperElement.clientHeight,
+              // });
 
-              // messagesWrapperElement.scrollTop =
-              //   messagesWrapperElement.scrollHeight - messagesWrapperElement.clientHeight;
+              messagesWrapperElement.scrollTop =
+                messagesWrapperElement.scrollHeight - messagesWrapperElement.clientHeight;
             }
             clearTimeout(timer);
           });
