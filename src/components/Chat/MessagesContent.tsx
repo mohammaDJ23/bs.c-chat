@@ -67,13 +67,12 @@ const MessagesContent: FC = () => {
               height: '100%',
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
             <Box
               sx={{
-                position: 'sticky',
-                top: 0,
-                left: 0,
                 padding: '8px 10px',
                 borderBottom: '1px solid #e0e0e0',
                 display: 'flex',
@@ -83,7 +82,7 @@ const MessagesContent: FC = () => {
                 height: '53px',
                 backgroundColor: 'white',
                 width: '100%',
-                zIndex: 1,
+                flexShrink: '0',
               }}
             >
               <Box
@@ -167,11 +166,12 @@ const MessagesContent: FC = () => {
                 id="chat__messages-wrapper"
                 component="div"
                 sx={{
-                  height: 'calc(100% - 103px)',
+                  height: '100%',
                   width: '100%',
                   padding: '5px',
                   overflowY: 'auto',
                   overflowX: 'hidden',
+                  flexShrink: '1',
                 }}
               >
                 {!messageListInstance.isListEnd() && selectors.conversations.isMessagesSpinnerElementActive && (
@@ -213,21 +213,17 @@ const MessagesContent: FC = () => {
                 </Box>
               </Box>
             ) : (
-              <Box component="div" sx={{ width: '100%', height: 'calc(100% - 103px)' }}>
+              <Box component="div" sx={{ width: '100%', height: '100%', flexShrink: '1' }}>
                 <EmptyMessages />
               </Box>
             )}
             <Box
               sx={{
-                position: 'sticky',
-                zIndex: 1,
-                bottom: '0',
-                right: '0',
-                left: '0',
                 width: '100%',
                 height: '50px',
                 backgroundColor: 'white',
                 borderTop: '1px solid #e0e0e0',
+                flexShrink: '0',
               }}
             >
               <TextSenderInput />
