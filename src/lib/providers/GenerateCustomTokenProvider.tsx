@@ -80,10 +80,8 @@ const GenerateCustomTokenProvider: FC<PropsWithChildren> = ({ children }) => {
     <ConversationSkeleton />
   ) : isInitialGenerateCustomTokenApiFailed || isInitialSigninWithCustomTokenApiFailed ? (
     <FailedConnectionOfConversation />
-  ) : user ? (
-    <Fragment>{children}</Fragment>
   ) : (
-    <FailedConnectionOfConversation />
+    user && <Fragment>{children}</Fragment>
   );
 };
 
