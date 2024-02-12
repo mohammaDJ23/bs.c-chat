@@ -72,13 +72,16 @@ const TextSenderInput: FC = () => {
           }
         })
         .then(() => {
-          const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
-          if (messagesWrapperElement) {
-            messagesWrapperElement.scrollTo({
-              behavior: 'smooth',
-              top: messagesWrapperElement.scrollHeight,
-            });
-          }
+          const timer = setTimeout(() => {
+            const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
+            if (messagesWrapperElement) {
+              messagesWrapperElement.scrollTo({
+                behavior: 'smooth',
+                top: messagesWrapperElement.scrollHeight,
+              });
+            }
+            clearTimeout(timer);
+          }, 200);
         });
     }
   }, [text, chatSocket, selectedConversation, messageListInstance, conversationListInstance]);
