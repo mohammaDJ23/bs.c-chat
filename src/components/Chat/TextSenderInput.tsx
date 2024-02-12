@@ -71,7 +71,7 @@ const TextSenderInput: FC = () => {
               });
             }
             clearTimeout(timer);
-          });
+          }, 1000);
 
           // then send the created message to the server to create a new one in the db
           chatSocket.emit('send-message', {
