@@ -42,46 +42,44 @@ const TextSenderInput: FC = () => {
 
   const onSendText = useCallback(() => {
     if (chatSocket && selectedConversation && text.length) {
-      const textSenderInput: HTMLInputElement | null = document.querySelector('#chat__text-sender-input');
-      if (textSenderInput) {
-        textSenderInput.focus();
-      }
+      new Promise<boolean>((resolve) => {
+        const conversationEl = document.querySelector(`[data-cactive="true"]`);
+        if (conversationEl) {
+          const conversationId = conversationEl.getAttribute('data-cid');
+          if (conversationId === selectedConversation.conversation.id) {
+            const message = new Message({
+              userId: decodedToken.id,
+              text: text.trim(),
+            });
 
-      const conversationEl = document.querySelector(`[data-cactive="true"]`);
+            messageListInstance.updateAndConcatList([message]);
 
-      // check if the conversation exist
-      if (conversationEl) {
-        const conversationId = conversationEl.getAttribute('data-cid');
+            chatSocket.emit('send-message', {
+              message,
+              roomId: selectedConversation.conversation.roomId,
+              conversationId: selectedConversation.conversation.id,
+            });
+            setText('');
 
-        if (conversationId === selectedConversation.conversation.id) {
-          const message = new Message({
-            userId: decodedToken.id,
-            text: text.trim(),
-          });
-
-          messageListInstance.updateAndConcatList([message]);
-
-          // scrolling the chat wrapper element to the bottom of the page
-          const timer = setTimeout(() => {
-            const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
-            if (messagesWrapperElement) {
-              messagesWrapperElement.scrollTo({
-                behavior: 'smooth',
-                top: messagesWrapperElement.scrollHeight,
-              });
-            }
-            clearTimeout(timer);
-          }, 1000);
-
-          // then send the created message to the server to create a new one in the db
-          chatSocket.emit('send-message', {
-            message,
-            roomId: selectedConversation.conversation.roomId,
-            conversationId: selectedConversation.conversation.id,
-          });
-          setText('');
+            resolve(true);
+          }
         }
-      }
+      })
+        .then(() => {
+          const textSenderInput: HTMLInputElement | null = document.querySelector('#chat__text-sender-input');
+          if (textSenderInput) {
+            textSenderInput.focus();
+          }
+        })
+        .then(() => {
+          const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
+          if (messagesWrapperElement) {
+            messagesWrapperElement.scrollTo({
+              behavior: 'smooth',
+              top: messagesWrapperElement.scrollHeight,
+            });
+          }
+        });
     }
   }, [text, chatSocket, selectedConversation, messageListInstance, conversationListInstance]);
 
