@@ -119,11 +119,6 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
               return { list: conversationList, count };
             })
             .catch((error: Error) => {
-              if (data.isInitialApi) actions.initialProcessingApiError(AllConversationsApi.name);
-              else actions.processingApiError(AllConversationsApi.name);
-
-              snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
-
               throw error;
             });
         }
