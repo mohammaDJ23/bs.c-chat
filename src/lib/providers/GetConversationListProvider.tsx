@@ -12,8 +12,10 @@ import {
 } from '../../lib';
 import { useSnackbar } from 'notistack';
 import { Socket } from 'socket.io-client';
+import { useSearchParams } from 'react-router-dom';
 
 const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
+  const [searchParams] = useSearchParams();
   const selectors = useSelector();
   const conversationListInstance = useInfinityList(ConversationList);
   const lastVisibleConversationDocRef = useRef<QueryDocumentSnapshot<DocumentData, DocumentData> | object>({});
@@ -25,6 +27,7 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
   const isCurrentOwner = auth.isCurrentOwner();
   const decodedToken = auth.getDecodedToken()!;
   const snackbar = useSnackbar();
+  const userId = searchParams.get('uid');
   const isAllConversationApiProcessing = request.isApiProcessing(AllConversationsApi);
   const connectionSocket = selectors.userServiceSocket.connection;
   const chatSocket = selectors.userServiceSocket.chat;
