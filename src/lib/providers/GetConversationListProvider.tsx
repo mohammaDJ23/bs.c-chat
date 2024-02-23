@@ -1,11 +1,12 @@
 import { FC, Fragment, PropsWithChildren, memo, useCallback, useEffect, useRef } from 'react';
-import { AllConversationsApi, AllOwnersApi, AllUsersApi, FirestoreQueries, RootApi } from '../../apis';
+import { AllConversationsApi, AllOwnersApi, AllUsersApi, FirestoreQueries } from '../../apis';
 import { useAction, useAuth, useInfinityList, useRequest, useSelector } from '../../hooks';
 import { DocumentData, QueryDocumentSnapshot, getCountFromServer, getDocs } from 'firebase/firestore';
 import {
   Conversation,
   ConversationDocObj,
   ConversationList,
+  ConversationObj,
   UserObj,
   getConversationTargetId,
   preventRunAt,
@@ -13,6 +14,7 @@ import {
 import { useSnackbar } from 'notistack';
 import { Socket } from 'socket.io-client';
 import { useSearchParams } from 'react-router-dom';
+import { WsErrorObj } from '../socket';
 
 const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
   const [searchParams] = useSearchParams();
@@ -77,10 +79,7 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
       });
   }, []);
 
-  const getConversationList = useCallback(async (data: Partial<RootApi> = {}) => {
-    if (data.isInitialApi) actions.initialProcessingApiLoading(AllConversationsApi.name);
-    else actions.processingApiLoading(AllConversationsApi.name);
-
+  const getConversationList = useCallback(async <T = [Conversation[], number],>(): Promise<T> => {
     return getPaginatedConversationListAndCount(
       decodedToken.id,
       conversationListInstance.getTake(),
@@ -97,9 +96,6 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
 
           return getUserList(ids, conversationListInstance.getTake())
             .then((response) => {
-              if (data.isInitialApi) actions.initialProcessingApiSuccess(AllConversationsApi.name);
-              else actions.processingApiSuccess(AllConversationsApi.name);
-
               const [list] = response.data;
 
               const conversationList = ids
@@ -119,18 +115,15 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
                 });
               }
 
-              return { list: conversationList, count };
+              return [conversationList, count] as T;
             })
             .catch((error: Error) => {
               throw error;
             });
         }
-        return undefined;
+        return [[], 0] as T;
       })
       .catch((error: Error) => {
-        if (data.isInitialApi) actions.initialProcessingApiError(AllConversationsApi.name);
-        else actions.processingApiError(AllConversationsApi.name);
-
         snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
 
         throw error;
@@ -138,14 +131,76 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    getConversationList({ isInitialApi: true }).then((conversationList) => {
-      if (conversationList) {
-        conversationListInstance.updateList(conversationList.list);
-        conversationListInstance.updateListAsObject(conversationList.list, (val) => val.user.id);
+    if (chatSocket) {
+      chatSocket.on('error', (data: WsErrorObj) => {
+        if (data.event === 'start-conversation-with-ack') {
+          actions.initialProcessingApiError(AllConversationsApi.name);
+        }
+      });
+    }
+  }, [chatSocket]);
+
+  const startConversationWithAck = useCallback((userId: number) => {
+    if (chatSocketRef.current) {
+      return chatSocketRef.current
+        .emitWithAck('start-conversation-with-ack', { id: userId })
+        .then((data: ConversationObj) => data)
+        .catch((error: Error) => {
+          throw error;
+        });
+    }
+  }, []);
+
+  useEffect(() => {
+    actions.initialProcessingApiLoading(AllConversationsApi.name);
+
+    getConversationList()
+      .then((conversations) => {
+        const [list, count] = conversations;
+
+        conversationListInstance.updateList(list);
+        conversationListInstance.updateListAsObject(list, (val) => val.user.id);
         conversationListInstance.updatePage(1);
-        conversationListInstance.updateTotal(conversationList.count);
-      }
-    });
+        conversationListInstance.updateTotal(count);
+
+        if (!userId) {
+          return;
+        }
+
+        const parsedUserId = +userId;
+        const conversation = list.find((item) => item.user.id === parsedUserId);
+
+        if (conversation) {
+          actions.selectUserForStartConversation(conversation);
+        } else {
+          const take = 1;
+          return getUserList([parsedUserId], take)
+            .then((response) => response.data)
+            .then(([list, count]) => {
+              if (count === take) {
+                return startConversationWithAck(list[0].id);
+              }
+            })
+            .then((conversation) => {
+              if (conversation) {
+                conversationListInstance.unshiftList(conversation);
+                conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
+                conversationListInstance.updateTotal(count + 1);
+                actions.selectUserForStartConversation(conversation);
+              }
+              return conversation;
+            })
+            .catch((error: Error) => {
+              throw error;
+            });
+        }
+      })
+      .then(() => {
+        actions.initialProcessingApiSuccess(AllConversationsApi.name);
+      })
+      .catch(() => {
+        actions.initialProcessingApiError(AllConversationsApi.name);
+      });
   }, []);
 
   useEffect(() => {
@@ -157,14 +212,18 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
             let page = conversationListInstance.getPage();
             page++;
 
-            getConversationList().then((conversationList) => {
-              if (conversationList) {
-                conversationListInstance.updateAndConcatList(conversationList.list);
-                conversationListInstance.updateListAsObject(conversationList.list, (val) => val.user.id);
+            actions.processingApiLoading(AllConversationsApi.name);
+
+            getConversationList()
+              .then((conversations) => {
+                const [list, count] = conversations;
+                conversationListInstance.updateAndConcatList(list);
+                conversationListInstance.updateListAsObject(list, (val) => val.user.id);
                 conversationListInstance.updatePage(page);
-                conversationListInstance.updateTotal(conversationList.count);
-              }
-            });
+                conversationListInstance.updateTotal(count);
+                actions.processingApiSuccess(AllConversationsApi.name);
+              })
+              .catch(() => actions.processingApiError(AllConversationsApi.name));
           }
         }, 1)
       );
