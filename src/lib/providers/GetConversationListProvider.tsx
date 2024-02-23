@@ -183,7 +183,9 @@ const GetConversationListProvider: FC<PropsWithChildren> = ({ children }) => {
             })
             .then((conversation) => {
               if (conversation) {
-                conversationListInstance.unshiftList(conversation);
+                const newList = list.slice();
+                newList.unshift(conversation);
+                conversationListInstance.updateList(newList);
                 conversationListInstance.updateListAsObject(conversation, (val) => val.user.id);
                 conversationListInstance.updateTotal(count + 1);
                 actions.selectUserForStartConversation(conversation);
