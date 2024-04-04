@@ -84,23 +84,18 @@ const GetMessageListProvider: FC<PropsWithChildren> = ({ children }) => {
           messageListInstance.updateList(getMessagesData(paginatedMessageListSnapshot));
           messageListInstance.updateTotal(getMessagesCount(messageListSnapshot));
           messageListInstance.updatePage(1);
-
-          {
-            const timer = setTimeout(() => {
-              const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
-              if (messagesWrapperElement) {
-                messagesWrapperElement.scrollTo({ top: messagesWrapperElement.scrollHeight });
-              }
-              clearTimeout(timer);
-            });
+        })
+        .then(() => {
+          const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
+          if (messagesWrapperElement) {
+            messagesWrapperElement.scrollTo({ top: messagesWrapperElement.scrollHeight });
           }
-
-          {
-            const timer = setTimeout(() => {
-              actions.showMessagesSpinnerElement();
-              clearTimeout(timer);
-            }, 500);
-          }
+        })
+        .then(() => {
+          const timer = setTimeout(() => {
+            actions.showMessagesSpinnerElement();
+            clearTimeout(timer);
+          }, 500);
         })
         .catch((error) => {
           snackbar.enqueueSnackbar({ message: error.message, variant: 'error' });
@@ -125,20 +120,21 @@ const GetMessageListProvider: FC<PropsWithChildren> = ({ children }) => {
           }
 
           if (!isMessagesApiProcessing && !messageListInstance.isListEnd()) {
-            getMessages().then(([paginatedMessageListSnapshot, messageListSnapshot]) => {
-              let page = messageListInstance.getPage();
-              page++;
-              updateLastVisibleMessageDoc(paginatedMessageListSnapshot);
-              messageListInstance.unshiftList(getMessagesData(paginatedMessageListSnapshot));
-              messageListInstance.updateTotal(getMessagesCount(messageListSnapshot));
-              messageListInstance.updatePage(page);
-
-              setTimeout(() => {
+            getMessages()
+              .then(([paginatedMessageListSnapshot, messageListSnapshot]) => {
+                let page = messageListInstance.getPage();
+                page++;
+                updateLastVisibleMessageDoc(paginatedMessageListSnapshot);
+                messageListInstance.unshiftList(getMessagesData(paginatedMessageListSnapshot));
+                messageListInstance.updateTotal(getMessagesCount(messageListSnapshot));
+                messageListInstance.updatePage(page);
+              })
+              .then(() => {
                 if (messagesWrapperElement) {
                   messagesWrapperElement.scrollTop = messagesWrapperElement.scrollHeight - previousScrollHeight;
+                  previousScrollHeight = 0;
                 }
               });
-            });
           }
         }, 1),
         { threshold: [0.2] }

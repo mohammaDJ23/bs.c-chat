@@ -21,13 +21,15 @@ const MessageWrapper = styled(Box)(({ theme }) => ({
   gridTemplateColumns: '280px auto',
   height: '100%',
   width: '100%',
+  overflow: 'hidden',
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: 'auto',
   },
 }));
 
 const UsersWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100vh - 64px)',
+  height: '100%',
+  overflow: 'hidden',
 
   [theme.breakpoints.down('md')]: {
     display: 'none',
@@ -35,22 +37,15 @@ const UsersWrapper = styled(Box)(({ theme }) => ({
 }));
 
 const MessageContentWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100vh - 64px)',
-
-  [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 48px)',
-  },
+  height: '100%',
+  overflow: 'hidden',
 }));
 
 const ConversationWrapper = styled(Box)(({ theme }) => ({
-  width: '100vw',
-  height: 'calc(100vh - 64px)',
+  width: '100%',
+  height: '100%',
   position: 'relative',
   overflow: 'hidden',
-
-  [theme.breakpoints.down('sm')]: {
-    height: 'calc(100vh - 48px)',
-  },
 }));
 
 const Chat: FC = () => {

@@ -1,11 +1,19 @@
 import { FC } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, styled } from '@mui/material';
 import { useAuth } from '../../hooks';
 import { MessageObj, MessageStatus, getMessageDate } from '../../lib';
 
 interface MessageCardImportation {
   message: MessageObj;
 }
+
+const MessageContent = styled(Box)(({ theme }) => ({
+  maxWidth: '400px',
+
+  [theme.breakpoints.down('sm')]: {
+    maxWidth: '280px',
+  },
+}));
 
 const MessageCard: FC<MessageCardImportation> = ({ message }) => {
   const auth = useAuth();
@@ -20,16 +28,15 @@ const MessageCard: FC<MessageCardImportation> = ({ message }) => {
         justifyContent: isUserEqualToCurrentUser ? 'start' : 'end',
       }}
     >
-      <Box
+      <MessageContent
         sx={{
           backgroundColor: isUserEqualToCurrentUser ? '#20A0FF' : '#f8f8f8',
           padding: '6px 12px',
           borderRadius: isUserEqualToCurrentUser ? '0 8px 8px 8px' : '8px 0 8px 8px',
-          maxWidth: '400px',
           color: isUserEqualToCurrentUser ? 'white' : 'black',
           wordBreak: 'break-word',
           minWidth: '20px',
-          opacity: message.status === MessageStatus.PENDING || message.status === MessageStatus.ERROR ? 0.7 : 1,
+          opacity: message.status === MessageStatus.PENDING || message.status === MessageStatus.ERROR ? 0.55 : 1,
         }}
       >
         <Box
@@ -51,7 +58,7 @@ const MessageCard: FC<MessageCardImportation> = ({ message }) => {
             {getMessageDate(message.createdAt.seconds * 1000)}
           </Typography>
         </Box>
-      </Box>
+      </MessageContent>
     </Box>
   );
 };

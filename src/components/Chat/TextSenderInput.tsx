@@ -21,7 +21,6 @@ const TextField = styled(TF)(({ theme }) => ({
 const TextSenderInput: FC = () => {
   const [text, setText] = useState<string>('');
   const halfSecondDebounce = useRef(debounce());
-  const textInputRef = useRef<HTMLInputElement | null>(null);
   const selectors = useSelector();
   const snackbar = useSnackbar();
   const auth = useAuth();
@@ -43,43 +42,47 @@ const TextSenderInput: FC = () => {
 
   const onSendText = useCallback(() => {
     if (chatSocket && selectedConversation && text.length) {
-      const textSenderInput: HTMLInputElement | null = document.querySelector('#chat__text-sender-input');
-      if (textSenderInput) {
-        textSenderInput.focus();
-      }
+      new Promise<boolean>((resolve) => {
+        const conversationEl = document.querySelector(`[data-cactive="true"]`);
+        if (conversationEl) {
+          const conversationId = conversationEl.getAttribute('data-cid');
+          if (conversationId === selectedConversation.conversation.id) {
+            const message = new Message({
+              userId: decodedToken.id,
+              text: text.trim(),
+            });
 
-      const conversationEl = document.querySelector(`[data-cactive="true"]`);
+            messageListInstance.updateAndConcatList([message]);
 
-      // check if the conversation exist
-      if (conversationEl) {
-        const conversationId = conversationEl.getAttribute('data-cid');
+            chatSocket.emit('send-message', {
+              message,
+              roomId: selectedConversation.conversation.roomId,
+              conversationId: selectedConversation.conversation.id,
+            });
+            setText('');
 
-        if (conversationId === selectedConversation.conversation.id) {
-          const message = new Message({
-            userId: decodedToken.id,
-            text: text.trim(),
-          });
-
-          messageListInstance.updateAndConcatList([message]);
-
-          // scrolling the chat wrapper element to the bottom of the page
+            resolve(true);
+          }
+        }
+      })
+        .then(() => {
+          const textSenderInput: HTMLInputElement | null = document.querySelector('#chat__text-sender-input');
+          if (textSenderInput) {
+            textSenderInput.focus();
+          }
+        })
+        .then(() => {
           const timer = setTimeout(() => {
             const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
             if (messagesWrapperElement) {
-              messagesWrapperElement.scrollTo({ behavior: 'smooth', top: messagesWrapperElement.scrollHeight });
+              messagesWrapperElement.scrollTo({
+                behavior: 'smooth',
+                top: messagesWrapperElement.scrollHeight,
+              });
             }
             clearTimeout(timer);
-          });
-
-          // then send the created message to the server to create a new one in the db
-          chatSocket.emit('send-message', {
-            message,
-            roomId: selectedConversation.conversation.roomId,
-            conversationId: selectedConversation.conversation.id,
-          });
-          setText('');
-        }
-      }
+          }, 200);
+        });
     }
   }, [text, chatSocket, selectedConversation, messageListInstance, conversationListInstance]);
 
@@ -104,6 +107,16 @@ const TextSenderInput: FC = () => {
     [chatSocket, selectedConversation]
   );
 
+  const onTextFieldFocus = useCallback(() => {
+    const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
+    if (messagesWrapperElement) {
+      messagesWrapperElement.scrollTo({
+        behavior: 'smooth',
+        top: messagesWrapperElement.scrollHeight,
+      });
+    }
+  }, []);
+
   return (
     <form
       onSubmit={(event) => {
@@ -120,8 +133,6 @@ const TextSenderInput: FC = () => {
         }}
       >
         <TextField
-          ref={textInputRef}
-          onChange={onTextFieldChange}
           placeholder={'Type your message here'}
           fullWidth
           value={text}
@@ -131,7 +142,7 @@ const TextSenderInput: FC = () => {
             '& fieldset': { border: 'none' },
             '& input': { padding: '14px' },
           }}
-          inputProps={{ id: 'chat__text-sender-input' }}
+          inputProps={{ id: 'chat__text-sender-input', onFocus: onTextFieldFocus, onChange: onTextFieldChange }}
         />
         <Box sx={{ padding: '0 14px' }} onClick={() => onSendText()}>
           <SendIcon color={text.length ? 'primary' : 'disabled'} sx={{ cursor: 'pointer' }} />

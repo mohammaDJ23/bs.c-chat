@@ -62,15 +62,14 @@ const ConversationEventsProvider: FC<PropsWithChildren> = ({ children }) => {
 
             // this check runs for receiver who receive the message from the sender
             else {
-              messageListInstance.updateAndConcatList([data.message]);
-
-              // scrolling the chat wrapper element to the bottom of the page
-              const timer = setTimeout(() => {
+              new Promise<boolean>((resolve) => {
+                messageListInstance.updateAndConcatList([data.message]);
+                resolve(true);
+              }).then(() => {
                 const messagesWrapperElement = document.getElementById('chat__messages-wrapper');
                 if (messagesWrapperElement) {
                   messagesWrapperElement.scrollTo({ behavior: 'smooth', top: messagesWrapperElement.scrollHeight });
                 }
-                clearTimeout(timer);
               });
             }
           }

@@ -22,30 +22,6 @@ const ArrowLeftIconWrapper = styled(Box)(({ theme }) => ({
   },
 }));
 
-const FormWrapper = styled(Box)(({ theme }) => ({
-  position: 'sticky',
-  zIndex: 1,
-  bottom: '0',
-  right: '0',
-  left: '0',
-  width: '100%',
-  height: '50px',
-  backgroundColor: 'white',
-  borderTop: '1px solid #e0e0e0',
-  [theme.breakpoints.down('md')]: {
-    left: '0',
-    width: '100%',
-  },
-}));
-
-const MessagesWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100% - 103px)',
-}));
-
-const EmptyMessagesWrapper = styled(Box)(({ theme }) => ({
-  height: 'calc(100% - 103px)',
-}));
-
 const MessagesContent: FC = () => {
   const messageListInstance = useInfinityList(MessageList);
   const selectors = useSelector();
@@ -91,13 +67,12 @@ const MessagesContent: FC = () => {
               height: '100%',
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
             <Box
               sx={{
-                position: 'sticky',
-                top: 0,
-                left: 0,
                 padding: '8px 10px',
                 borderBottom: '1px solid #e0e0e0',
                 display: 'flex',
@@ -107,6 +82,7 @@ const MessagesContent: FC = () => {
                 height: '53px',
                 backgroundColor: 'white',
                 width: '100%',
+                flexShrink: '0',
               }}
             >
               <Box
@@ -186,10 +162,17 @@ const MessagesContent: FC = () => {
               </Box>
             </Box>
             {messageList.length > 0 ? (
-              <MessagesWrapper
+              <Box
                 id="chat__messages-wrapper"
                 component="div"
-                sx={{ width: '100%', padding: '5px', overflowY: 'auto', overflowX: 'hidden' }}
+                sx={{
+                  height: '100%',
+                  width: '100%',
+                  padding: '5px',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  flexShrink: '1',
+                }}
               >
                 {!messageListInstance.isListEnd() && selectors.conversations.isMessagesSpinnerElementActive && (
                   <Box
@@ -228,15 +211,23 @@ const MessagesContent: FC = () => {
                     ))}
                   </Box>
                 </Box>
-              </MessagesWrapper>
+              </Box>
             ) : (
-              <EmptyMessagesWrapper component="div" sx={{ width: '100%' }}>
+              <Box component="div" sx={{ width: '100%', height: '100%', flexShrink: '1' }}>
                 <EmptyMessages />
-              </EmptyMessagesWrapper>
+              </Box>
             )}
-            <FormWrapper>
+            <Box
+              sx={{
+                width: '100%',
+                height: '50px',
+                backgroundColor: 'white',
+                borderTop: '1px solid #e0e0e0',
+                flexShrink: '0',
+              }}
+            >
               <TextSenderInput />
-            </FormWrapper>
+            </Box>
           </Box>
         )
       ) : (
